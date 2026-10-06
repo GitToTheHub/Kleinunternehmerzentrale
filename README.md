@@ -37,3 +37,7 @@ Spender erhalten keine Gegenleistung.
 
 ## Hinweis
 Die Texte der App sind allgemeine Informationen und keine Steuer- oder Rechtsberatung.
+
+## Lizenz
+© 2026 Manuel Beck. Alle Rechte vorbehalten. Der Code ist öffentlich einsehbar, darf aber ohne ausdrückliche
+Erlaubnis nicht kopiert, verändert oder weiterverwendet werden.
