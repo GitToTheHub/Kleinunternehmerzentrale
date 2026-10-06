@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
-    <title><%= content_for(:title) || "Kleinunternehmer Software" %></title>
+    <title><%= content_for(:title) || "Kleinunternehmerzentrale" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Kleinunternehmer Software">
+    <meta name="application-name" content="Kleinunternehmerzentrale">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -26,9 +26,9 @@
   <body>
     <header class="site-header">
       <div class="site-header__inner">
-        <%= link_to root_path, class: "brand", aria: { label: "Kleinunternehmer Software – Startseite" } do %>
+        <%= link_to root_path, class: "brand", aria: { label: "Kleinunternehmerzentrale – Startseite" } do %>
           <span class="brand__mark" aria-hidden="true">k</span>
-          <span>Kleinunternehmer<span class="brand__light"> Software</span></span>
+          <span>Kleinunternehmer<span class="brand__light">zentrale</span></span>
         <% end %>
         <nav class="site-nav" aria-label="Hauptnavigation">
           <%= link_to "Startseite", root_path %>

@@ -1,6 +1,6 @@
-# Kleinunternehmer Software
+# Kleinunternehmerzentrale
 
-Rails application for Kleinunternehmer Software.
+Rails application for Kleinunternehmerzentrale.
 
 ## Requirements
 
