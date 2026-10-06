@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   get "gewerbeanmeldung", to: "pages#gewerbeanmeldung"
   get "vorteile", to: "pages#vorteile"
   get "datenschutz", to: "pages#datenschutz"
+  get "spenden", to: "pages#spenden"
   patch "start_steps/:key", to: "start_steps#update", as: :start_step
   resource :export, only: :show
   resource :account, only: %i[new create destroy]

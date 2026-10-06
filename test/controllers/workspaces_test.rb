@@ -199,4 +199,10 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
     assert_includes entries["rechnungen.csv"], "'=Evil"
     assert_not_includes entries["rechnungen.csv"], invoices(:one).invoice_number
   end
+
+  test "Spendenseite verlinkt GitHub Sponsors" do
+    get spenden_url
+    assert_response :success
+    assert_select "a[href='https://github.com/sponsors/GitToTheHub']"
+  end
 end

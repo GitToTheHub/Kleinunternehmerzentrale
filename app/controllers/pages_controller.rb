@@ -13,4 +13,7 @@ class PagesController < ApplicationController
 
   def datenschutz
   end
+
+  def spenden
+  end
 end

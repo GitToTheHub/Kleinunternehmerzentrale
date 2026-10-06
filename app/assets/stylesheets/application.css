@@ -616,6 +616,7 @@ input.button--secondary, button.button--secondary {
 .first-invoice-tip { margin: 0 0 20px; padding: 16px 18px; border: 1px solid #bad0bf; border-radius: 12px; background: var(--mint); }
 .first-invoice-tip h2 { margin: 0 0 8px; font-size: 1.15rem; }
 .first-invoice-tip p { margin: 0 0 8px; }
+.first-invoice-tip__donate { font-size: .92rem; color: var(--muted); }
 .guest-notice { width: min(1000px, calc(100% - 48px)); margin: 16px auto 0; padding: 12px 16px; border: 1px solid #e9d9b6; border-radius: 12px; background: #fff8e8; font-size: .92rem; }
 .guest-notice p { margin: 0; }
 .account-form { max-width: 440px; }
