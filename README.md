@@ -1,40 +1,39 @@
 # Kleinunternehmerzentrale
 
-Rails application for Kleinunternehmerzentrale.
+Kostenlose, spendenbasierte Web-App für Kleinunternehmer in Deutschland. Sie erklärt Gründung,
+Steuern und Pflichten in einfacher Sprache und hilft beim Schreiben von Rechnungen.
+Ohne Abo, ohne Werbung, ohne Tracking.
 
-## Requirements
+## Funktionen
+- Start-Leitfaden mit Schritten, die man nach und nach abhakt
+- Rechnungen mit Druck/PDF und XRechnung-XML (Kleinunternehmer- und Regelbesteuerung)
+- Stornorechnung zur Korrektur, Hinweis zu den Umsatzgrenzen (25.000 € / 100.000 €)
+- Eigener Bereich pro Nutzer ohne Anmeldung (Cookie), später optional als Konto
+- Automatische Löschung von Gast-Daten nach 3 Monaten Inaktivität
+- Datenexport als ZIP (CSV und XML) und Löschen aller Daten
 
-- Ruby 4.0.7 (selected for this project in `.tool-versions`)
-- Bundler (install with `gem install bundler` if needed)
+## Entwicklung
+Voraussetzungen: Ruby (siehe `.tool-versions`) und SQLite.
 
-SQLite is used as the development and test database. Rails manages it locally; no separate database server is required.
+    bundle install
+    bin/rails db:setup
+    bin/rails server
+    bin/rails test
+    bin/rubocop
 
-## Setup
+## Deployment
+Mit Kamal auf einen eigenen Server (z. B. Hetzner-VPS). Benötigte Umgebungsvariablen:
+`DEPLOY_SERVER_IP`, `APP_DOMAIN`, `REGISTRY_USER`, `KAMAL_REGISTRY_PASSWORD`. Siehe `config/deploy.yml`.
 
-From the project directory, run:
+    bin/kamal setup
+    bin/kamal deploy
 
-```sh
-bin/setup --skip-server
-```
+Die SQLite-Datenbank liegt im Volume `storage/`. Täglich entsteht eine Sicherungskopie in `storage/backups`.
+Zusätzlich sollten Server-Backups beim Hoster aktiviert sein.
 
-This installs the Ruby dependencies and prepares the database without starting the server.
+## Unterstützen
+Das Projekt finanziert sich über Spenden: [GitHub Sponsors](https://github.com/sponsors/GitToTheHub).
+Spender erhalten keine Gegenleistung.
 
-## Run the application
-
-```sh
-bin/rails server
-```
-
-Then open <http://localhost:3000>.
-
-## Rechnungen und E-Rechnungen
-
-Unter **Rechnungen** kannst du eine Kleinunternehmer-Rechnung erstellen, drucken oder über den Browser als PDF speichern. Auf Wunsch kann die Rechnung auch als strukturierte XRechnung-Datei (XML) heruntergeladen werden. Die Rechnung wird ohne Umsatzsteuer erstellt; nutze diese Funktion daher nur, wenn du die Kleinunternehmerregelung anwendest.
-
-Kleinunternehmer müssen seit dem 1. Januar 2025 E-Rechnungen empfangen können, sind aber von der Pflicht zum Ausstellen einer E-Rechnung ausgenommen. Die Hinweise im Rechnungsformular erläutern die übrigen Fälle und Übergangsfristen. Vor dem Einsatz mit echten Kundendaten benötigt die Anwendung noch Benutzerkonten und Zugriffsschutz.
-
-## Run tests
-
-```sh
-bin/rails test
-```
+## Hinweis
+Die Texte der App sind allgemeine Informationen und keine Steuer- oder Rechtsberatung.
