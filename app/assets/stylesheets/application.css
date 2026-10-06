@@ -687,3 +687,4 @@ input.button--secondary, button.button--secondary {
 .address-suggestions li { padding: 9px 12px; border-radius: 8px; cursor: pointer; }
 .address-suggestions li:hover, .address-suggestions li.is-active { background: #e6efe8; }
 .address-status { color: var(--muted); }
+.donate-promise { padding: 12px 16px; border: 1px solid #bad0bf; border-radius: 12px; background: var(--mint); }
