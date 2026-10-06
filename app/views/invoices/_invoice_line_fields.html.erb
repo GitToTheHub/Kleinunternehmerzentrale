@@ -1,0 +1,61 @@
+<details class="invoice-line" data-invoice-lines-target="row" data-controller="line-quantity" data-action="hourly-rate:changed@window->line-quantity#rateChanged input->invoice-lines#updateSummary change->invoice-lines#updateSummary">
+  <summary class="invoice-line__summary" data-action="click->invoice-lines#toggle">
+    <span class="invoice-line__title" data-invoice-lines-target="title">Position</span>
+    <span class="invoice-line__text"><strong data-summary="description"></strong><small data-summary="details"></small></span>
+    <span class="invoice-line__calc" data-summary="calc"></span>
+    <button type="button" class="invoice-line__remove" data-invoice-lines-target="remove" aria-label="Position löschen" title="Position löschen" data-action="click->invoice-lines#remove">
+      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4h4v2m-6 0 .7 10h6.6L14 6M8.5 9v4m3-4v4"/></svg>
+    </button>
+    <span class="invoice-line__chevron" aria-hidden="true"></span>
+  </summary>
+  <div class="invoice-line__content">
+    <div class="invoice-line__body">
+      <div class="field">
+        <%= form.label :description, "Leistung oder Artikel" %>
+        <%= form.text_field :description, required: true %>
+      </div>
+      <div class="field">
+        <%= form.label :details, "Beschreibung (optional)", id: "#{form.field_id(:details)}_label" %>
+        <div class="rich-text" data-controller="rich-text" data-action="rich-text:clear->rich-text#clear">
+          <div class="rich-text__toolbar" role="toolbar" aria-label="Textformatierung">
+            <button type="button" data-rich-text-target="button" data-command="bold" aria-label="Fett" title="Fett" data-action="mousedown->rich-text#keepSelection click->rich-text#format"><strong>F</strong></button>
+            <button type="button" data-rich-text-target="button" data-command="italic" aria-label="Kursiv" title="Kursiv" data-action="mousedown->rich-text#keepSelection click->rich-text#format"><em>K</em></button>
+            <button type="button" data-rich-text-target="button" data-command="insertUnorderedList" aria-label="Aufzählung" title="Aufzählung" data-action="mousedown->rich-text#keepSelection click->rich-text#format">• Liste</button>
+          </div>
+          <div class="rich-text__editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="<%= form.field_id(:details) %>_label" data-rich-text-target="editor" data-action="input->rich-text#sync keyup->rich-text#sync mouseup->rich-text#sync paste->rich-text#paste"></div>
+          <%= form.hidden_field :details, data: { rich_text_target: "input" } %>
+        </div>
+        <small>Nur wenn der Titel nicht reicht, zum Beispiel Umfang, Lieferumfang oder Projektname. Du kannst Text fett oder kursiv setzen und Listen anlegen.</small>
+      </div>
+      <div class="field">
+        <%= form.label :unit_code, "Einheit" %>
+        <%= form.select :unit_code, InvoiceLine::UNIT_CODES.map { |code, label| [label, code] }, {}, required: true, data: { line_quantity_target: "unit", action: "line-quantity#unitChanged" } %>
+      </div>
+      <div class="field" data-line-quantity-target="field" data-action="focusin->line-quantity#focus focusout->line-quantity#blur">
+        <%= form.label :quantity, "Menge" %>
+        <div class="quantity-input">
+          <button type="button" class="quantity-input__step" aria-label="Menge um 1 verringern" data-action="mousedown->line-quantity#keepFocus line-quantity#decrease">−</button>
+          <%= form.number_field :quantity, min: "0.01", step: "any", required: true, inputmode: "decimal", data: { line_quantity_target: "quantity", action: "input->line-quantity#prefillTime" } %>
+          <button type="button" class="quantity-input__step" aria-label="Menge um 1 erhöhen" data-action="mousedown->line-quantity#keepFocus line-quantity#increase">+</button>
+        </div>
+        <small>Ganze Zahlen, bei Bedarf auch Kommazahlen wie 1,5.</small>
+        <div class="hours-calculator" data-line-quantity-target="hours" hidden>
+          <label>Stunden und Minuten umrechnen
+            <input type="text" inputmode="numeric" placeholder="z. B. 1:30" autocomplete="off" data-line-quantity-target="time" data-action="input->line-quantity#convert">
+          </label>
+          <small data-line-quantity-target="result"></small>
+        </div>
+      </div>
+      <div class="field">
+        <%= form.label :unit_price do %>Preis je Einheit<span data-show-for="small_business"> (€)</span><span data-show-for="standard"> (€ netto)</span><% end %>
+        <%= form.number_field :unit_price, min: "0", step: "0.01", required: true, data: { line_quantity_target: "price" } %>
+      </div>
+      <div class="field" data-show-for="standard">
+        <%= form.label :tax_rate, "Umsatzsteuersatz" %>
+        <%= form.select :tax_rate, InvoiceLine::TAX_RATES.map { |rate| ["#{rate} %", rate] }, { selected: form.object.tax_rate_percent.nonzero? || 19 } %>
+        <small>19 % ist der Regelsatz. 7 % gilt nur für bestimmte Leistungen, zum Beispiel Bücher oder Lebensmittel.</small>
+      </div>
+      <p class="invoice-line__total">Summe der Position: <strong data-summary="total">0,00 €</strong></p>
+    </div>
+  </div>
+</details>

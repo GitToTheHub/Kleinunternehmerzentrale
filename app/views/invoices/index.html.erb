@@ -1,0 +1,44 @@
+<main>
+  <h1>Deine Rechnungen</h1>
+  <p>Erstelle eine Rechnung zum Ausdrucken oder lade sie auf Wunsch als strukturierte XRechnung herunter.</p>
+
+  <%= render "invoices/revenue_notice" %>
+
+  <p><%= link_to "Neue Rechnung erstellen", new_invoice_path, class: "button button--primary" %></p>
+
+  <% if @invoices.any? %>
+    <div class="invoice-list">
+      <% @invoices.each do |invoice| %>
+        <%= link_to invoice_path(invoice), class: "invoice-list__item" do %>
+          <strong><%= invoice.invoice_number %><% if invoice.cancellation? %> (Storno)<% elsif invoice.cancellation %> (storniert)<% end %></strong>
+          <span><%= invoice.buyer_name %></span>
+          <span><%= invoice.issued_on.strftime("%d.%m.%Y") %></span>
+          <strong><%= number_to_currency(invoice.total, unit: "€", format: "%n %u", locale: :de) %></strong>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <section class="invoice-panel">
+      <h2>Noch keine Rechnungen</h2>
+      <p>Erstelle deine erste Rechnung. Du kannst sie danach drucken oder als XRechnung herunterladen.</p>
+    </section>
+  <% end %>
+
+  <% if workspace? %>
+    <section class="invoice-panel">
+      <h2>Aufbewahrung und Datenschutz</h2>
+      <p>
+        Rechnungen musst du selbst <strong>8 Jahre lang unverändert aufbewahren</strong>. Speichere dir deshalb jede
+        Rechnung als PDF (Drucken, dann „Als PDF speichern“) und bei E-Rechnungen die XML-Datei auf deinem eigenen Gerät.
+        Diese App ist kein Archiv.
+      </p>
+      <p>
+        Mit dem Datenexport lädst du alles als ZIP herunter: Rechnungen, Positionen, Kundenliste (als Tabelle für Excel) und alle E-Rechnungen als XML.
+        Das ist ein guter Zeitpunkt, bevor du etwas löschst.
+      </p>
+      <p><%= link_to "Meine Daten herunterladen (ZIP)", export_path, class: "button button--secondary" %></p>
+      <%= button_to "Alle meine Daten löschen", account_path, method: :delete, class: "button button--secondary",
+            form: { data: { turbo_confirm: "Wirklich alle Rechnungen, Kundendaten und dein Konto löschen? Das kannst du nicht rückgängig machen." } } %>
+    </section>
+  <% end %>
+</main>

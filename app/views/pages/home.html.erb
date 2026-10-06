@@ -1,0 +1,130 @@
+<% content_for :title, "Einfache EÜR und Rechnungen für Selbstständige" %>
+
+<main>
+  <section class="hero" aria-labelledby="home-title">
+    <div class="hero__content">
+      <p class="eyebrow">Weniger Papierkram. Mehr Zeit für dein Geschäft.</p>
+      <h1 id="home-title">Einnahmen und Ausgaben.<br><span>Einfach im Blick.</span></h1>
+      <p class="hero__intro">
+        Rechnungen schreiben, Belege und Zahlungen erfassen und deine EÜR vorbereiten.
+        Für Selbstständige, die die Kleinunternehmerregelung nutzen – egal, ob du gerade startest
+        oder schon länger selbstständig bist.
+      </p>
+      <%= link_to "Rechnung erstellen", new_invoice_path, class: "button button--primary" %>
+      <%= link_to "Das kannst du damit erledigen", "#buchhaltung", class: "button button--secondary" %>
+    </div>
+    <div class="hero__art" aria-hidden="true">
+      <div class="hero-card">
+        <span class="hero-card__icon">✓</span>
+        <span>Einfach den Überblick behalten</span>
+        <div class="hero-card__line"></div>
+        <div class="hero-card__line hero-card__line--short"></div>
+      </div>
+      <span class="hero__spark hero__spark--one"></span>
+      <span class="hero__spark hero__spark--two"></span>
+    </div>
+  </section>
+
+  <%= render "pages/start_guide" %>
+
+  <section class="guides" id="buchhaltung" aria-labelledby="guides-title">
+    <p class="eyebrow">Für deinen Alltag</p>
+    <h2 id="guides-title">Der Papierkram, der zu deinem Geschäft gehört</h2>
+    <div class="guide-grid">
+      <article class="guide-card">
+        <span class="guide-card__number">01</span>
+        <span class="guide-card__title">Rechnungen schreiben</span>
+        <span class="guide-card__text">Erstelle Rechnungen passend zu deiner Tätigkeit und deiner Umsatzsteuer-Regelung.</span>
+      </article>
+      <article class="guide-card">
+        <span class="guide-card__number">02</span>
+        <span class="guide-card__title">Belege und Zahlungen erfassen</span>
+        <span class="guide-card__text">Halte fest, was du einnimmst und für dein Geschäft ausgibst.</span>
+      </article>
+      <article class="guide-card">
+        <span class="guide-card__number">03</span>
+        <span class="guide-card__title">EÜR vorbereiten</span>
+        <span class="guide-card__text">Stelle Einnahmen und Ausgaben übersichtlich zusammen und bereite deine EÜR vor.</span>
+      </article>
+    </div>
+    <p class="limits__note">Einfach gehalten, damit du weniger Zeit mit dem Papierkram und mehr Zeit mit deinem Geschäft verbringst.</p>
+  </section>
+
+  <section aria-labelledby="einfache-buchfuehrung">
+    <p class="eyebrow">Einfach erklärt</p>
+    <h2 id="einfache-buchfuehrung">Musst du jeden Tag komplizierte Buchhaltung machen?</h2>
+    <p>
+      Nein. Du musst deine geschäftlichen Einnahmen und Ausgaben festhalten und die Belege aufbewahren.
+      Wenn du deinen Gewinn mit einer EÜR ermitteln darfst, stellst du dafür am Jahresende deine Einnahmen
+      und Ausgaben gegenüber. Das ist viel einfacher als eine doppelte Buchführung mit Bilanz.
+    </p>
+    <p>
+      Im Alltag wird das oft „Buchhaltung“ genannt. Gemeint ist hier aber vor allem: Rechnungen und Belege
+      sammeln und Einnahmen und Ausgaben übersichtlich erfassen. Wenn du eine EÜR machen darfst, musst du
+      normalerweise nicht jeden Vorgang doppelt auf Konten buchen und eine Bilanz erstellen.
+    </p>
+    <p>
+      Manche Buchhaltungsprogramme zeigen trotzdem Konten oder Kontonummern an, zum Beispiel aus einem
+      Kontenrahmen wie SKR03. Das Programm nutzt diese oft, um Einnahmen und Ausgaben einzuordnen.
+      Das allein bedeutet nicht, dass du eine doppelte Buchführung machen musst.
+    </p>
+    <p>
+      Wenn du allein ein kleines Geschäft führst oder freiberuflich arbeitest, kannst du deinen Gewinn
+      meistens mit einer EÜR berechnen: Du ziehst deine geschäftlichen Ausgaben von deinen Einnahmen ab.
+      Für die meisten kleinen Einzelunternehmen und Freiberufler ist das der übliche Weg – auch, wenn sie
+      die Kleinunternehmerregelung nutzen.
+    </p>
+    <p>
+      Es gibt aber Ausnahmen. Ein Einzelunternehmen kann zum Beispiel zu groß werden, sodass das Finanzamt
+      eine aufwendigere Buchführung mit Bilanz verlangt. Und eine GmbH muss grundsätzlich eine Bilanz
+      erstellen. Sie kann trotzdem die Kleinunternehmerregelung nutzen, wenn sie deren Voraussetzungen
+      erfüllt: Die Regelung betrifft nur die Umsatzsteuer und entscheidet nicht darüber, ob du eine EÜR
+      machen darfst. Die EÜR wird normalerweise zusammen mit der Einkommensteuererklärung ans Finanzamt
+      geschickt.
+    </p>
+  </section>
+
+  <section aria-labelledby="einzelunternehmen">
+    <p class="eyebrow">Eine Person, ein Geschäft</p>
+    <h2 id="einzelunternehmen">Was ist ein Einzelunternehmen?</h2>
+    <p>
+      Wenn du allein ein Gewerbe startest, führst du meistens ein Einzelunternehmen. Das ist keine besondere
+      Umsatzsteuer-Regel: Die Kleinunternehmerregelung betrifft die Umsatzsteuer; „Einzelunternehmen“ bedeutet,
+      dass du allein Inhaber bist. Auch Freiberufler können allein selbstständig sein.
+    </p>
+    <p>
+      Wichtig: Als Einzelunternehmer haftest du grundsätzlich auch mit deinem Privatvermögen für
+      geschäftliche Schulden. Überlege deshalb, welche Risiken deine Tätigkeit mit sich bringt.
+    </p>
+  </section>
+
+  <section aria-labelledby="kleinunternehmerregelung-kurz">
+    <p class="eyebrow">Gut zu wissen</p>
+    <h2 id="kleinunternehmerregelung-kurz">Die Kleinunternehmerregelung – kurz erklärt</h2>
+    <div class="simple-explainer">
+      <span class="simple-explainer__icon" aria-hidden="true">€</span>
+      <p>
+      Du schreibst Rechnungen ohne Umsatzsteuer und zahlst diese Steuer nicht ans Finanzamt.
+      Dafür bekommst du die Umsatzsteuer auf geschäftliche Einkäufe nicht zurück.
+      <%= link_to "Mehr dazu – mit Beispielen", vorteile_path %>
+      </p>
+    </div>
+  </section>
+
+  <section class="limits" aria-labelledby="limits-title">
+    <div>
+      <p class="eyebrow">Neu in der Selbstständigkeit?</p>
+      <h2 id="limits-title">Wir helfen auch beim Start</h2>
+      <p>Informiere dich über Anmeldung, erste Kosten und die Umsatzsteuer-Regelung.</p>
+    </div>
+    <div class="limit-card">
+      <%= link_to "Gewerbe anmelden", gewerbeanmeldung_path %>
+      <small>Formular und nächste Schritte</small>
+    </div>
+    <div class="limit-card">
+      <%= link_to "Gründungskosten ansehen", gruendungskosten_path %>
+      <small>Einmalige und laufende Kosten</small>
+    </div>
+    <p class="limits__note">Für Selbstständige, die die Kleinunternehmerregelung nutzen möchten – vor und nach dem Start.</p>
+  </section>
+</main>

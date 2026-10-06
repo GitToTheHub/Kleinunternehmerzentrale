@@ -1,0 +1,136 @@
+<% content_for :title, @invoice.invoice_number %>
+<main>
+  <% if @preview %>
+    <div class="invoice-preview-banner no-print" role="status">
+      <strong>Vorschau</strong> – diese Rechnung ist noch nicht erstellt. Die Rechnungsnummer ist vorläufig.
+      <button type="button" class="button button--secondary" onclick="window.close()">Vorschau schließen</button>
+    </div>
+  <% else %>
+  <% if flash[:first_invoice] %>
+    <aside class="first-invoice-tip no-print">
+      <h2>Deine erste Rechnung – gut gemacht! 🎉</h2>
+      <p><strong>Zwei Dinge noch:</strong> Speichere sie über „Drucken oder als PDF speichern“ auf deinem Gerät und schicke sie deiner Kundin oder deinem Kunden.</p>
+      <p>Hebe die Datei 8 Jahre lang unverändert auf. Das ist Pflicht, aber ganz einfach: ein Ordner genügt.</p>
+    </aside>
+  <% end %>
+  <% if @invoice.cancellation? %>
+    <p class="invoice-status no-print">Das ist eine Stornorechnung zu <%= link_to @invoice.cancelled_invoice.invoice_number, invoice_path(@invoice.cancelled_invoice) %>.</p>
+  <% elsif @invoice.cancellation %>
+    <p class="invoice-status no-print">Diese Rechnung ist storniert durch <%= link_to @invoice.cancellation.invoice_number, invoice_path(@invoice.cancellation) %>. <%= link_to "Korrigierte Rechnung erstellen", new_invoice_path(copy_from: @invoice.id) %></p>
+  <% end %>
+  <div class="invoice-actions no-print">
+    <%= link_to "Alle Rechnungen", invoices_path, class: "button button--secondary" %>
+    <button type="button" class="button button--primary" data-controller="print" data-action="print#print">Drucken oder als PDF speichern</button>
+    <% if @invoice.seller_email.present? && @invoice.buyer_email.present? %>
+      <%= link_to "XRechnung herunterladen (XML)", xrechnung_invoice_path(@invoice), class: "button button--secondary" %>
+    <% else %>
+      <span class="invoice-email-requirement">Für eine XRechnung müssen E-Mail-Adressen für beide Seiten eingetragen sein.</span>
+    <% end %>
+  </div>
+  <% end %>
+
+  <article class="print-invoice">
+    <header class="print-invoice__header">
+      <div>
+        <p class="eyebrow"><%= @invoice.cancellation? ? "Stornorechnung" : "Rechnung" %></p>
+        <h1><%= @invoice.invoice_number %></h1>
+      </div>
+      <div class="print-invoice__seller">
+        <strong><%= @invoice.seller_name %></strong><br>
+        <%= @invoice.seller_street %><br>
+        <%= @invoice.seller_postal_code %> <%= @invoice.seller_city %><br>
+        <%= Invoice::COUNTRIES.rassoc(@invoice.seller_country)&.first %><br>
+        <% if @invoice.seller_email.present? %><%= @invoice.seller_email %><br><% end %>
+        <%= @invoice.seller_tax_id_kind == "vat_id" ? "Umsatzsteuer-ID" : "Steuernummer" %>: <%= @invoice.seller_tax_identifier %>
+      </div>
+    </header>
+
+    <% if @invoice.cancellation? %>
+      <p class="invoice-cancellation-note">Diese Stornorechnung hebt die Rechnung <strong><%= @invoice.cancelled_invoice.invoice_number %></strong> vom <%= @invoice.cancelled_invoice.issued_on.strftime("%d.%m.%Y") %> auf.</p>
+    <% end %>
+
+    <section class="print-invoice__recipient">
+      <h2>Rechnung an</h2>
+      <strong><%= @invoice.buyer_name %></strong><br>
+      <%= @invoice.buyer_street %><br>
+      <%= @invoice.buyer_postal_code %> <%= @invoice.buyer_city %><br>
+      <%= Invoice::COUNTRIES.rassoc(@invoice.buyer_country)&.first %>
+    </section>
+
+    <dl class="invoice-meta">
+      <div><dt>Rechnungsdatum</dt><dd><%= @invoice.issued_on.strftime("%d.%m.%Y") %></dd></div>
+      <% if @invoice.service_until_on? %>
+        <div><dt>Leistungszeitraum</dt><dd><%= @invoice.service_on.strftime("%d.%m.%Y") %> bis <%= @invoice.service_until_on.strftime("%d.%m.%Y") %></dd></div>
+      <% else %>
+        <div><dt>Leistungsdatum</dt><dd><%= @invoice.service_on.strftime("%d.%m.%Y") %></dd></div>
+      <% end %>
+      <% if @invoice.buyer_order_number.present? %><div><dt>Bestellnummer</dt><dd><%= @invoice.buyer_order_number %></dd></div><% end %>
+      <% if @invoice.buyer_leitweg_id.present? %><div><dt>Leitweg-ID</dt><dd><%= @invoice.buyer_leitweg_id %></dd></div><% end %>
+    </dl>
+
+    <table class="invoice-table">
+      <thead>
+        <tr><th>Leistung oder Artikel</th><th>Menge</th><th><%= @invoice.standard_taxed? ? "Einzelpreis (netto)" : "Einzelpreis" %></th><% if @invoice.standard_taxed? %><th>USt</th><% end %><th><%= @invoice.standard_taxed? ? "Betrag (netto)" : "Betrag" %></th></tr>
+      </thead>
+      <tbody>
+        <% @invoice.invoice_lines.each do |line| %>
+          <tr>
+            <td><%= line.description %><% if line.details.present? %><div class="invoice-line-details"><%= line.details_html %></div><% end %></td>
+              <td><%= number_with_precision(line.quantity, strip_insignificant_zeros: true, locale: :de) %> <%= line.unit_label %></td>
+              <td><%= number_to_currency(line.unit_price, unit: "€", format: "%n %u", locale: :de) %></td>
+              <% if @invoice.standard_taxed? %><td><%= line.tax_rate_percent %> %</td><% end %>
+              <td><%= number_to_currency(line.line_total, unit: "€", format: "%n %u", locale: :de) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <% columns = @invoice.standard_taxed? ? 4 : 3 %>
+        <% if @invoice.standard_taxed? %>
+          <tr><td colspan="<%= columns %>">Nettobetrag</td><td><%= number_to_currency(@invoice.net_total, unit: "€", format: "%n %u", locale: :de) %></td></tr>
+          <% @invoice.tax_groups.each do |group| %>
+            <tr><td colspan="<%= columns %>">Umsatzsteuer <%= group[:rate] %> % auf <%= number_to_currency(group[:net], unit: "€", format: "%n %u", locale: :de) %></td><td><%= number_to_currency(group[:tax], unit: "€", format: "%n %u", locale: :de) %></td></tr>
+          <% end %>
+        <% end %>
+        <tr><th colspan="<%= columns %>">Gesamtbetrag</th><th><%= number_to_currency(@invoice.total, unit: "€", format: "%n %u", locale: :de) %></th></tr>
+      </tfoot>
+    </table>
+
+    <% unless @invoice.standard_taxed? %>
+    <p class="invoice-tax-note">Keine Umsatzsteuer ausgewiesen. Es gilt die Steuerbefreiung für Kleinunternehmer (<%= link_to "§ 19 UStG", "https://www.gesetze-im-internet.de/ustg_1980/__19.html", target: "_blank", rel: "noopener" %>).</p>
+    <% end %>
+    <% if @invoice.iban.present? || @invoice.payment_due_on || @invoice.payment_terms.present? %>
+      <section class="invoice-payment">
+        <h2>Zahlung</h2>
+        <% if @invoice.payment_due_on %><p>Bitte überweise den Betrag bis zum <strong><%= l(@invoice.payment_due_on, format: "%d.%m.%Y") %></strong>.</p><% end %>
+        <% if @invoice.iban.present? %>
+          <p>Kontoinhaber: <%= @invoice.seller_name %><br>IBAN: <strong><%= @invoice.iban.scan(/.{1,4}/).join(" ") %></strong><% if @invoice.bic.present? %><br>BIC: <%= @invoice.bic %><% end %><br>Verwendungszweck: <%= @invoice.invoice_number %></p>
+        <% end %>
+        <% if @invoice.payment_terms.present? %><p><%= @invoice.payment_terms %></p><% end %>
+      </section>
+    <% end %>
+
+    <% unless @preview %>
+    <section class="no-print invoice-download-note">
+      <h2>Du möchtest eine E-Rechnung senden?</h2>
+      <p>
+        Lade die XML-Datei über „XRechnung herunterladen“ herunter und sende diese Datei an deine Kundin
+        oder deinen Kunden. Ein Ausdruck oder eine PDF-Datei allein ist keine E-Rechnung.
+      </p>
+    </section>
+    <% unless @invoice.cancellation? || @invoice.cancellation %>
+      <section class="no-print invoice-download-note">
+        <details>
+          <summary>Ist etwas falsch auf der Rechnung?</summary>
+          <p>
+            Das ist nicht schlimm und kommt vor. Eine gespeicherte Rechnung darf man nicht ändern. Stattdessen stornierst du sie:
+            Es entsteht eine Stornorechnung, die die alte Rechnung aufhebt, und du schreibst danach eine neue, korrigierte Rechnung.
+            Deine Angaben werden dafür schon übernommen. Schicke beides deiner Kundin oder deinem Kunden.
+          </p>
+          <%= button_to "Rechnung stornieren und korrigieren", cancel_invoice_path(@invoice), class: "button button--secondary",
+                form: { data: { turbo_confirm: "Wirklich stornieren? Es wird eine Stornorechnung erstellt. Das lässt sich nicht rückgängig machen." } } %>
+        </details>
+      </section>
+    <% end %>
+    <% end %>
+  </article>
+</main>

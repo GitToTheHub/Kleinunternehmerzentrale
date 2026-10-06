@@ -1,0 +1,89 @@
+<% content_for :title, "Datenschutzerklärung" %>
+
+<main>
+  <h1>Datenschutzerklärung</h1>
+  <p>Hier steht, welche Daten diese Website verarbeitet, wenn du sie nutzt, und wohin sie gelangen.</p>
+
+  <section aria-labelledby="verantwortlicher">
+    <h2 id="verantwortlicher">Verantwortlicher</h2>
+    <p>
+      Manuel Beck, Debstedter Str. 33a, 27607 Geestland<br>
+      E-Mail: <a href="mailto:email@manuelbeck.software">email@manuelbeck.software</a><br>
+      Weitere Angaben findest du im <%= link_to "Impressum", "https://manuelbeck.software/impressum", target: "_blank", rel: "noopener" %>.
+    </p>
+  </section>
+
+  <section aria-labelledby="rechnungsdaten">
+    <h2 id="rechnungsdaten">Daten, die du in die Rechnungsfunktion eingibst</h2>
+    <p>
+      Wenn du eine Rechnung erstellst, gibst du Angaben zu dir (Name, Anschrift, E-Mail-Adresse, Steuernummer
+      oder Umsatzsteuer-ID, Bankverbindung) und zu deiner Kundin oder deinem Kunden (Name, Anschrift,
+      E-Mail-Adresse) sowie die Rechnungspositionen ein. Diese Daten werden auf dem Server gespeichert,
+      damit du die Rechnung ansehen, ausdrucken und als XRechnung herunterladen kannst und damit deine Angaben
+      bei der nächsten Rechnung vorausgefüllt werden.
+    </p>
+    <p>
+      Rechtsgrundlage ist die Erfüllung der Nutzung dieser Funktion, die du selbst auslöst (Art. 6 Abs. 1
+      Buchst. b DSGVO). Die Daten bleiben gespeichert, bis sie gelöscht werden. Wenn du Daten einer Kundin oder
+      eines Kunden eingibst, bist du dafür selbst verantwortlich, dass du sie dafür verwenden darfst.
+    </p>
+  </section>
+
+  <section aria-labelledby="adressvorschlaege">
+    <h2 id="adressvorschlaege">Adressvorschläge (Photon)</h2>
+    <p>
+      In den Feldern „Straße und Hausnummer“ zeigt die Website beim Tippen Adressvorschläge an. Dafür sendet
+      dein Browser die Zeichen, die du eingibst, direkt an den Dienst <strong>Photon</strong>
+      (<code>photon.komoot.io</code>), der auf OpenStreetMap-Daten beruht und von der komoot GmbH, Potsdam,
+      Deutschland, betrieben wird. Dabei erhält der Dienst technisch bedingt deine <strong>IP-Adresse</strong>
+      und die übliche Browser-Kennung. Die Vorschläge werden nur abgefragt, während du in diesen Feldern tippst.
+    </p>
+    <p>
+      Rechtsgrundlage ist unser berechtigtes Interesse, dir die Eingabe zu erleichtern (Art. 6 Abs. 1
+      Buchst. f DSGVO). Wenn du das nicht möchtest, tippe die Adresse einfach vollständig selbst ein und wähle
+      keinen Vorschlag. Die Abfrage startet aber bereits beim Tippen. Mehr dazu findest du in der
+      <%= link_to "Datenschutzerklärung von komoot", "https://www.komoot.com/privacy", target: "_blank", rel: "noopener" %>.
+    </p>
+  </section>
+
+  <section aria-labelledby="speicherdauer">
+    <h2 id="speicherdauer">Gast-Bereich, Konto und Löschung</h2>
+    <p>
+      Du kannst die Rechnungsfunktion ohne Konto nutzen. Deine Eingaben werden dann in einem eigenen Bereich
+      gespeichert, den nur dein Browser wiederfindet. Wenn du 3 Monate lang nichts machst, löschen wir diesen Bereich
+      mit allen Rechnungen und Kundendaten automatisch.
+    </p>
+    <p>
+      Wenn du ein Konto anlegst, speichern wir zusätzlich deine E-Mail-Adresse und dein Passwort (als sicheren Hash).
+      Dein Bereich bleibt dann bestehen, bis du ihn löschst. Du kannst jederzeit alle deine Daten löschen
+      (Schaltfläche „Alle meine Daten löschen“ unten in deiner Rechnungsübersicht).
+    </p>
+  </section>
+
+  <section aria-labelledby="cookies">
+    <h2 id="cookies">Cookies und Server-Protokolle</h2>
+    <p>
+      Die Website setzt technisch notwendige Cookies: ein Sitzungs-Cookie, damit Formulare und Hinweismeldungen
+      funktionieren, und ein Cookie, das deinen persönlichen Bereich wiedererkennt (eine zufällige Kennung, keine
+      Angaben zu dir). Ohne dieses Cookie könnten wir dir deine Rechnungen nicht wieder zeigen. Beide Cookies dienen
+      nicht der Verfolgung, deshalb ist keine Einwilligung nötig. Tracking, Werbung oder Analyse-Dienste setzen wir nicht ein.
+    </p>
+    <p>
+      Beim Aufruf speichert der Server technisch notwendige Zugriffsdaten (zum Beispiel IP-Adresse, Zeitpunkt,
+      aufgerufene Seite). Das ist für Betrieb und Sicherheit nötig (Art. 6 Abs. 1 Buchst. f DSGVO).
+      Die Website läuft auf einem Server der Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen (Rechenzentrum in Deutschland).
+      Mit Hetzner besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO).
+    </p>
+  </section>
+
+  <section aria-labelledby="rechte">
+    <h2 id="rechte">Deine Rechte</h2>
+    <p>
+      Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
+      Datenübertragbarkeit und Widerspruch (Art. 15 bis 21 DSGVO). Alle deine Daten kannst du jederzeit selbst als ZIP-Datei herunterladen und in der App löschen. Du kannst dich außerdem bei einer
+      Datenschutz-Aufsichtsbehörde beschweren. Wende dich für deine Anliegen an die oben genannte Adresse.
+    </p>
+  </section>
+
+  <p><small>Diese Erklärung ist eine allgemeine Information und keine Rechtsberatung.</small></p>
+</main>

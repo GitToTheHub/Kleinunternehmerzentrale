@@ -1,0 +1,93 @@
+<% content_for :title, "Gründungskosten Kleingewerbe – Kleinunternehmer Software" %>
+
+<main>
+  <h1>Was kostet es, ein Kleingewerbe zu gründen?</h1>
+  <p>
+    Ein Gewerbe anzumelden kostet meist nicht viel. Hier findest du typische einmalige und laufende Kosten.
+    Die Beträge unterscheiden sich je nach Gemeinde und Tätigkeit.
+  </p>
+
+  <h2>Einmalige Kosten</h2>
+  <table>
+    <thead>
+      <tr><th>Schritt</th><th>Kosten</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Gewerbeanmeldung bei deiner Gemeinde</td>
+        <td>
+          je nach Gemeinde unterschiedlich, meist zwischen 15 und 65 Euro
+          (z. B. Berlin <%= number_to_currency(Steuerwerte::GEWERBEANMELDUNG_BERLIN, precision: 0) %>,
+          online <%= number_to_currency(Steuerwerte::GEWERBEANMELDUNG_BERLIN_ONLINE, precision: 0) %>).
+          In der Praxis können auch nur 23 Euro anfallen, wie bei der ersten Anmeldung 2022 in Geestland.
+          Mehr dazu: <%= link_to "So füllst du die Gewerbeanmeldung aus", gewerbeanmeldung_path %>
+        </td>
+      </tr>
+      <tr>
+        <td>Fragebogen des Finanzamts in ELSTER</td>
+        <td>kostenlos</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Die genaue Gebühr erfährst du bei deiner Gemeinde. Bei erlaubnispflichtigen Tätigkeiten
+    können zusätzliche Kosten anfallen.
+  </p>
+  <p>
+    Wenn du einen freien Beruf ausübst, brauchst du keine Gewerbeanmeldung. Du meldest deine Tätigkeit beim Finanzamt an.
+  </p>
+
+  <h2>Laufende Kosten</h2>
+  <h3>Beitrag für die IHK</h3>
+  <ul>
+    <li>
+      Viele kleine Gewerbe zahlen keinen IHK-Beitrag, wenn sie nicht im Handelsregister stehen und ihr jährlicher
+      Gewerbeertrag – vereinfacht: der Gewinn aus dem Gewerbe – höchstens
+      <%= number_to_currency(Steuerwerte::IHK_BEFREIUNG_GEWERBEERTRAG, precision: 0) %> beträgt.
+    </li>
+    <li>
+      Für manche Gründer gibt es zusätzliche Erleichterungen: Im Gründungsjahr und im folgenden Jahr kann der
+      Beitrag entfallen, wenn der jährliche Gewerbeertrag höchstens
+      <%= number_to_currency(Steuerwerte::IHK_BEFREIUNG_GRUENDER_GEWERBEERTRAG, precision: 0) %> beträgt.
+      In den zwei Jahren danach kann ein Teil entfallen, ein jährlicher Grundbeitrag kann aber bleiben.
+    </li>
+    <li>
+      Es gibt also keine pauschale Regel, dass alle Gewerbe zwei Jahre lang nichts zahlen. Die IHK prüft die
+      Voraussetzungen und schickt dir gegebenenfalls einen Bescheid.
+    </li>
+    <li>
+      Ein Grundbeitrag kann je nach IHK unterschiedlich sein. Als Beispiel: Ein Gründer hat 45 Euro pro Jahr gezahlt.
+      Das ist kein bundesweit einheitlicher Betrag.
+    </li>
+    <li>
+      Für die Gründer-Erleichterung musst du unter anderem in den fünf Jahren vor der Gründung nicht bereits
+      selbstständig oder gewerblich tätig gewesen sein.
+    </li>
+    <li>
+      Die genauen Regeln erfährst du bei deiner IHK. Handwerksbetriebe wenden sich an die Handwerkskammer;
+      dort gelten eigene Beiträge.
+    </li>
+  </ul>
+
+  <h3>Gewerbesteuer</h3>
+  <p>
+    Für Einzelunternehmen und Personengesellschaften gibt es einen Freibetrag von
+    <%= number_to_currency(Steuerwerte::GEWERBESTEUER_FREIBETRAG, precision: 0) %> beim Gewerbeertrag
+    (vereinfacht: dein Gewinn aus dem Gewerbe). Erst wenn du darüber liegst, kann Gewerbesteuer anfallen.
+    Freie Berufe zahlen keine Gewerbesteuer.
+  </p>
+
+  <h3>Optional</h3>
+  <p>Betriebshaftpflicht, Geschäftskonto, Buchhaltungssoftware.</p>
+
+  <h2>Quellen</h2>
+  <ul>
+    <li><%= link_to "§ 3 IHKG", "https://www.gesetze-im-internet.de/ihkg/__3.html" %></li>
+    <li><%= link_to "§ 11 GewStG", "https://www.gesetze-im-internet.de/gewstg/__11.html" %></li>
+    <li><%= link_to "Gewerbeanmeldung Berlin", "https://service.berlin.de/dienstleistung/121921/" %></li>
+  </ul>
+
+  <p><small>Stand <%= Steuerwerte::STAND %>. Allgemeine Informationen, keine Steuer- oder Rechtsberatung. Gebühren und Regeln können sich ändern.</small></p>
+
+  <p><%= link_to "Zurück zur Startseite", root_path %></p>
+</main>

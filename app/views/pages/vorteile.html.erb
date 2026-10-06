@@ -1,0 +1,128 @@
+<% content_for :title, "Vorteile der Kleinunternehmerregelung – einfach erklärt" %>
+
+<main>
+  <h1>Vorteile der Kleinunternehmerregelung</h1>
+  <p>
+    Die Kleinunternehmerregelung ist eine Wahlmöglichkeit bei der Umsatzsteuer – keine Rechtsform
+    und keine eigene Art, ein Geschäft zu gründen.
+  </p>
+
+  <section aria-labelledby="umsatzsteuer-vorteil">
+    <h2 id="umsatzsteuer-vorteil">Was bedeutet die Regelung für dich?</h2>
+    <p>
+      <strong>Du schreibst deinen Kundinnen und Kunden Rechnungen ohne Umsatzsteuer.</strong>
+      Das ist die Steuer, die Unternehmen sonst auf ihre Verkäufe aufschlagen und ans Finanzamt weitergeben.
+      Dein Preis kann dadurch für Privatkundinnen und Privatkunden günstiger sein.
+    </p>
+    <p>
+      <strong>Dafür bekommst du die Umsatzsteuer auf geschäftliche Einkäufe nicht zurück.</strong>
+      Kaufst du zum Beispiel einen Computer für dein Geschäft, zahlst du die Umsatzsteuer darauf selbst.
+    </p>
+    <p>
+      <strong>Ein Beispiel:</strong> Du kaufst ein Software-Abo oder Online-Werbung bei einem Unternehmen,
+      das nicht in Deutschland sitzt. Wenn auf der Rechnung keine deutsche Umsatzsteuer steht, musst du
+      möglicherweise selbst Umsatzsteuer dafür ans Finanzamt zahlen. Die Kleinunternehmerregelung schützt
+      nicht automatisch vor dieser Pflicht.
+    </p>
+  </section>
+
+  <h2>Das wird einfacher</h2>
+  <ul>
+    <li>
+      <strong>Rechnungen ohne Umsatzsteuer:</strong> Du schlägst deinen Kundinnen und Kunden keine Umsatzsteuer auf.
+    </li>
+    <li>
+      <strong>Weniger Steuerformulare:</strong> Im normalen Alltag musst du keine regelmäßigen Meldungen
+      zur Umsatzsteuer abgeben. Eine Ausnahme kann zum Beispiel sein, wenn du ein Software-Abo oder
+      Online-Werbung von einem ausländischen Unternehmen kaufst und die Rechnung ohne deutsche Umsatzsteuer
+      erhältst. Dann musst du die Steuer unter Umständen selbst berechnen, melden und bezahlen.
+    </li>
+    <li>
+      <strong>Einfache Gewinnübersicht:</strong> Viele Selbstständige können ihre Einnahmen und Ausgaben
+      einfach gegenüberstellen. Diese Übersicht heißt Einnahmen-Überschuss-Rechnung (EÜR).
+    </li>
+    <li>
+      <strong>Einfachere Preise:</strong> Besonders für Privatkundinnen und Privatkunden kann ein Preis ohne
+      zusätzlichen Steuerbetrag attraktiv sein.
+    </li>
+  </ul>
+
+  <h2>Das solltest du wissen</h2>
+  <p>
+    Auf deine Rechnung gehört ein kurzer Hinweis, warum keine Umsatzsteuer berechnet wird.
+    Ein Beispiel dafür ist: „Für diese Leistung gilt die Kleinunternehmerregelung.“
+  </p>
+  <p>
+    Deine Einnahmen dürfen bestimmte Grenzen nicht überschreiten: im letzten Jahr höchstens
+    <%= number_to_currency(Steuerwerte::KLEINUNTERNEHMER_VORJAHRESGRENZE, precision: 0) %>, in diesem Jahr höchstens
+    <%= number_to_currency(Steuerwerte::KLEINUNTERNEHMER_LAUFENDE_GRENZE, precision: 0) %>.
+    Bei einer Neugründung gelten besondere Regeln.
+  </p>
+
+  <section aria-labelledby="einkommensteuer-krankenversicherung">
+    <h2 id="einkommensteuer-krankenversicherung">Was Selbstständige außerdem wissen sollten</h2>
+
+    <h3>Du kannst bei der Gründung wählen</h3>
+    <p>
+      Wenn du die Voraussetzungen erfüllst, kannst du bei der Gründung die Kleinunternehmerregelung nutzen.
+      Dann schreibst du Rechnungen ohne Umsatzsteuer, bekommst aber die Steuer auf geschäftliche Einkäufe nicht
+      zurück. Du kannst dich auch dagegen entscheiden und Umsatzsteuer berechnen. Diese Entscheidung bindet dich
+      grundsätzlich mindestens fünf Jahre. Überlege, was besser passt – zum Beispiel, ob du am Anfang viele
+      teure Anschaffungen planst.
+    </p>
+
+    <h3>Einkommensteuer: Es zählt vor allem dein Gewinn</h3>
+    <p>
+      Dein Gewinn ist das Geld, das nach Abzug deiner Geschäftskosten übrig bleibt.
+      Für die Einkommensteuer zählt vor allem dieser Gewinn – nicht alles Geld, das deine Kundinnen und Kunden
+      zahlen (dein Umsatz).
+    </p>
+    <p>
+      Es gibt einen steuerfreien Grundbetrag, den sogenannten Grundfreibetrag. Er gilt für alle Menschen,
+      nicht nur für Kleinunternehmer, und wird jedes Jahr neu festgelegt. 2026 beträgt er
+      <%= number_to_currency(Steuerwerte::GRUNDFREIBETRAG_2026, precision: 0) %> für eine Person.
+      Wenn dein Gewinn und andere zu berücksichtigende Einkünfte insgesamt niedrig genug sind, zahlst du
+      möglicherweise keine Einkommensteuer. Für eine erste Orientierung kannst du deinen Gewinn mit dem
+      Grundfreibetrag vergleichen; andere Einkünfte und Abzüge können das Ergebnis verändern.
+    </p>
+
+    <h3>Krankenversicherung: Es gibt einen Mindestbeitrag</h3>
+    <p>
+      Wenn du freiwillig gesetzlich versichert bist, kann die Krankenkasse einen Mindestbeitrag berechnen,
+      auch wenn dein Gewinn niedrig ist. Dafür gibt es eine gesetzliche Rechengröße: 2026 wird der Beitrag
+      mindestens so berechnet, als hättest du <%= number_to_currency(Steuerwerte::GKV_MINDESTBEMESSUNGSGRUNDLAGE_2026, precision: 2) %>
+      im Monat an beitragspflichtigen Einnahmen. Das ist kein Geld, das du wirklich verdient hast.
+      Zur Krankenversicherung kommt außerdem die Pflegeversicherung hinzu.
+    </p>
+    <p>
+      Der Mindestbetrag kann sich jedes Jahr ändern. Wie viel du zahlst, hängt auch von deiner Krankenkasse
+      und deiner persönlichen Situation ab. Die private Krankenversicherung berechnet ihre Beiträge anders.
+    </p>
+
+    <h3>GKV oder private Krankenversicherung?</h3>
+    <p>
+      Selbstständige brauchen eine Kranken- und Pflegeversicherung. Ob du gesetzlich oder privat versichert
+      sein kannst, hängt von deiner Situation ab. Bei einer privaten Versicherung sinkt der Beitrag nicht
+      automatisch, wenn dein Gewinn sinkt. Vergleiche deshalb Kosten und Leistungen sorgfältig, bevor du
+      dich entscheidest oder wechselst.
+    </p>
+  </section>
+
+  <h2>Quellen</h2>
+  <ul>
+    <li><%= link_to "Gesetzliche Regeln zur Kleinunternehmerregelung", "https://www.gesetze-im-internet.de/ustg_1980/__19.html" %></li>
+    <li><%= link_to "Wann du Umsatzsteuer für eine Leistung aus dem Ausland selbst zahlen musst", "https://www.gesetze-im-internet.de/ustg_1980/__13b.html" %></li>
+    <li><%= link_to "Wann eine Umsatzsteuer-Meldung trotzdem nötig sein kann", "https://www.gesetze-im-internet.de/ustg_1980/__18.html" %></li>
+    <li><%= link_to "Welche Angaben auf eine Kleinunternehmer-Rechnung gehören", "https://www.gesetze-im-internet.de/ustdv_1980/__34a.html" %></li>
+    <li><%= link_to "BMF: Die wichtigsten steuerlichen Änderungen 2026", "https://www.bundesfinanzministerium.de/Content/DE/Standardartikel/Themen/Steuern/das-aendert-sich-2026.html" %></li>
+    <li><%= link_to "So berechnet sich die Einkommensteuer", "https://www.gesetze-im-internet.de/estg/__2.html" %></li>
+    <li><%= link_to "Aktuelle Rechengrößen der gesetzlichen Krankenversicherung", "https://www.gkv-spitzenverband.de/media/dokumente/presse/zahlen_und_grafiken/20260101_Faktenblatt_Rechengroessen_Beitragsrecht.pdf" %></li>
+    <li><%= link_to "Beiträge zur gesetzlichen Krankenversicherung", "https://www.bundesgesundheitsministerium.de/beitraege" %></li>
+    <li><%= link_to "Beiträge zur privaten Krankenversicherung", "https://www.bundesgesundheitsministerium.de/service/begriffe-von-a-z/b/beitraege-in-der-privaten-krankenversicherung/seite" %></li>
+    <li><%= link_to "Wechsel zwischen gesetzlicher und privater Krankenversicherung", "https://www.bundesgesundheitsministerium.de/themen/krankenversicherung/online-ratgeber-krankenversicherung/krankenversicherung/wechsel-zwischen-gkv-und-pkv" %></li>
+  </ul>
+
+  <p><small>Stand <%= Steuerwerte::STAND %>. Allgemeine Informationen, keine Steuer- oder Rechtsberatung. Bitte Details im Zweifel beim Finanzamt oder bei einer Steuerberatung klären.</small></p>
+
+  <p><%= link_to "Zurück zur Startseite", root_path %></p>
+</main>

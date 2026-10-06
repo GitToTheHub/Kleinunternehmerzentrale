@@ -1,0 +1,8 @@
+<% notice = RevenueLimits.new(current_workspace).notice %>
+<% if notice %>
+  <aside class="revenue-notice revenue-notice--<%= notice.level %>" role="<%= notice.level == :alert ? "alert" : "status" %>">
+    <h2><%= notice.title %></h2>
+    <p><%= notice.text %> <%= link_to "Mehr zu § 19 UStG", "https://www.gesetze-im-internet.de/ustg_1980/__19.html", target: "_blank", rel: "noopener" %></p>
+    <p><small>Gerechnet nach dem Datum deiner Rechnungen in dieser App. Maßgeblich ist, was du insgesamt eingenommen hast – auch außerhalb dieser App.</small></p>
+  </aside>
+<% end %>

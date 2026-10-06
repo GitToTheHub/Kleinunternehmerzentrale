@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <title><%= content_for(:title) || "Kleinunternehmer Software" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Kleinunternehmer Software">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <%= link_to root_path, class: "brand", aria: { label: "Kleinunternehmer Software – Startseite" } do %>
+          <span class="brand__mark" aria-hidden="true">k</span>
+          <span>Kleinunternehmer<span class="brand__light"> Software</span></span>
+        <% end %>
+        <nav class="site-nav" aria-label="Hauptnavigation">
+          <%= link_to "Startseite", root_path %>
+          <%= link_to "Rechnungen", invoices_path %>
+          <%= link_to "Gründung", gruendungskosten_path %>
+          <%= link_to "Anmeldung", gewerbeanmeldung_path %>
+          <%= link_to "Vorteile", vorteile_path %>
+          <% if current_workspace&.account? %>
+            <%= button_to "Abmelden", session_path, method: :delete, class: "site-nav__button" %>
+          <% else %>
+            <%= link_to "Anmelden", new_session_path %>
+          <% end %>
+        </nav>
+      </div>
+    </header>
+
+    <% flash.each do |type, message| %>
+      <% next unless message.is_a?(String) %>
+      <div class="flash-message flash-message--<%= type %>" role="status"><%= message %></div>
+    <% end %>
+
+    <% if workspace? && !current_workspace.account? %>
+      <aside class="guest-notice" aria-label="Hinweis zu deinen Daten">
+        <p>
+          <strong>Du arbeitest ohne Konto.</strong> Deine Daten sind nur in diesem Browser gespeichert und werden
+          gelöscht, wenn du 3 Monate lang nichts machst.
+          <%= link_to "Konto anlegen", new_account_path %>, damit sie bleiben.
+        </p>
+      </aside>
+    <% end %>
+
+    <%= yield %>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <span>Klarheit für deinen Start in die Selbstständigkeit.</span>
+        <span>Allgemeine Informationen – keine Steuer- oder Rechtsberatung.</span>
+        <%= link_to "Datenschutz", datenschutz_path %>
+        <%= link_to "Impressum", "https://manuelbeck.software/impressum", target: "_blank", rel: "noopener" %>
+        <%= link_to "Impressum", "https://manuelbeck.software/impressum", target: "_blank", rel: "noopener" %>
+      </div>
+    </footer>
+  </body>
+</html>

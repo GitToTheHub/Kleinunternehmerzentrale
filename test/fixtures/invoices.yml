@@ -1,0 +1,45 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  workspace: one
+  invoice_number: FIXTURE-1
+  issued_on: 2026-10-05
+  service_on: 2026-10-05
+  seller_name: MyString
+  seller_street: MyString
+  seller_postal_code: MyString
+  seller_city: MyString
+  seller_country: DE
+  seller_email: MyString
+  seller_tax_identifier: MyString
+  seller_tax_id_kind: tax_number
+  seller_vat_id: MyString
+  buyer_name: MyString
+  buyer_street: MyString
+  buyer_postal_code: MyString
+  buyer_city: MyString
+  buyer_country: DE
+  buyer_email: MyString
+  payment_terms: MyString
+
+two:
+  workspace: one
+  invoice_number: FIXTURE-2
+  issued_on: 2026-10-05
+  service_on: 2026-10-05
+  seller_name: MyString
+  seller_street: MyString
+  seller_postal_code: MyString
+  seller_city: MyString
+  seller_country: DE
+  seller_email: MyString
+  seller_tax_identifier: MyString
+  seller_tax_id_kind: tax_number
+  seller_vat_id: MyString
+  buyer_name: MyString
+  buyer_street: MyString
+  buyer_postal_code: MyString
+  buyer_city: MyString
+  buyer_country: DE
+  buyer_email: MyString
+  payment_terms: MyString

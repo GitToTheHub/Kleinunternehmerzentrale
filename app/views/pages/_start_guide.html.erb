@@ -1,0 +1,33 @@
+<% guide = StartGuide.new(current_workspace) %>
+<section class="start-guide" aria-labelledby="start-guide-title">
+  <% if guide.finished? %>
+    <h2 id="start-guide-title">Geschafft – du bist gestartet 🎉</h2>
+    <p>Du hast alle Schritte erledigt. Wenn du etwas nachlesen möchtest, helfen dir die Seiten oben.</p>
+  <% else %>
+    <% step = guide.current %>
+    <p class="eyebrow">Schritt <%= guide.position(step) %> von <%= guide.steps.size %></p>
+    <h2 id="start-guide-title"><%= step.title %></h2>
+    <p><%= step.text %></p>
+    <div class="start-guide__actions">
+      <% if step.link_path %>
+        <%= link_to step.link_text, public_send(step.link_path), class: "button button--primary" %>
+      <% end %>
+      <% unless step.key == "rechnung" %>
+        <%= button_to "Das habe ich erledigt", start_step_path(step.key), method: :patch, class: "button #{step.link_path ? 'button--secondary' : 'button--primary'}", form: { class: "start-guide__form" } %>
+      <% end %>
+    </div>
+  <% end %>
+  <details class="start-guide__all">
+    <summary>Alle Schritte ansehen</summary>
+    <ol>
+      <% guide.steps.each do |step| %>
+        <li class="<%= "is-done" if guide.done?(step) %>">
+          <%= guide.done?(step) ? "✓" : "○" %> <%= step.title %>
+          <% if step.key != "rechnung" && guide.done?(step) %>
+            <%= button_to "zurücknehmen", start_step_path(step.key), method: :patch, class: "start-guide__undo", form: { class: "start-guide__form" } %>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+  </details>
+</section>

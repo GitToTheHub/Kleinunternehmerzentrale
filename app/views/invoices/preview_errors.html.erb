@@ -1,0 +1,12 @@
+<main>
+  <h1>Vorschau nicht möglich</h1>
+  <div class="form-errors" role="alert">
+    <p>Bitte korrigiere diese Angaben im Formular:</p>
+    <ul>
+      <% @invoice.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+  <p><button type="button" class="button button--secondary" onclick="window.close()">Fenster schließen</button></p>
+</main>

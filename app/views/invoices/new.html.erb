@@ -1,0 +1,224 @@
+<main>
+  <h1>Rechnung erstellen</h1>
+  <p>Erstelle eine Rechnung zum Ausdrucken oder als XRechnung. Wähle zuerst, wie du besteuert wirst.</p>
+
+  <%= render "invoices/revenue_notice" %>
+
+  <%= form_with model: @invoice, authenticity_token: form_authenticity_token, html: { class: "invoice-form", data: { controller: "tax-mode", tax_mode: @invoice.tax_mode, hourly_rate: @profile.hourly_rate } } do |form| %>
+    <% if @invoice.errors.any? %>
+      <div class="form-errors" role="alert">
+        <p>Bitte prüfe diese Angaben:</p>
+        <ul>
+          <% @invoice.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <section class="invoice-panel">
+      <h2>Besteuerung</h2>
+      <fieldset class="tax-mode">
+        <legend>Wie wird deine Umsatzsteuer behandelt?</legend>
+        <label><%= form.radio_button :tax_mode, "small_business", data: { action: "tax-mode#change" } %> <span><strong>Kleinunternehmerregelung</strong> – ich weise keine Umsatzsteuer aus (<%= link_to "§ 19 UStG", "https://www.gesetze-im-internet.de/ustg_1980/__19.html", target: "_blank", rel: "noopener" %>)</span></label>
+        <label><%= form.radio_button :tax_mode, "standard", data: { action: "tax-mode#change" } %> <span><strong>Regelbesteuerung</strong> – ich weise Umsatzsteuer (19 % oder 7 %) aus</span></label>
+      </fieldset>
+      <small data-show-for="small_business">Auf der Rechnung steht der Hinweis auf die Steuerbefreiung nach § 19 UStG. Du darfst keine Umsatzsteuer ausweisen, sonst schuldest du sie trotzdem (<%= link_to "§ 14c UStG", "https://www.gesetze-im-internet.de/ustg_1980/__14c.html", target: "_blank", rel: "noopener" %>).</small>
+      <small data-show-for="standard">Du wählst für jede Position den Steuersatz. Deine Preise gibst du netto ein, die App rechnet die Umsatzsteuer dazu. Für die Rechnung brauchst du deine Steuernummer oder Umsatzsteuer-ID.</small>
+    </section>
+
+    <section class="invoice-panel invoice-hint" aria-labelledby="e-rechnung-hinweis">
+      <h2 id="e-rechnung-hinweis">Musst du eine E-Rechnung ausstellen?</h2>
+      <ul>
+        <li data-show-for="standard"><strong>Mit Umsatzsteuer gilt für Rechnungen an Unternehmen in Deutschland die E-Rechnungspflicht.</strong> Bis Ende 2026 darfst du noch Papier oder PDF verwenden, bei höchstens 800.000 Euro Vorjahresumsatz noch bis Ende 2027. Danach brauchst du für Rechnungen an Unternehmen eine E-Rechnung. Die XRechnung aus dieser App erfüllt das. Bei Rechnungen an Privatpersonen und bis 250 Euro besteht keine Pflicht.</li>
+        <li data-show-for="standard"><strong>Empfangen musst du E-Rechnungen schon jetzt können.</strong> Seit dem 1. Januar 2025 brauchst du eine E-Mail-Adresse, die XML-Dateien annimmt, und musst sie unverändert aufbewahren (zurzeit acht Jahre).</li>
+        <li data-show-for="small_business"><strong>Als Kleinunternehmer musst du keine E-Rechnung ausstellen.</strong> Das gilt dauerhaft (<%= link_to "§ 34a UStDV", "https://www.gesetze-im-internet.de/ustdv_1980/__34a.html", target: "_blank", rel: "noopener" %>). Die Pflicht, die ab 2027 und 2028 greift, betrifft nur Unternehmen, die Umsatzsteuer ausweisen. Du kannst eine E-Rechnung freiwillig erstellen. Eine normale PDF- oder Papierrechnung bleibt für dich erlaubt.</li>
+        <li data-show-for="small_business"><strong>Empfangen musst du sie aber können.</strong> Seit dem 1. Januar 2025 müssen auch Kleinunternehmer E-Rechnungen empfangen können. Das heißt: Du brauchst eine E-Mail-Adresse, die XML-Dateien als Anhang annimmt, und du musst die Datei unverändert aufbewahren, zurzeit acht Jahre lang. Du musst sie nicht selbst lesen können. Ein Ausdruck oder eine PDF-Kopie reicht als Aufbewahrung nicht aus.</li>
+      </ul>
+      <details class="invoice-hint__more">
+        <summary>Mehr dazu: Was ist eine E-Rechnung, XRechnung oder ZUGFeRD, und wann gilt die Pflicht?</summary>
+        <h3>Was ist eine E-Rechnung?</h3>
+        <p>
+          Eine E-Rechnung ist eine <strong>XML-Datei</strong>: eine reine Datendatei ohne Layout, die Buchhaltungsprogramme
+          automatisch einlesen. Eine PDF-Rechnung, die du per E-Mail verschickst, ist deshalb <strong>keine</strong> E-Rechnung,
+          auch wenn sie digital ankommt. Sie ist nur ein Bild der Rechnung, das Programme nicht zuverlässig auslesen können.
+        </p>
+        <h3>XRechnung oder ZUGFeRD?</h3>
+        <ul>
+          <li><strong>XRechnung:</strong> reine XML-Datei, entwickelt für Behörden. Für Menschen ist sie schlecht lesbar.</li>
+          <li><strong>ZUGFeRD:</strong> eine PDF-Datei, in der dieselben XML-Daten eingebettet sind. Menschen lesen die PDF, Programme lesen das XML.</li>
+        </ul>
+        <p>
+          Beide Formate erfüllen die europäische Norm EN 16931 und gelten als E-Rechnung. Diese App erzeugt die XRechnung, weil sie
+          für jeden Empfänger funktioniert, auch für Behörden, und weil dafür keine aufwendige PDF-Erzeugung nötig ist.
+          Zum Lesen kannst du zusätzlich die gedruckte Rechnung mitschicken.
+        </p>
+        <p>
+          <strong>Welche Datei zählt:</strong> Schickst du XML und PDF zusammen, gilt die XML-Datei als Rechnung.
+          Die PDF ist dann nur eine Lesehilfe.
+        </p>
+        <h3>Wann gilt die Pflicht?</h3>
+        <ul>
+          <li data-show-for="standard"><strong>Wenn du nicht die Kleinunternehmerregelung nutzt:</strong> Bei Rechnungen an Unternehmen in Deutschland gilt die E-Rechnungspflicht. Bis Ende 2026 darfst du noch Papier oder PDF verwenden. Hattest du im Vorjahr höchstens 800.000 Euro Umsatz, gilt das noch bis Ende 2027. Danach darfst du an Unternehmen nur noch E-Rechnungen schicken. Eine ZUGFeRD-PDF zählt dazu, eine normale PDF nicht.</li>
+          <li data-show-for="small_business"><strong>Wechsel aus der Kleinunternehmerregelung:</strong> Sobald du die Kleinunternehmerregelung verlässt, gilt die Pflicht auch für dich.</li>
+          <li><strong>Keine Pflicht besteht zum Beispiel</strong> bei Rechnungen an Privatpersonen und bei Kleinbetragsrechnungen bis 250 Euro.</li>
+        </ul>
+        <p class="invoice-hint__sources">
+          <%= link_to "BMF: Fragen und Antworten zur E-Rechnung", "https://www.bundesfinanzministerium.de/Content/DE/FAQ/e-rechnung.html", target: "_blank", rel: "noopener" %>
+          <span data-show-for="small_business">·</span>
+          <%= link_to "§ 34a UStDV: Rechnungen von Kleinunternehmern", "https://www.gesetze-im-internet.de/ustdv_1980/__34a.html", target: "_blank", rel: "noopener", data: { show_for: "small_business" } %>
+        </p>
+      </details>
+    </section>
+
+    <section class="invoice-panel">
+      <h2>Deine Angaben</h2>
+      <p class="form-note">Deine Angaben werden beim Erstellen der Rechnung gespeichert und bei der nächsten Rechnung automatisch vorausgefüllt.</p>
+      <div class="form-grid">
+        <div class="field"><%= form.label :seller_name, "Vollständiger Name oder Firmenname" %><%= form.text_field :seller_name, required: true, autocomplete: "name" %><small>Als Einzelunternehmer: Vor- und Nachname, bei Bedarf ergänzt um deinen Geschäftsnamen.</small></div>
+        <div class="field"><%= form.label :seller_email, "Deine E-Mail-Adresse (für E-Rechnung erforderlich)" %><%= form.email_field :seller_email, autocomplete: "email" %></div>
+        <div class="field field--wide address-autocomplete" data-controller="address-autocomplete" data-address-autocomplete-prefix-value="seller">
+          <%= form.label :seller_street, "Straße und Hausnummer" %>
+          <%= form.text_field :seller_street, required: true, autocomplete: "off", role: "combobox", aria: { autocomplete: "list", expanded: "false" }, data: { address_autocomplete_target: "street", action: "input->address-autocomplete#search keydown->address-autocomplete#keydown blur->address-autocomplete#hide" } %>
+          <small class="address-status" role="status" hidden data-address-autocomplete-target="status">Suche läuft … das kann einige Sekunden dauern.</small>
+          <ul class="address-suggestions" role="listbox" hidden data-address-autocomplete-target="list"></ul>
+          <small>Beim Tippen schlägt die App Adressen vor. Dafür werden deine Eingabe und deine IP-Adresse an den Dienst Photon gesendet (<%= link_to "Datenschutz", datenschutz_path %>).</small>
+        </div>
+        <div class="field"><%= form.label :seller_postal_code, "Postleitzahl" %><%= form.text_field :seller_postal_code, required: true, autocomplete: "postal-code" %></div>
+        <div class="field"><%= form.label :seller_city, "Ort" %><%= form.text_field :seller_city, required: true, autocomplete: "address-level2" %></div>
+        <div class="field"><%= form.label :seller_country, "Land" %><%= form.select :seller_country, Invoice::COUNTRIES, {}, required: true, autocomplete: "country" %></div>
+        <div class="field field--wide">
+          <%= form.label :seller_tax_identifier, "Steuernummer oder Umsatzsteuer-ID" %>
+          <%= form.text_field :seller_tax_identifier, required: true, aria: { describedby: "tax-id-help" } %>
+          <small id="tax-id-help">Die Nummer steht in dem Schreiben, das du vom Finanzamt nach der Gewerbeanmeldung bekommst (zum Beispiel 12/345/67890). Hast du eine Umsatzsteuer-ID (beginnt mit DE), kannst du stattdessen diese eintragen.</small>
+          <details class="tax-id-details">
+            <summary>Steuernummer oder Umsatzsteuer-ID: Was ist der Unterschied?</summary>
+            <ul>
+              <li><strong>Pflicht:</strong> Auf jeder Rechnung muss entweder deine Steuernummer oder deine Umsatzsteuer-ID stehen (<%= link_to "§ 14 Abs. 4 Nr. 2 UStG", "https://www.gesetze-im-internet.de/ustg_1980/__14.html", target: "_blank", rel: "noopener" %>). Eine von beiden reicht, auch bei Rechnungen an deutsche Kunden und auch als Kleinunternehmer.</li>
+              <li><strong>Steuernummer:</strong> Du bekommst sie automatisch vom Finanzamt. Sie hängt vom zuständigen Finanzamt ab und ändert sich deshalb oft, zum Beispiel bei einem Umzug in einen anderen Finanzamtsbezirk.</li>
+              <li><strong>Umsatzsteuer-ID:</strong> Sie beginnt mit einem Ländercode (in Deutschland <code>DE</code>) und bleibt in der Regel gleich, auch wenn du umziehst. Wenn du eine hast, musst du auf Rechnungen keine Steuernummer mehr ändern.</li>
+              <li><strong>Du musst sie beantragen:</strong> Die Umsatzsteuer-ID wird nicht automatisch vergeben. Du beantragst sie kostenlos beim Bundeszentralamt für Steuern (BZSt). Kleinunternehmer bekommen sie normalerweise, wenn sie für Geschäfte mit Unternehmen im EU-Ausland gebraucht wird. Ob sie auch nur für Rechnungen vergeben wird, klärst du am besten mit dem BZSt oder deinem Finanzamt.</li>
+              <li data-show-for="small_business"><strong>Keine Auswirkung auf deinen Status:</strong> Eine Umsatzsteuer-ID macht dich nicht zum Umsatzsteuerzahler. Du bleibst Kleinunternehmer und weist weiterhin keine Umsatzsteuer aus.</li>
+              <li><strong>Diese App:</strong> Trage einfach eine der beiden Nummern ein. Beginnt die Eingabe mit zwei Buchstaben, behandelt die App sie als Umsatzsteuer-ID, sonst als Steuernummer.</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="invoice-panel">
+      <h2>Angaben zur Kundin oder zum Kunden</h2>
+      <% if @customers.any? %>
+        <div class="field customer-picker" data-controller="customer-select">
+          <label for="customer-select">Gespeicherte Kundin oder gespeicherten Kunden wählen</label>
+          <select id="customer-select" data-action="customer-select#fill" data-default-rate="<%= @profile.hourly_rate %>">
+            <option value="">Neue Kundin oder neuen Kunden eingeben</option>
+            <% @customers.each do |customer| %>
+              <option value="<%= customer.id %>" data-values="<%= customer.form_values.to_json %>" data-hourly-rate="<%= customer.hourly_rate %>" data-due-days="<%= customer.payment_due_days %>"><%= customer.name %>, <%= customer.city %></option>
+            <% end %>
+          </select>
+        </div>
+      <% end %>
+      <p class="form-note">Die Kundin oder der Kunde wird beim Erstellen der Rechnung gespeichert und kann später wieder ausgewählt werden.</p>
+      <div class="form-grid">
+        <div class="field"><%= form.label :buyer_name, "Vollständiger Name oder Firmenname" %><%= form.text_field :buyer_name, required: true, autocomplete: "organization" %></div>
+        <div class="field"><%= form.label :buyer_email, "E-Mail-Adresse (für E-Rechnung erforderlich)" %><%= form.email_field :buyer_email, autocomplete: "email" %><small>Wird als elektronische Adresse in der E-Rechnung verwendet.</small></div>
+        <div class="field field--wide address-autocomplete" data-controller="address-autocomplete" data-address-autocomplete-prefix-value="buyer">
+          <%= form.label :buyer_street, "Straße und Hausnummer" %>
+          <%= form.text_field :buyer_street, required: true, autocomplete: "off", role: "combobox", aria: { autocomplete: "list", expanded: "false" }, data: { address_autocomplete_target: "street", action: "input->address-autocomplete#search keydown->address-autocomplete#keydown blur->address-autocomplete#hide" } %>
+          <small class="address-status" role="status" hidden data-address-autocomplete-target="status">Suche läuft … das kann einige Sekunden dauern.</small>
+          <ul class="address-suggestions" role="listbox" hidden data-address-autocomplete-target="list"></ul>
+          <small>Beim Tippen schlägt die App Adressen vor. Dafür werden deine Eingabe und deine IP-Adresse an den Dienst Photon gesendet (<%= link_to "Datenschutz", datenschutz_path %>).</small>
+        </div>
+        <div class="field"><%= form.label :buyer_postal_code, "Postleitzahl" %><%= form.text_field :buyer_postal_code, required: true, autocomplete: "postal-code" %></div>
+        <div class="field"><%= form.label :buyer_city, "Ort" %><%= form.text_field :buyer_city, required: true, autocomplete: "address-level2" %></div>
+        <div class="field"><%= form.label :buyer_country, "Land" %><%= form.select :buyer_country, Invoice::COUNTRIES, {}, required: true, autocomplete: "country" %></div>
+      </div>
+      <div class="invoice-subsection">
+        <h3>Zuordnung beim Kunden (optional)</h3>
+        <p class="form-note">Nur nötig, wenn dein Kunde eine Bestellnummer vorgibt oder eine Behörde ist. Sonst kannst du diesen Bereich leer lassen.</p>
+        <div class="form-grid">
+        <div class="field">
+          <%= form.label :buyer_order_number, "Bestellnummer deines Kunden (optional)" %>
+          <%= form.text_field :buyer_order_number, aria: { describedby: "buyer-order-help" } %>
+          <small id="buyer-order-help">Manche Firmen geben bei einem Auftrag eine eigene Nummer vor, zum Beispiel „PO-12345“. Trage sie hier ein, damit dein Kunde die Rechnung seinem Auftrag zuordnen kann. Sie steht auf der Rechnung und in der XRechnung. Hat dein Kunde keine genannt, lass das Feld leer.</small>
+        </div>
+        <div class="field">
+          <%= form.label :buyer_leitweg_id, "Leitweg-ID (nur für Behörden, optional)" %>
+          <%= form.text_field :buyer_leitweg_id, aria: { describedby: "buyer-leitweg-help" } %>
+          <small id="buyer-leitweg-help">Die Leitweg-ID ist die Adresse einer Behörde oder öffentlichen Einrichtung für E-Rechnungen, zum Beispiel „991-01234-44“. Du brauchst sie nur, wenn dein Kunde eine solche Stelle ist. Frage dann bei deinem Ansprechpartner danach. Privatkunden und Firmen brauchen sie nicht, lass das Feld dann leer.</small>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="invoice-panel">
+      <h2>Rechnungsdaten</h2>
+      <p class="invoice-number-preview">Rechnungsnummer: <strong><%= Invoice.next_invoice_number(@invoice.issued_on || Date.current) %></strong>
+        <small>Die Nummer wird automatisch vergeben und läuft pro Jahr fortlaufend hoch. Sie richtet sich nach dem Rechnungsdatum.</small></p>
+      <div class="form-grid">
+        <div class="field"><%= form.label :issued_on, "Rechnungsdatum" %><%= form.date_field :issued_on, required: true %></div>
+        <div class="field field--wide" data-controller="service-period">
+          <fieldset class="service-kind">
+            <legend>Wann hast du geleistet?</legend>
+            <label><%= form.radio_button :service_period, false, checked: !@invoice.service_period?, data: { service_period_target: "choice", action: "service-period#toggle" } %> An einem Tag</label>
+            <label><%= form.radio_button :service_period, true, checked: @invoice.service_period?, data: { service_period_target: "choice", action: "service-period#toggle" } %> Über einen Zeitraum</label>
+          </fieldset>
+          <div class="form-grid">
+            <div class="field"><%= form.label :service_on, "Leistungsdatum", data: { service_period_target: "startLabel" } %><%= form.date_field :service_on, required: true %></div>
+            <div class="field" data-service-period-target="until"><%= form.label :service_until_on, "Leistung bis" %><%= form.date_field :service_until_on %></div>
+          </div>
+          <small>Auf einer Rechnung muss stehen, wann du geleistet hast (§ 14 Abs. 4 Nr. 6 UStG). Bei einer Leistung an einem Tag nimmst du das Leistungsdatum. Dauerte ein Projekt länger, zum Beispiel zwei Monate, wählst du „Über einen Zeitraum“ und gibst Beginn und Ende an.</small>
+        </div>
+        <div class="field" data-controller="iban-field" data-iban-field-lengths-value="<%= Invoice::IBAN_LENGTHS.to_json %>"><%= form.label :iban, "IBAN (optional)" %><%= form.text_field :iban, autocomplete: "off", placeholder: "DE00 0000 0000 0000 0000 00", data: { iban_field_target: "input", action: "input->iban-field#check blur->iban-field#check" } %><small class="iban-status" data-iban-field-target="status" aria-live="polite"></small><small>Innerhalb des SEPA-Raums (u. a. alle EU-Länder) brauchst du keine BIC, die IBAN genügt. Nur bei Kunden außerhalb, zum Beispiel in den USA, erscheint ein zusätzliches Feld für die BIC.</small></div>
+        <div class="field" data-controller="bic-field" data-bic-field-sepa-value="<%= Invoice::SEPA_COUNTRIES.to_json %>" data-action="change@document->bic-field#update" <%= "hidden" if @invoice.sepa_buyer? %>>
+          <%= form.label :bic, "BIC (für Kunden außerhalb des SEPA-Raums)" %><%= form.text_field :bic, autocomplete: "off" %>
+          <small>Bei Zahlungen aus Ländern außerhalb des SEPA-Raums, zum Beispiel den USA, verlangt die Bank der Kundin oder des Kunden deine BIC (SWIFT-Code).</small>
+        </div>
+        <div class="field field--wide due-date" data-controller="due-date">
+          <label class="checkbox-label">
+            <%= check_box_tag :due_date_enabled, "1", @invoice.payment_due_on.present?, data: { due_date_target: "toggle", action: "due-date#toggle" } %>
+            Zahlungsfrist auf der Rechnung angeben
+          </label>
+          <div class="due-date__field" data-due-date-target="field">
+            <div>
+              <%= form.label :payment_due_on, "Zahlbar bis" %>
+              <%= form.date_field :payment_due_on, data: { due_date_target: "input" } %>
+            </div>
+            <small>Auf der Rechnung erscheint dazu der Satz „Bitte überweise den Betrag bis zum …“ mit diesem Datum.</small>
+          </div>
+        </div>
+        <div class="field field--wide"><%= form.label :payment_terms, "Zahlungshinweis (optional)" %><%= form.text_field :payment_terms, placeholder: "Zum Beispiel: 2 % Skonto bei Zahlung innerhalb von 7 Tagen" %></div>
+      </div>
+    </section>
+
+    <section class="invoice-panel" data-controller="invoice-lines" data-action="tax-mode:changed@window->invoice-lines#updateTotal">
+      <h2>Rechnungspositionen</h2>
+      <p>Trage jede Leistung oder jeden Artikel als eigene Position ein.</p>
+      <div class="invoice-lines" data-invoice-lines-target="list">
+        <%= form.fields_for :invoice_lines do |line_form| %>
+          <%= render "invoice_line_fields", form: line_form %>
+        <% end %>
+      </div>
+      <template data-invoice-lines-target="template">
+        <%= form.fields_for :invoice_lines, InvoiceLine.new(quantity: 1, unit_price: 0, unit_code: "C62", tax_rate: 19), child_index: "NEW_RECORD" do |line_form| %>
+          <%= render "invoice_line_fields", form: line_form %>
+        <% end %>
+      </template>
+      <button type="button" class="button button--secondary" data-action="invoice-lines#add">Position hinzufügen</button>
+      <p class="invoice-total" data-show-for="small_business">Gesamtsumme: <strong data-invoice-lines-target="total">0,00 €</strong><small>Keine Umsatzsteuer nach § 19 UStG</small></p>
+      <dl class="invoice-total invoice-total--tax" data-show-for="standard">
+        <div><dt>Nettobetrag</dt><dd data-invoice-lines-target="net">0,00 €</dd></div>
+        <div data-invoice-lines-target="taxRow" data-rate="19" hidden><dt>Umsatzsteuer 19 %</dt><dd></dd></div>
+        <div data-invoice-lines-target="taxRow" data-rate="7" hidden><dt>Umsatzsteuer 7 %</dt><dd></dd></div>
+        <div class="invoice-total__gross"><dt>Gesamtbetrag (brutto)</dt><dd data-invoice-lines-target="gross">0,00 €</dd></div>
+      </dl>
+    </section>
+
+    <div class="invoice-form__actions">
+      <%= form.submit "Rechnung erstellen", class: "button button--primary" %>
+      <%= form.submit "Vorschau ansehen", class: "button button--secondary", formaction: preview_invoices_path, formtarget: "_blank", data: { turbo: false, disable_with: false } %>
+      <%= link_to "Abbrechen", invoices_path, class: "button button--secondary" %>
+    </div>
+  <% end %>
+</main>

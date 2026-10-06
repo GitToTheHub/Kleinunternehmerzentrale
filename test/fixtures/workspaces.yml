@@ -1,0 +1,3 @@
+one:
+  token: fixture-workspace-one
+  last_active_at: <%= Time.current %>
