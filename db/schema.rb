@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_150001) do
   create_table "business_profiles", force: :cascade do |t|
     t.string "name"
     t.string "street"
@@ -104,6 +104,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_150000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "completed_steps"
+    t.datetime "email_confirmed_at"
     t.index ["email"], name: "index_workspaces_on_email", unique: true
     t.index ["last_active_at"], name: "index_workspaces_on_last_active_at"
     t.index ["token"], name: "index_workspaces_on_token", unique: true

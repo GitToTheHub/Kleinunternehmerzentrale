@@ -58,6 +58,14 @@
           <%= link_to "Konto anlegen", new_account_path %>, damit sie bleiben.
         </p>
       </aside>
+    <% elsif workspace? && !current_workspace.email_confirmed? %>
+      <aside class="guest-notice" aria-label="E-Mail bestätigen">
+        <p>
+          <strong>Bitte bestätige deine E-Mail-Adresse.</strong> Wir haben dir einen Link geschickt. Ohne Bestätigung
+          werden deine Daten nach 3 Monaten ohne Aktivität gelöscht.
+        </p>
+        <%= button_to "Link erneut senden", confirmation_path, class: "button button--secondary" %>
+      </aside>
     <% end %>
 
     <%= yield %>

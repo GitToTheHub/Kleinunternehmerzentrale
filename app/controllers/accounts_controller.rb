@@ -7,7 +7,8 @@ class AccountsController < ApplicationController
   def create
     workspace = workspace!
     if workspace.register(email: params[:email], password: params[:password], password_confirmation: params[:password_confirmation])
-      redirect_to invoices_path, notice: "Dein Konto ist angelegt. Deine bisherigen Rechnungen und Angaben sind jetzt dauerhaft gespeichert."
+      ConfirmationMailer.confirm(workspace).deliver_later
+      redirect_to invoices_path, notice: "Dein Konto ist angelegt. Wir haben dir eine E-Mail geschickt. Bitte klicke auf den Link darin, damit deine Daten dauerhaft gespeichert bleiben."
     else
       @workspace = workspace
       render :new, status: :unprocessable_entity

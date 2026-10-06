@@ -18,7 +18,13 @@ class Workspace < ApplicationRecord
     password_digest&.last(10)
   end
 
-  scope :expired_guests, -> { where(email: nil).where(last_active_at: ...INACTIVITY_LIMIT.ago) }
+  # Gilt für 7 Tage und nur für die aktuelle Adresse.
+  generates_token_for :email_confirmation, expires_in: 7.days do
+    email
+  end
+
+  # Wer seine E-Mail-Adresse nie bestätigt, wird wie ein Gast behandelt und nach 3 Monaten ohne Aktivität gelöscht.
+  scope :expired_guests, -> { where(email: nil).or(where(email_confirmed_at: nil)).where(last_active_at: ...INACTIVITY_LIMIT.ago) }
 
   before_validation :ensure_token, on: :create
   before_validation(on: :create) { self.last_active_at ||= Time.current }
@@ -35,6 +41,14 @@ class Workspace < ApplicationRecord
 
   def account?
     email.present?
+  end
+
+  def email_confirmed?
+    email_confirmed_at.present?
+  end
+
+  def confirm_email!
+    update_column(:email_confirmed_at, Time.current) unless email_confirmed?
   end
 
   # Zählt als Aktivität, wird aber höchstens einmal pro Tag gespeichert.
@@ -58,7 +72,7 @@ class Workspace < ApplicationRecord
     return false unless errors.empty? && valid?
 
     self.token = SecureRandom.base58(32)
-    save
+    save && (confirm_email!; true)
   end
 
   # Löscht den ganzen Bereich mit allen Rechnungen und Kundendaten.

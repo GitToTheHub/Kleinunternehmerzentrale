@@ -20,6 +20,8 @@ Rails.application.routes.draw do
   resource :export, only: :show
   resource :account, only: %i[new create destroy]
   resource :session, only: %i[new create destroy]
+  resource :confirmation, only: :create
+  get "confirmations/:token", to: "confirmations#show", as: :confirm_email
   resources :password_resets, only: %i[new create edit update], param: :token
   resources :invoices, only: %i[index new create show] do
     get :xrechnung, on: :member

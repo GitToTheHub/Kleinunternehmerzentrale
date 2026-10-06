@@ -63,7 +63,7 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
     post session_url, params: { email: "ich@example.de", password: "geheimes-passwort" }
     get invoices_url
     assert_select ".invoice-list__item", 1
-    assert_select ".guest-notice", 0
+    assert_select ".guest-notice", /bestätige deine E-Mail/
   end
 
   test "Konto braucht ein ausreichend langes Passwort" do
@@ -75,7 +75,7 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
 
   test "Gast-Bereiche werden nach drei Monaten ohne Nutzung gelöscht, Konten und aktive nicht" do
     old = Workspace.create!(last_active_at: 4.months.ago)
-    account = Workspace.create!(last_active_at: 4.months.ago, email: "x@example.de", password: "geheimes-passwort")
+    account = Workspace.create!(last_active_at: 4.months.ago, email: "x@example.de", password: "geheimes-passwort", email_confirmed_at: Time.current)
     fresh = Workspace.create!(last_active_at: 2.months.ago)
     old.customers.create!(name: "Alt")
 
