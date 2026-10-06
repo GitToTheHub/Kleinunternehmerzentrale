@@ -1,0 +1,14 @@
+<% content_for :title, "Passwort vergessen" %>
+
+<main>
+  <h1>Passwort vergessen?</h1>
+  <p>Kein Problem. Gib deine E-Mail-Adresse ein, dann schicken wir dir einen Link, mit dem du ein neues Passwort festlegen kannst.</p>
+
+  <%= form_with url: password_resets_path, method: :post, class: "account-form", data: { turbo: false } do %>
+    <div class="field">
+      <label for="email">E-Mail-Adresse</label>
+      <input type="email" id="email" name="email" autocomplete="email" required>
+    </div>
+    <p><%= submit_tag "Link senden", class: "button button--primary", data: { disable_with: false } %></p>
+  <% end %>
+</main>

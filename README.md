@@ -23,7 +23,8 @@ Voraussetzungen: Ruby (siehe `.tool-versions`) und SQLite.
 
 ## Deployment
 Mit Kamal auf einen eigenen Server (z. B. Hetzner-VPS). Benötigte Umgebungsvariablen:
-`DEPLOY_SERVER_IP`, `APP_DOMAIN`, `REGISTRY_USER`, `KAMAL_REGISTRY_PASSWORD`. Siehe `config/deploy.yml`.
+`DEPLOY_SERVER_IP`, `APP_DOMAIN`, `REGISTRY_USER`, `KAMAL_REGISTRY_PASSWORD` sowie für den E-Mail-Versand
+(Passwort zurücksetzen) `SMTP_ADDRESS`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`. Siehe `config/deploy.yml`.
 
     bin/kamal setup
     bin/kamal deploy

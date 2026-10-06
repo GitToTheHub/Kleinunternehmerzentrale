@@ -13,6 +13,11 @@ class Workspace < ApplicationRecord
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "ist keine gültige E-Mail-Adresse" }, uniqueness: true, allow_nil: true
   validates :password, length: { minimum: 10, message: "ist zu kurz (mindestens 10 Zeichen)" }, allow_nil: true
 
+  # Gilt 30 Minuten und nur einmal: Nach dem Ändern des Passworts ändert sich der Anhang, und der Link wird ungültig.
+  generates_token_for :password_reset, expires_in: 30.minutes do
+    password_digest&.last(10)
+  end
+
   scope :expired_guests, -> { where(email: nil).where(last_active_at: ...INACTIVITY_LIMIT.ago) }
 
   before_validation :ensure_token, on: :create
@@ -43,6 +48,17 @@ class Workspace < ApplicationRecord
     self.password_confirmation = password_confirmation
     errors.add(:password, "muss angegeben werden") if password.blank?
     errors.empty? && valid? && save
+  end
+
+  # Setzt ein neues Passwort und meldet damit alle anderen Geräte ab (neues Cookie-Token).
+  def reset_password(password:, password_confirmation:)
+    self.password = password
+    self.password_confirmation = password_confirmation
+    errors.add(:password, "muss angegeben werden") if password.blank?
+    return false unless errors.empty? && valid?
+
+    self.token = SecureRandom.base58(32)
+    save
   end
 
   # Löscht den ganzen Bereich mit allen Rechnungen und Kundendaten.

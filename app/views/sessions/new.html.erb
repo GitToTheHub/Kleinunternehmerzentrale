@@ -16,5 +16,6 @@
     <p><%= submit_tag "Anmelden", class: "button button--primary", data: { disable_with: false } %></p>
   <% end %>
 
+  <p><%= link_to "Passwort vergessen?", new_password_reset_path %></p>
   <p>Noch kein Konto? <%= link_to "Konto anlegen", new_account_path %></p>
 </main>

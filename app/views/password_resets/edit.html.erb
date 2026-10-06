@@ -1,0 +1,24 @@
+<% content_for :title, "Neues Passwort" %>
+
+<main>
+  <h1>Neues Passwort festlegen</h1>
+
+  <% if @workspace.errors.any? %>
+    <div class="flash-message flash-message--alert" role="alert">
+      <% @workspace.errors.full_messages.each do |message| %><div><%= message %></div><% end %>
+    </div>
+  <% end %>
+
+  <%= form_with url: password_reset_path(params[:token]), method: :patch, class: "account-form", data: { turbo: false } do %>
+    <div class="field">
+      <label for="password">Neues Passwort</label>
+      <input type="password" id="password" name="password" autocomplete="new-password" minlength="10" required>
+      <small>Mindestens 10 Zeichen.</small>
+    </div>
+    <div class="field">
+      <label for="password_confirmation">Passwort wiederholen</label>
+      <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
+    </div>
+    <p><%= submit_tag "Passwort speichern", class: "button button--primary", data: { disable_with: false } %></p>
+  <% end %>
+</main>
