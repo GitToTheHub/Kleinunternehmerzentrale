@@ -67,7 +67,7 @@ end
 
 gem "rails-i18n", "~> 8.1"
 
-gem "zugpferd", "~> 0.3.4"
+gem "zugpferd", "~> 0.3.5"
 
 # ZIP-Export der eigenen Daten
 gem "rubyzip"
