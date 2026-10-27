@@ -366,7 +366,7 @@ GEM
     xpath (3.2.0)
       nokogiri (~> 1.8)
     zeitwerk (2.8.3)
-    zugpferd (0.3.4)
+    zugpferd (0.3.5)
       bigdecimal (~> 3.1)
       nokogiri (~> 1.16)
 
@@ -410,7 +410,7 @@ DEPENDENCIES
   turbo-rails
   tzinfo-data
   web-console
-  zugpferd (~> 0.3.4)
+  zugpferd (~> 0.3.5)
 
 CHECKSUMS
   action_text-trix (2.1.19) sha256=7012f59421009cf284aa651294896414d653a61a2417c9b8714c8476d2f74009
@@ -551,7 +551,7 @@ CHECKSUMS
   websocket-extensions (0.1.5) sha256=1c6ba63092cda343eb53fc657110c71c754c56484aad42578495227d717a8241
   xpath (3.2.0) sha256=6dfda79d91bb3b949b947ecc5919f042ef2f399b904013eb3ef6d20dd3a4082e
   zeitwerk (2.8.3) sha256=2c85125a8467ce069e20123d1e709a08955c9d29c118c25b46b7b7fafdbb92e5
-  zugpferd (0.3.4) sha256=1e3d9b58e31e4b4e5a43e367a6e1da6bb7f5b02b2226fa01a22e66af6560cce9
+  zugpferd (0.3.5) sha256=0dd3906c36a131f8d8fd505f38a7613c52749e50155f1f4017eb71f1dc8829f7
 
 BUNDLED WITH
   4.0.22
