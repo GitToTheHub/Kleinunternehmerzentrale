@@ -1,0 +1,12 @@
+<section class="invoice-panel" aria-labelledby="order-offer-heading">
+  <h2 id="order-offer-heading">Aus einem Angebot erstellen</h2>
+  <%= form_with url: sales_documents_path, method: :post do |form| %>
+    <%= hidden_field_tag :kind, "order" %>
+    <div class="field">
+      <%= form.label :source_offer_id, "Vorhandenes Angebot" %>
+      <%= form.select :source_offer_id, offers.map { |offer| ["#{offer.document_number} · #{offer.buyer_name} · #{number_to_currency(offer.total_amount, locale: :de)}", offer.id] }, { prompt: "Angebot auswählen" }, required: true %>
+    </div>
+    <%= form.submit "Als Auftrag übernehmen", class: "button button--secondary" %>
+  <% end %>
+  <p class="form-note">Oder erfasse unten einen Auftrag ohne vorheriges Angebot.</p>
+</section>

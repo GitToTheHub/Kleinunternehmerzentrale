@@ -1,0 +1,62 @@
+<% if @asset.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @asset.errors.full_messages.to_sentence %></div><% end %>
+<%= form_with model: @asset, data: { controller: "euer-asset" } do |form| %>
+  <p>Erfasse hier ein Gerät, das vollständig dem Betriebsvermögen zugeordnet ist.</p>
+  <p>Finanzierst du den Kauf über einen Kredit? <%= link_to "Gerätekauf, Raten und Zinsen unterscheiden", hilfe_path(anchor: "geraete-finanzieren"), target: "_blank", rel: "noopener" %>. Die Rückzahlung des Kredits ist kein zusätzlicher Kostenabzug.</p>
+  <h2>Gerät und Anschaffung</h2>
+  <div class="form-grid">
+    <div class="field"><%= form.label :name, "Bezeichnung des Anlageguts" %><%= form.text_field :name, required: true %></div>
+    <div class="field"><%= form.label :reference, "Belegnummer" %><%= form.text_field :reference %></div>
+    <div class="field"><%= form.label :origin, "Zugang" %><%= form.select :origin, BusinessAsset::ORIGINS.map { |key, label| [label, key] }, {}, data: { euer_asset_target: "origin", action: "change->euer-asset#refresh" } %></div>
+    <div class="field"><%= form.label :acquired_on, "Datum der Anschaffung / betrieblichen Einlage" %><%= render "shared/date_picker", form: form, attribute: :acquired_on, required: true %></div>
+    <div class="field"><%= form.label :category, "Anlagegruppe" %><%= form.select :category, BusinessAsset::CATEGORIES.map { |key, label| [label, key] } %></div>
+    <div class="field"><%= form.label :cost, "Steuerliche Anschaffungskosten / Einlagewert in Euro" %><%= form.text_field :cost, value: @asset.cost_before_type_cast, inputmode: "decimal", required: true %><small>Als Kleinunternehmer einschließlich bezahlter Umsatzsteuer und Nebenkosten. Bei einer Sacheinlage den steuerlich zulässigen Einlagewert angeben, nicht automatisch den damaligen Kaufpreis. Das Anlagegut muss vollständig dem Betriebsvermögen zugeordnet sein.</small></div>
+    <div class="field"><%= form.label :depreciation_method, "Abschreibung" %><%= form.select :depreciation_method, BusinessAsset::METHODS.map { |key, label| [label, key] }, {}, data: { euer_asset_target: "method", action: "change->euer-asset#refresh" } %></div>
+    <div class="field" data-euer-asset-target="linearField"><%= form.label :useful_life, "Nutzungsdauer in Jahren" %><%= form.number_field :useful_life, min: 1, max: 100 %><small>Nach der einschlägigen AfA-Tabelle bestimmen. Bei eingelegten gebrauchten Gütern die verbleibende Nutzungsdauer prüfen. Die lineare AfA wird ab dem Zugangsmonat gerechnet. Für eine abweichende AfA-Bemessungsgrundlage oder Methode die Jahresbeträge manuell vorgeben.</small></div>
+    <div class="field" data-euer-asset-target="gwgField"><%= form.label :gwg_net_value, "GWG-Prüfwert ohne enthaltene Umsatzsteuer" %><%= form.text_field :gwg_net_value, value: @asset.gwg_net_value_before_type_cast, inputmode: "decimal" %><small>Höchstens 800 Euro; nur selbständig nutzbare, bewegliche, abnutzbare Güter. Der Sofortabzug berücksichtigt die steuerlichen Kosten inklusive nicht abziehbarer Steuer. Falls du für das Jahr einen Sammelposten gewählt hast, prüfe die einheitliche Behandlung; diese wird nicht automatisch verwaltet.</small></div>
+    <div class="field" data-euer-asset-target="purchaseField"><%= form.label :paid_on, "Datum der Kaufzahlung" %><%= render "shared/date_picker", form: form, attribute: :paid_on %></div>
+    <div class="field" data-euer-asset-target="purchaseField"><%= form.label :payment_account, "Kauf bezahlt über" %><%= form.select :payment_account, [["Betriebskonto", "business"], ["Privatkonto", "private"]] %></div>
+    <% if @asset.business_use_percent != 100 || @asset.usage_basis.present? %>
+    <details class="field field--wide" <%= "open" if @asset.business_use_percent != 100 || @asset.usage_basis.present? %>>
+      <summary>Bisherige allgemeine Nutzungsangabe (Dokumentation)</summary>
+      <%= form.label :business_use_percent, "Betriebliche Nutzung in Prozent (Dokumentation)" %><%= form.text_field :business_use_percent, value: @asset.business_use_percent_before_type_cast, inputmode: "decimal" %>
+      <%= form.label :usage_basis, "Zeitraum und Grundlage der Nutzung" %><%= form.text_area :usage_basis %>
+      <small>Diese ältere Angabe verändert die Berechnung nicht. Erfasse die steuerlich zu berücksichtigende Nutzung für jedes Jahr im Abschnitt „Private Mitnutzung“.</small>
+    </details>
+    <% end %>
+    <div class="field field--wide"><%= form.label :notes, "Bewertung, Nutzung und weitere Hinweise" %><%= form.text_area :notes %></div>
+  </div>
+  <p>Die App bucht Abschreibungen und Einlagen automatisch. Den Kaufbetrag nicht zusätzlich als normale Betriebsausgabe erfassen. Sacheinlagen hier nicht noch einmal im Zahlungsbuch buchen. Bei einer Finanzierung über eine Bank sind Kreditraten keine normalen Betriebsausgaben. Privat geleistete Tilgungen eines betrieblichen Kredits und eine direkte Ratenzahlung an den Verkäufer müssen gesondert beurteilt werden; die App enthält dafür keinen vollständigen Finanzierungsablauf.</p>
+  <details class="invoice-panel" <%= "open" if @asset.asset_private_uses.any?(&:persisted?) || @asset.asset_private_uses.any? { |usage| usage.year.present? } %>>
+    <summary>Private Mitnutzung</summary>
+    <p>Nutzt du das Anlagegut auch privat, erfasse hier die Nutzung für jedes betroffene Jahr. Bei ausschließlich betrieblicher Nutzung ist kein Eintrag nötig. Eine Jahresangabe gilt für den Zeitraum, in dem das Anlagegut in diesem Jahr zum Betrieb gehört.</p>
+    <details>
+      <summary>Wie wird die private Nutzung berücksichtigt?</summary>
+    <p>Bei normalen Geräten, Möbeln und Software berechnet die App den privaten Anteil der regulären Abschreibung aus deinem Nutzungsanteil. Der Buchwert und die volle Abschreibung bleiben im Anlageverzeichnis erhalten; der Privatanteil wird in der EÜR automatisch gegengerechnet. Dafür keine weitere Sach- oder Nutzungsentnahme buchen.</p>
+    <p>Laufende Kosten wie Telefon, Reparaturen und Strom erfasst du weiterhin als Betriebsausgaben mit ihrem jeweiligen betrieblichen Anteil. Sie werden hier nicht nochmals aufgeteilt. Für Fahrzeuge, Grundstücke, Sonderabschreibungen und weitere Sonderfälle verwende einen fachlich ermittelten Jahreswert; bereits anderweitig berücksichtigte Privatanteile darin nicht doppelt ansetzen.</p>
+    <p>Das Anlagegut muss dem Betriebsvermögen zugeordnet sein. Bei der erstmaligen Zuordnung gehört es mit weniger als 10 % betrieblicher Nutzung grundsätzlich ins Privatvermögen; bei 10 bis 50 % ist die Zuordnung gesondert zu klären. Eine spätere Änderung des Nutzungsanteils bedeutet für sich allein keine Entnahme. Eine bloße private Mitnutzung ist keine dauerhafte Entnahme.</p>
+    </details>
+    <div data-euer-asset-target="usageRows"><%= form.fields_for :asset_private_uses do |row| %><%= render "private_use_row", form: row %><% end %></div>
+    <template data-euer-asset-target="usageTemplate"><%= form.fields_for :asset_private_uses, AssetPrivateUse.new, child_index: "NEW_USAGE" do |row| %><%= render "private_use_row", form: row %><% end %></template>
+    <button type="button" class="button button--secondary" data-action="euer-asset#addUsageYear">Weiteres Nutzungsjahr hinzufügen</button>
+  </details>
+  <details class="invoice-panel" data-euer-asset-target="scheduleField" <%= "open" if @asset.depreciation_method == "manual" || @asset.asset_depreciations.any?(&:persisted?) %>>
+    <summary>Abschreibung für einzelne Jahre anpassen (bei Bedarf)</summary>
+    <p>Ein Jahresbetrag ersetzt die automatische AfA für dieses Jahr. Bei manueller Abschreibung musst du jeden Jahresbetrag selbst bestimmen. Für Sonderabschreibungen wähle die manuelle Methode und berücksichtige den Begünstigungszeitraum sowie die anschließende Restwert-AfA. Sonderabschreibungen werden zusätzlich abgezogen. Gib nur gesetzlich zulässige, fachlich geprüfte Beträge an. Bei bereits früher angeschafften Gütern erfasse auch abweichende Vorjahresbeträge, damit die Buchwerte stimmen.</p>
+    <div data-euer-asset-target="rows">
+      <%= form.fields_for :asset_depreciations do |row| %><%= render "depreciation_row", form: row %><% end %>
+    </div>
+    <template data-euer-asset-target="template"><%= form.fields_for :asset_depreciations, AssetDepreciation.new, child_index: "NEW_ROW" do |row| %><%= render "depreciation_row", form: row %><% end %></template>
+    <button type="button" class="button button--secondary" data-action="euer-asset#addYear">Weiteres Jahr hinzufügen</button>
+  </details>
+  <details class="invoice-panel" <%= "open" if @asset.disposal_kind.present? %>>
+    <summary>Anlagegut verkauft, dauerhaft privat übernommen oder entsorgt?</summary>
+    <div class="form-grid">
+      <div class="field"><%= form.label :disposed_on, "Abgangsdatum" %><%= render "shared/date_picker", form: form, attribute: :disposed_on %></div>
+      <div class="field"><%= form.label :disposal_kind, "Art des Abgangs" %><%= form.select :disposal_kind, BusinessAsset::DISPOSALS.map { |key, label| [label, key] }, { include_blank: "Kein Abgang" }, data: { euer_asset_target: "disposal", action: "change->euer-asset#refresh" } %></div>
+      <div class="field" data-euer-asset-target="withdrawalField"><%= form.label :withdrawal_value, "Steuerlicher Entnahmewert in Euro" %><%= form.text_field :withdrawal_value, value: @asset.withdrawal_value_before_type_cast, inputmode: "decimal" %><small>Bei Privatentnahme in der Regel der Teilwert, nicht der Restbuchwert. Die App bucht Einnahme und Entnahme automatisch.</small></div>
+      <div class="field" data-euer-asset-target="recognitionField"><%= form.label :disposal_recognized_on, "Zufluss des Verkaufserlöses (nur nicht abschreibbare Güter)" %><%= render "shared/date_picker", form: form, attribute: :disposal_recognized_on %><small>Bei nicht abschreibbaren Gütern wird der Restbuchwert erst mit Zufluss des Verkaufserlöses als Ausgabe berücksichtigt.</small></div>
+    </div>
+    <p>Bei Verkauf erfasse den tatsächlichen Zahlungseingang separat als „Erlöse / Entnahmen aus Anlagevermögen“. Der Restbuchwert wird hier automatisch abgezogen. Bei Privatentnahme keinen zusätzlichen Entnahmevorgang buchen. Abgangsmonat und Restbuchwert fließen in die Jahresrechnung ein.</p>
+  </details>
+  <div class="invoice-actions"><%= form.submit "Anlagegut speichern", class: "button button--primary" %><%= link_to "Zum Anlageverzeichnis", business_assets_path, class: "button button--secondary" %></div>
+<% end %>

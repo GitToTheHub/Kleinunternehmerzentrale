@@ -1,0 +1,21 @@
+<% choices = if @invoice.sales_document_id
+  @invoice.sales_document.active_invoices.any? ? Invoice::BILLING_KINDS.except("regular") : Invoice::BILLING_KINDS.except("final")
+else
+  @invoice.billing_root_id.present? ? Invoice::BILLING_KINDS.except("regular") : (@invoice.final_invoice? || @settlement_groups.any? ? Invoice::BILLING_KINDS : Invoice::BILLING_KINDS.except("final"))
+end %>
+<% descriptions = { "regular" => "Eine Leistung vollständig abrechnen", "advance" => "Dein Kunde zahlt einen Teil im Voraus, bevor du die Leistung erbringst.", "progress" => "Dein Kunde zahlt für bereits geleistete Arbeit. Der Auftrag läuft noch.", "final" => "Du rechnest den gesamten Auftrag ab. Bereits erhaltene Zahlungen werden abgezogen." } %>
+<fieldset id="billing-kind-cards" class="booking-type-group">
+  <legend>Rechnungsart</legend>
+  <div class="booking-actions">
+    <% choices.each do |value, label| %>
+      <label class="booking-type-option">
+        <%= form.radio_button :billing_kind, value, required: true, data: { billing_kind_target: "kind", number_code: InvoiceNumber::TYPE_CODES.fetch(value), action: "change->billing-kind#update" } %>
+        <span><strong><%= label %></strong><small><%= descriptions.fetch(value) %></small></span>
+      </label>
+    <% end %>
+  </div>
+</fieldset>
+<% if @invoice.billing_root_id.present? %>
+  <% root = @invoice.workspace.invoices.find_by(id: @invoice.billing_root_id) %>
+  <p class="form-note">Auftrag: <%= root ? link_to(root.invoice_number, invoice_path(root)) : "nicht verfügbar" %></p>
+<% end %>

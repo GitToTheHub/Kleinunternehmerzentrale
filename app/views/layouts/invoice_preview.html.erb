@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <title>Rechnungsvorschau</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag :app %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="invoice-preview-embedded"><%= yield %></body>
+</html>

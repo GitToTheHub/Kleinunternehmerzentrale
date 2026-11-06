@@ -1,0 +1,33 @@
+<%= render "shared/euer_form_source", year: @import.year %>
+<% if @import.notes.present? %><div class="flash-message flash-message--alert"><%= simple_format(@import.notes) %></div><% end %>
+<p><strong>Quelle:</strong> <%= @import.source %><br><strong>Zeitraum:</strong> 01.01.<%= @import.year %> bis <%= @import.covered_through.strftime("%d.%m.%Y") %></p>
+<dl class="bookkeeping-totals">
+  <div><dt>Betriebseinnahmen</dt><dd><%= euro(@import.income) %></dd></div>
+  <div><dt>Abziehbare Betriebsausgaben</dt><dd><%= euro(@import.expenses) %></dd></div>
+  <div><dt>Gewinn / Verlust einschließlich übernommener Korrekturen</dt><dd><strong><%= euro(@import.surplus) %></strong></dd></div>
+  <div><dt>Einlagen</dt><dd><%= euro(@import.field_amounts.fetch("deposits", 0)) %></dd></div>
+  <div><dt>Entnahmen</dt><dd><%= euro(@import.field_amounts.fetch("withdrawals", 0)) %></dd></div>
+</dl>
+<% if @token.present? %>
+  <%= form_with model: @import, url: preview_bookkeeping_imports_path do |form| %>
+    <%= hidden_field_tag :review_token, @token %>
+    <div class="form-grid">
+      <div class="field"><%= form.label :covered_through, "Stichtag der Übernahme prüfen" %><%= render "shared/date_picker", form: form, attribute: :covered_through, required: true %><small>Die Beträge bleiben unverändert. Der Stichtag muss zu dem Zeitraum passen, den diese Beträge vollständig abdecken.</small></div>
+      <div class="field"><%= form.label :source, "Quelle / Bezeichnung prüfen" %><%= form.text_field :source, required: true, maxlength: 200 %></div>
+    </div>
+    <%= form.submit "Änderungen prüfen", class: "button button--secondary" %>
+  <% end %>
+<% end %>
+<div class="bookkeeping-table euer-form-table"><table><thead><tr><th>EÜR-Zeile</th><th>EÜR-Bezeichnung</th><th>Betrag</th></tr></thead><tbody>
+  <% @import.field_amounts.each do |key, amount| %><tr><td><%= EuerFormLabels.reference(key, @import.year) %></td><td><%= EuerFormLabels.label(key, @import.year) %></td><td><%= euro(amount) %></td></tr><% end %>
+</tbody></table></div>
+<% if @import.asset_amounts? %>
+  <p>Die übernommenen Abschreibungen und Restbuchwerte enthalten keine Anlagegüter oder AVEÜR-Buchwerte. Prüfe die verbleibende Abschreibung bis Jahresende. Wenn du die alten Anlagegüter hier vollständig verwalten möchtest, übernimm die EÜR-Summen ohne deren Anlagepositionen und erfasse die Anlagegüter samt bisheriger Abschreibung separat. <%= link_to "Erklärung in der Hilfe", hilfe_path(anchor: "anlagegueter-beim-wechsel"), target: "_blank", rel: "noopener" %></p>
+<% end %>
+<% if @import.assets_managed_separately? %><p>Du verwaltest die bisherigen Anlagegüter separat. Diese Vorschau enthält deren Abschreibungen und zugehörige Einlagen/Entnahmen nicht. Vergleiche sie mit deiner bisherigen EÜR abzüglich dieser Anlagenbeträge. Für die vollständige Jahres-EÜR müssen die Anlagegüter samt bisheriger Abschreibungen im Anlageverzeichnis gepflegt sein.</p><% end %>
+
+<% if EuerFields.supported?(@import.year) %>
+  <details><summary>Vollständigen EÜR-Vordruck mit berechneten Summen anzeigen</summary>
+    <%= render "euer_statements/table", report: BookkeepingReport.new(BookkeepingEntry.none, @import.year, imports: [@import]), allow_adjustments: false %>
+  </details>
+<% end %>

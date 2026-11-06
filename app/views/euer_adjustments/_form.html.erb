@@ -1,0 +1,17 @@
+<% if @adjustment.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @adjustment.errors.full_messages.to_sentence %></div><% end %>
+<% form_year = EuerFields.supported?(@adjustment.year) ? @adjustment.year : EuerFields::SOURCES.keys.max %>
+<%= form_with model: @adjustment, data: { controller: "euer-position" } do |form| %>
+  <% unless EuerFields.supported?(@adjustment.year) %><p class="flash-message flash-message--alert">Für das angefragte Steuerjahr fehlen amtlich geprüfte Formulardaten. Die Felder gehören zum ausgewählten unterstützten Jahr.</p><% end %>
+  <div class="form-grid">
+    <div class="field"><%= form.label :year, "Steuerjahr" %><%= form.select :year, EuerFields::SOURCES.keys, { selected: form_year }, data: { euer_position_target: "year", action: "change->euer-position#refresh" } %></div>
+    <div class="field field--wide"><%= render "shared/euer_form_source", year: form_year, controller: "euer-position" %></div>
+    <div class="field"><%= form.label :field_key, "EÜR-Position" %><%= form.select :field_key, EuerFields::DEFINITIONS.values.sort_by { |field| [field.line_2026 || field.line_2025, field.number.to_s] }.map { |field|
+      labels = EuerFields::SOURCES.keys.index_with { |year| "#{EuerFormLabels.reference(field.key, year)} · #{EuerFormLabels.label(field.key, year)}" if EuerFields.line(field.key, year) }
+      [labels[form_year] || "Für dieses Steuerjahr nicht vorgesehen", field.key, { disabled: !EuerFields.line(field.key, form_year), data: { labels: labels.to_json } }]
+    }, { include_blank: "Position auswählen" }, required: true, data: { euer_position_target: "position" } %></div>
+    <div class="field"><%= form.label :amount, "Zusätzlicher Betrag in Euro" %><%= form.text_field :amount, value: @adjustment.amount_before_type_cast, inputmode: "decimal", required: true %><small>Der Betrag wird zur gewählten Position addiert. Ergänzende Davon-/Gesamtbetrag-Angaben verändern den Gewinn nicht erneut. Ein negativer Betrag vermindert sie. Bei Abzugspositionen wie Investitionsabzug oder steuerfreien Einnahmen vermindert ein positiver Betrag den Gewinn.</small></div>
+    <div class="field field--wide"><%= form.label :description, "Begründung / Berechnung / Rechtsgrundlage" %><%= form.text_area :description, required: true %></div>
+  </div>
+  <p>Hier lassen sich fachlich bestimmte Pauschalen und Korrekturen erfassen. Automatisch gebuchte Beträge nicht erneut eintragen. AfA für erfasste Anlagegüter pflegst du direkt im <%= link_to "Anlageverzeichnis", business_assets_path %>, damit auch die Buchwerte und AVEÜR-Summen aktualisiert werden. Eine direkte Korrektur hier verändert nur die EÜR-Position.</p>
+  <div class="invoice-actions"><%= form.submit "Ergänzung speichern", class: "button button--primary" %><%= link_to "Zur Buchhaltung", bookkeeping_entries_path(year: @adjustment.year), class: "button button--secondary" %></div>
+<% end %>

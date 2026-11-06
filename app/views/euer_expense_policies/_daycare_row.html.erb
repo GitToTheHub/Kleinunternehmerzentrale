@@ -1,0 +1,15 @@
+<% prefix = "euer_expense_policy[daycare_rows][#{index}]" %>
+<% id = "daycare_#{index}" %>
+<section class="invoice-panel" data-euer-expense-policy-target="childcareRow">
+  <h3>Betreuungszeitraum</h3>
+  <div class="form-grid">
+    <div class="field"><%= label_tag "#{id}_label", "Anonymes Kind- oder Platzkürzel" %><%= text_field_tag "#{prefix}[label]", row["label"], id: "#{id}_label", maxlength: 80, placeholder: "Zum Beispiel: Kind A oder Platz 1" %></div>
+    <div class="field"><%= label_tag "#{id}_kind", "Art des Platzes" %><%= select_tag "#{prefix}[kind]", options_for_select([["Regelmäßige Betreuung", "regular"], ["Freihalteplatz", "reserved"]], row["kind"] || "regular"), id: "#{id}_kind", data: { childcare_kind: true, action: "euer-expense-policy#refresh" } %></div>
+    <div class="field"><%= label_tag "#{id}_start", "Erster Monat" %><%= select_tag "#{prefix}[start_month]", options_for_select((1..12).map { |month| [I18n.t("date.month_names")[month], month] }, row["start_month"] || 1), id: "#{id}_start" %></div>
+    <div class="field"><%= label_tag "#{id}_end", "Letzter Monat" %><%= select_tag "#{prefix}[end_month]", options_for_select((1..12).map { |month| [I18n.t("date.month_names")[month], month] }, row["end_month"] || 12), id: "#{id}_end" %></div>
+    <div class="field" data-childcare-regular><%= label_tag "#{id}_weekly", "Vereinbarte Wochenstunden" %><%= text_field_tag "#{prefix}[weekly_hours]", row["weekly_hours"], id: "#{id}_weekly", inputmode: "decimal" %><small>Die Berechnung berücksichtigt höchstens 40 Wochenstunden.</small></div>
+    <div class="field" data-childcare-reserved hidden><%= label_tag "#{id}_days", "Belegte Tage je Monat" %><%= number_field_tag "#{prefix}[occupied_days]", row["occupied_days"] || 0, id: "#{id}_days", min: 0, max: 20, step: 1 %><small>Die Formel verwendet pauschal 20 Arbeitstage. Bei mehr belegten Tagen ist eine gesonderte Berechnung nötig.</small></div>
+    <div class="field" data-childcare-reserved hidden><%= label_tag "#{id}_daily", "Betreuungsstunden je belegtem Tag" %><%= text_field_tag "#{prefix}[daily_hours]", row["daily_hours"] || "0", id: "#{id}_daily", inputmode: "decimal" %><small>Bei null belegten Tagen null eingeben; sonst höchstens 8 Stunden für die Berechnung.</small></div>
+  </div>
+  <p><button type="button" class="button button--secondary" data-action="euer-expense-policy#removeChildcare">Zeitraum entfernen</button></p>
+</section>

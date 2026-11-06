@@ -1,0 +1,19 @@
+<div class="form-grid">
+  <%= render "invoices/number_field", form: form, document: document %>
+  <div class="field">
+    <%= invoice_field_label(form, :issued_on, document.offer? ? "Angebotsdatum" : "Auftragsdatum") %>
+    <%= render "shared/date_picker", form: form, attribute: :issued_on, required: true %>
+  </div>
+  <div class="field field--wide">
+    <%= invoice_field_label(form, :title, "#{document.label}stitel (optional)") %>
+    <%= form.text_field :title, maxlength: 200 %>
+  </div>
+  <div class="field">
+    <%= invoice_field_label(form, :service_on, "Voraussichtliche Leistung am / von (optional)") %>
+    <%= render "shared/date_picker", form: form, attribute: :service_on %>
+  </div>
+  <div class="field">
+    <%= invoice_field_label(form, :service_until_on, "Voraussichtlich bis (optional)") %>
+    <%= render "shared/date_picker", form: form, attribute: :service_until_on, min_date_field: "invoice_service_on", min_exclusive: true, min_error: "Das Bis-Datum muss nach dem Von-Datum liegen." %>
+  </div>
+</div>

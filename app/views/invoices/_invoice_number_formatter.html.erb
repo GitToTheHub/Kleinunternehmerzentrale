@@ -1,0 +1,95 @@
+<% document = local_assigns[:document] %>
+<% global_format = @profile.invoice_number_format.presence || InvoiceNumber::DEFAULT_FORMAT %>
+<% number_label = local_assigns.fetch(:number_label, "Rechnungsnummer") %>
+<% number_preview = local_assigns.fetch(:number_preview) { @invoice.invoice_number.presence || @invoice.proposed_invoice_number } %>
+<dialog id="invoice-number-editor" class="form-popover invoice-number-editor" data-invoice-number-target="editor" data-action="cancel->invoice-number#close close->invoice-number#closed pointerdown->invoice-number#startBackdropClick click->invoice-number#closeOnBackdrop" aria-labelledby="invoice-number-editor-title">
+  <div class="form-popover__heading">
+    <div>
+      <h3 id="invoice-number-editor-title" tabindex="-1"><%= number_label %>nformat bearbeiten</h3>
+    </div>
+    <button type="button" class="form-popover__close" aria-label="Bearbeitung der <%= number_label %> schließen" data-action="invoice-number#close">×</button>
+  </div>
+
+    <% unless document %>
+    <label class="checkbox-label invoice-number-once">
+      <%= form.check_box :invoice_number_format_once, aria: { describedby: "invoice-number-once-help" } %>
+      <span>Anpassungen nur für diese Rechnung verwenden</span>
+    </label>
+    <%= tag.small "Deine globale Formatvorgabe für künftige Rechnungen bleibt unverändert.", id: "invoice-number-once-help", class: "invoice-number-once-help", hidden: !@invoice.invoice_number_format_once, data: { invoice_number_target: "onceHint" } %>
+    <% end %>
+
+  <div class="field invoice-number-custom">
+    <%= invoice_field_label(form, :invoice_number_format, "Dein Format", for: "invoice-number-format-editor") %>
+    <div class="invoice-number-format-input">
+      <%= form.text_field :invoice_number_format, id: "invoice-number-format-editor", required: true, maxlength: 256, spellcheck: false, autocomplete: "off", data: { invoice_number_target: "format", action: "keydown->invoice-number#undo" }, aria: { describedby: "invoice-format-help" } %>
+    </div>
+    <% if document %>
+      <% default_notice = "Grundlage ist dein Rechnungsnummernformat. Änderungen gelten nur für #{document.offer? ? 'dieses Angebot' : 'diesen Auftrag'}." %>
+      <% custom_notice = "Angepasst: Dieses Format weicht von deiner globalen Vorgabe für Rechnungsnummern ab. Es gilt nur für #{document.offer? ? 'dieses Angebot' : 'diesen Auftrag'}." %>
+      <% different = @invoice.invoice_number_format != global_format %>
+      <%= tag.p(different ? custom_notice : default_notice, class: "number-format-notice #{'invoice-status' if different}", role: "status", data: { invoice_number_target: "globalFormatNotice", global_format: global_format, default_notice: default_notice, custom_notice: custom_notice }) %>
+    <% else %>
+      <%= render "invoices/format_flag", document: nil, popup: true %>
+    <% end %>
+    <%= tag.button "Änderungen rückgängig machen", type: "button", class: "button button--secondary", hidden: @invoice.invoice_number_format == global_format, data: { invoice_number_target: "resetFormat", action: "invoice-number#resetFormat" } %>
+    <div class="invoice-number-feedback">
+      <small class="field-error" data-invoice-number-target="editorStatus" role="status" hidden></small>
+    </div>
+    <div class="invoice-number-preview"><span>Vorschau: </span><output id="invoice-number-format-preview" data-invoice-number-target="preview" aria-live="polite"><%= number_preview %></output></div>
+    <div class="invoice-status invoice-number-collision" data-invoice-number-target="collisionHint" role="status" hidden>Dein Format kann zu doppelten Rechnungsnummern führen. Bei einer doppelten Rechnungsnummer wird die App automatisch -02, -03 usw. anhängen, sodass eine doppelte Rechnungsnummer nicht entsteht.</div>
+    <div class="invoice-number-tokens" role="group" aria-label="Platzhalter hinzufügen">
+      <% [
+        ["[Rechnungsart]", "Rechnung=RE, Anzahlung=ANZ, Abschlag=ABS, Schlussrechnung=SR, Storno=ST, Angebot=AN, Auftrag=AU"],
+        ["[Jahr]", "Jahr des Dokumentdatums, z.B. 2026."],
+        ["[Monat]", "Monat des Dokumentdatums, z.B. 10."],
+        ["[Tag]", "Tag des Dokumentdatums, z.B. 08."],
+        ["[Kundenkürzel]", "Kürzel deines Kunden, z.B. MF für Musterfirma."],
+        ["[Fortlaufendenummer]", "Fortlaufende Nummer über alle Kunden: 0001, 0002, … . Beginnt jedes Jahr neu."],
+        ["[Tageszähler]", "Zählt bei sonst gleicher Nummer: 01, 02, … . Mit Datum und Kundenkürzel beginnt der Zähler je Tag und Kunde neu."]
+      ].each_with_index do |(token, description), index| %>
+        <button type="button" class="invoice-number-token" data-token="<%= token %>" data-action="click->invoice-number#insertToken" aria-label="<%= token %> hinzufügen" aria-describedby="invoice-token-help-<%= index %>">
+          <code><%= token %></code>
+          <span id="invoice-token-help-<%= index %>" class="invoice-number-token__description"><%= description %></span>
+        </button>
+      <% end %>
+    </div>
+    <small id="invoice-format-help">Platzhalter per Klick an der Cursorposition einfügen. Du kannst das Format direkt im Feld bearbeiten.</small>
+
+  </div>
+
+  <div class="field" data-invoice-number-target="editorAbbreviationField" <%= "hidden" unless @invoice.invoice_number_format.to_s.include?("[Kundenkürzel]") %>>
+    <%= invoice_field_label(form, :buyer_abbreviation, "Kundenkürzel", for: "invoice-number-abbreviation-editor") %>
+    <%= tag.input type: "text", id: "invoice-number-abbreviation-editor", value: @invoice.buyer_abbreviation, maxlength: 20, pattern: '[A-Za-z0-9][A-Za-z0-9_\-]{0,19}', autocomplete: "off", placeholder: "z.B. MF", disabled: !@invoice.invoice_number_format.to_s.include?("[Kundenkürzel]"), data: { invoice_number_target: "editorAbbreviation", action: "input->invoice-number#editAbbreviation change->invoice-number#editAbbreviation" } %>
+  </div>
+
+  <h4 class="invoice-number-templates-title">Vorlagen</h4>
+  <div class="invoice-number-templates" role="group" aria-label="Formatvorlagen">
+    <% [
+      ["Rechnungsart, Jahr und fortlaufende Nummer", InvoiceNumber::DEFAULT_FORMAT, "Empfohlen"],
+      ["Rechnungsart, Jahr, fortlaufende Nummer und Kundenkürzel", "[Rechnungsart]-[Jahr]-[Fortlaufendenummer]-[Kundenkürzel]", nil],
+      ["Datum und fortlaufende Nummer", "[Jahr]-[Monat]-[Tag]-[Fortlaufendenummer]", nil],
+      ["Kundenkürzel, Datum und fortlaufende Nummer", "[Kundenkürzel]-[Jahr]-[Monat]-[Tag]-[Fortlaufendenummer]", nil],
+      ["Kundenkürzel, Datum und fortlaufende Nummer pro Tag", "[Kundenkürzel]-[Jahr]-[Monat]-[Tag]-[Tageszähler]", nil]
+    ].each do |title, format, badge| %>
+      <div role="button" tabindex="0" class="invoice-number-template" data-action="click->invoice-number#preset keydown->invoice-number#preset" data-format="<%= format %>" data-invoice-number-target="preset" aria-pressed="<%= @invoice.invoice_number_format == format %>">
+        <span class="invoice-number-template__heading"><strong><%= title %></strong><% if badge %><span class="invoice-number-template__badge"><%= badge %></span><% end %></span>
+        <code><%= format %></code>
+        <span class="invoice-number-template__example">Beispiel: <span data-format-example></span></span>
+        <% if format == "[Rechnungsart]-[Jahr]-[Fortlaufendenummer]-[Kundenkürzel]" %>
+          <small>Das Kürzel macht den Kunden im Dateinamen erkennbar. Die fortlaufende Nummer läuft über alle Kunden weiter.</small>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <section class="invoice-number-adjustment" aria-labelledby="invoice-number-adjustment-title">
+    <h4 id="invoice-number-adjustment-title">Nummerierung anpassen</h4>
+    <div class="field">
+      <p>Gilt für <strong data-invoice-number-target="counterYear"><%= @invoice.issued_on&.year %></strong>. Hast du dieses Jahr schon <%= document ? document.label.pluralize : "Rechnungen" %> mit einer fortlaufenden Nummer geschrieben? Beim Umstieg oder nach Dokumenten außerhalb der App kannst du hier die zuletzt verwendete fortlaufende Nummer eintragen. Eine reine Datumsangabe ist keine fortlaufende Nummer.</p>
+      <%= invoice_field_label(form, :invoice_number_last, "Zuletzt verwendete fortlaufende Nummer") %>
+      <%= form.number_field :invoice_number_last, value: (@invoice.invoice_number_last.presence || (@invoice.invoice_number_start.present? ? @invoice.invoice_number_start.to_i - 1 : nil)), min: 0, max: 999999998, step: 1, data: { invoice_number_target: "start" }, aria: { describedby: "invoice-number-start-help" } %>
+      <small id="invoice-number-start-help">Beispiel: Nach 147 folgt 148. Bereits vergebene Nummern können nicht zurückgesetzt werden. Gespeicherte Dokumente behalten ihre Nummer.</small>
+      <strong data-invoice-number-target="nextCounter" aria-live="polite"></strong>
+    </div>
+  </section>
+</dialog>

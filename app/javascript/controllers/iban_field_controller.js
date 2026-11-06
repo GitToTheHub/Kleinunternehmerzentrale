@@ -12,12 +12,12 @@ export default class extends Controller {
     if (!iban) return this.show("", "")
 
     const expected = this.lengthsValue[iban.slice(0, 2)]
-    if (expected && iban.length < expected) return this.show("", "")
+    if (expected && iban.length < expected) return this.show("error", `Zu kurz: ${iban.slice(0, 2)}-IBANs haben ${expected} Zeichen.`)
     if (expected && iban.length > expected) {
       return this.show("error", `Zu lang: ${iban.slice(0, 2)}-IBANs haben ${expected} Zeichen.`)
     }
     if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) {
-      return iban.length < 15 ? this.show("", "") : this.show("error", "Das sieht nicht wie eine IBAN aus.")
+      return this.show("error", "Das sieht nicht wie eine IBAN aus.")
     }
     this.show(this.valid(iban) ? "ok" : "error", this.valid(iban) ? "✓ IBAN ist formal korrekt." : "Prüfsumme stimmt nicht, bitte prüfe auf Tippfehler.")
   }
@@ -32,5 +32,7 @@ export default class extends Controller {
   show(state, text) {
     this.statusTarget.dataset.state = state
     this.statusTarget.textContent = text
+    this.inputTarget.setCustomValidity(state === "error" ? text : "")
+    this.inputTarget.setAttribute("aria-invalid", String(state === "error"))
   }
 }

@@ -1,0 +1,13 @@
+<section class="order-billing" data-order-billing-target="panel" data-initial-values="<%= (@invoice.position_allocations || {}).to_json %>" <%= "hidden" unless @invoice.partial_invoice? %>>
+  <%= form.hidden_field :order_based, value: (@invoice.sales_document_id || @invoice.order_based? ? "1" : "0"), data: { order_billing_target: "enabled" } %>
+  <fieldset class="booking-type-group">
+    <legend>Wie möchtest du den Anteil festlegen?</legend>
+    <div class="booking-actions">
+      <label class="booking-type-option"><%= form.radio_button :allocation_basis, "total", checked: @invoice.order_based? && !@invoice.position_based?, data: { order_billing_target: "basis", action: "click->order-billing#chooseBasis" } %><span><strong>Gesamten Auftrag anteilig berechnen</strong><small>Ein Prozentsatz oder Gesamtbetrag für alle Positionen, den du am Ende eingibst.</small></span></label>
+      <label class="booking-type-option"><%= form.radio_button :allocation_basis, "positions", checked: @invoice.position_based?, data: { order_billing_target: "basis", action: "click->order-billing#chooseBasis" } %><span><strong>Anteil je Position festlegen</strong><small>Gib den Anteil direkt in den jeweiligen Positionen an.</small></span></label>
+      <% unless @invoice.sales_document_id %>
+        <label class="booking-type-option"><%= form.radio_button :allocation_basis, "direct", checked: !@invoice.order_based?, data: { order_billing_target: "basis", action: "click->order-billing#chooseBasis" } %><span><strong>Betrag direkt erfassen</strong><small>Nur die jetzt berechneten Teilbereiche und Beträge. Den vollständigen Auftrag beschreibst du erst in der Schlussrechnung.</small></span></label>
+      <% end %>
+    </div>
+  </fieldset>
+</section>

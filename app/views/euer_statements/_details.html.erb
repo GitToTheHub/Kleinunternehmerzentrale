@@ -1,0 +1,23 @@
+<% expanded = local_assigns.fetch(:expanded, false) %>
+<% if expanded %><section class="bookkeeping-import-group"><h2>Allgemeine Angaben zum Betrieb (Zeilen 1 bis 11)</h2><% else %><details class="bookkeeping-import-group"><summary>Allgemeine Angaben zum Betrieb (Zeilen 1 bis 11)</summary><% end %>
+  <div class="form-grid">
+    <% EuerForm::DETAILS.each do |key, (line, label, type)| %>
+      <div class="field">
+        <% id = "euer_details_#{key}" %>
+        <%= label_tag id, "Zeile #{line} · #{label}" %>
+        <% name = "#{prefix}[details][#{key}]" %>
+        <% if type.is_a?(Hash) %>
+          <%= select_tag name, options_for_select(type.map { |value, caption| [caption, value] }, details[key]), include_blank: "Keine Angabe", id: id %>
+        <% elsif type == :date %>
+          <%= date_field_tag name, details[key], id: id %>
+        <% else %>
+          <%= text_field_tag name, details[key], id: id, maxlength: 500, list: (key == "legal_form" ? "euer-legal-forms" : nil) %>
+          <% if key == "legal_form" %>
+            <datalist id="euer-legal-forms"><% ["Einzelunternehmen", "Angehörige(r) der freien Berufe", "GbR", "OHG", "KG", "GmbH", "UG (haftungsbeschränkt)", "AG"].each do |caption| %><option value="<%= caption %>"></option><% end %></datalist>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <p>Die Angaben werden für das gewählte EÜR-Jahr gespeichert und exportiert. Die laufende Buchhaltung rechnet nach Kalenderjahren. Bei einem abweichenden Wirtschaftsjahr müssen die Beträge passend zum Zeitraum fachlich abgegrenzt werden; die Datumsangaben stellen die Buchungsberechnung nicht automatisch um.</p>
+<% if expanded %></section><% else %></details><% end %>

@@ -1,0 +1,17 @@
+  <section class="bookkeeping-overview" aria-labelledby="bookkeeping-overview-title">
+    <h2 id="bookkeeping-overview-title">Deine Übersicht <%= @year %></h2>
+    <dl class="bookkeeping-totals">
+      <div><dt>Einnahmen</dt><dd><%= euro(@report.income) %></dd></div>
+      <div><dt>Ausgaben</dt><dd><%= euro(@report.expenses) %></dd></div>
+      <div><dt>Gewinn / Verlust</dt><dd><strong><%= euro(@report.surplus) %></strong></dd></div>
+    </dl>
+    <% if @report.allowance.applicable? %><p>Steuerlich wird die Betriebsausgabenpauschale von <%= euro(@report.allowance.amount) %> angesetzt. Die tatsächlich erfassten Ausgaben werden nicht zusätzlich abgezogen. <%= link_to "Ausgabenmethode ändern", edit_euer_expense_policy_path(year: @year) %></p><% end %>
+    <p>Stand deiner erfassten Buchhaltung für das ausgewählte Kalenderjahr. Die Ausgaben enthalten abziehbare Kosten und berechnete Abschreibungen. Erfasste Sachentnahmen und steuerliche Korrekturen sind berücksichtigt. Der Betrag kann sich mit weiteren Buchungen ändern.</p>
+    <details><summary>Einlagen und Entnahmen ansehen</summary>
+      <dl class="bookkeeping-totals">
+        <div><dt>Einlagen einschließlich Sacheinlagen</dt><dd><%= euro(@report.deposits) %></dd></div>
+        <div><dt>Entnahmen einschließlich Sach- und Nutzungsentnahmen</dt><dd><%= euro(@report.withdrawals) %></dd></div>
+      </dl>
+      <p>Reine Geldeinlagen und Geldentnahmen verändern den Gewinn nicht. Sach- und Nutzungsentnahmen können zusätzlich als Einnahme berücksichtigt sein.</p>
+    </details>
+  </section>

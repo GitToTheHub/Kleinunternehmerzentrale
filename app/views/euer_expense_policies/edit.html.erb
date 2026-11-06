@@ -1,0 +1,66 @@
+<% content_for :title, "Ausgabenmethode und Pauschalen" %>
+<main data-controller="euer-expense-policy">
+  <h1>Ausgabenmethode und Pauschalen <%= @year %></h1>
+  <p>Du kannst deine tatsächlichen Ausgaben verwenden. Für bestimmte selbständige Tätigkeiten ist stattdessen eine Betriebsausgabenpauschale möglich. Die App wählt diese nicht anhand einer Berufsbezeichnung für dich aus.</p>
+  <%= render "shared/euer_form_source", year: @year %>
+  <p>Die automatische Betriebsausgabenpauschale gilt hier für den gesamten Betrieb und ein Kalenderjahr. Bei gemischten Tätigkeiten, weiteren steuerlichen Sonderfällen oder bereits manuell erfassten Pauschalen ist eine gesonderte Aufteilung erforderlich.</p>
+  <% if @policy.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @policy.errors.full_messages.to_sentence %></div><% end %>
+  <section class="invoice-panel">
+    <h2>Vergleich auf Grundlage deiner Buchhaltung</h2>
+    <p>Maßgebliche Einnahmen als Kleinunternehmer: <strong><%= euro(@report.actual_field_totals.fetch("income_small")) %></strong></p>
+    <p>Tatsächliche abziehbare Betriebsausgaben: <strong><%= euro(@report.expenses) %></strong></p>
+    <% EuerProfessionAllowance::RULES.fetch(@year).each do |method, (percent, limit)| %>
+      <% candidate = EuerProfessionAllowance.new(@report, EuerExpensePolicy.new(year: @year, deduction_method: method, eligibility_confirmed: true)) %>
+      <section data-euer-expense-policy-target="professionPanel" data-method="<%= method %>" hidden>
+      <h3><%= EuerProfessionAllowance::METHODS.fetch(method) %></h3>
+      <p><%= percent %> % der zugehörigen Einnahmen, höchstens <%= euro(limit) %> jährlich.</p>
+      <% if candidate.applicable? %><p>Berechnete Pauschale: <strong><%= euro(candidate.amount) %></strong></p><% else %><p>Automatische Anwendung derzeit nicht möglich: <%= candidate.errors.join(" ") %></p><% end %>
+      <% if method == "eligible_side" %><p>Der Höchstbetrag gilt insgesamt einmal pro Jahr, auch bei mehreren begünstigten Nebentätigkeiten. Steuerfreie Übungsleitertätigkeiten fallen nicht unter diese Vereinfachung.</p><% end %>
+      </section>
+    <% end %>
+  </section>
+  <%= form_with model: @policy, url: euer_expense_policy_path(year: @year), method: :patch do |form| %>
+    <h2>Betriebsausgabenpauschale oder tatsächliche Ausgaben</h2>
+    <div class="field"><%= form.label :deduction_method, "Welche Ausgaben sollen steuerlich berücksichtigt werden?" %><%= form.select :deduction_method, EuerProfessionAllowance::METHODS.map { |value, label| [label, value] }, {}, required: true, data: { euer_expense_policy_target: "deductionMethod", action: "euer-expense-policy#refresh" } %></div>
+    <p>Bei einer Betriebsausgabenpauschale setzt die App den berechneten Betrag in Zeile 24 an. Tatsächliche Ausgaben und Abschreibungen werden dann nicht zusätzlich vom Gewinn abgezogen. Deine Buchungen, Zahlungen und Anlagebuchwerte bleiben erhalten. Mit „Tatsächliche Betriebsausgaben“ kannst du jederzeit zurückwechseln.</p>
+    <%= form.label :eligibility_confirmed, class: "checkbox-label" do %>
+      <%= form.check_box :eligibility_confirmed %>
+      <span>Für die gewählte Betriebsausgabenpauschale bestätige ich: Die gesamte Tätigkeit dieses Betriebs ist begünstigt. Der Höchstbetrag wird nicht zusätzlich in einem anderen Betrieb beansprucht. Bei Nebentätigkeiten sind keine steuerfreien Übungsleitertätigkeiten einbezogen. Für tatsächliche Ausgaben ist diese Bestätigung nicht erforderlich.</span>
+    <% end %>
+    <section data-euer-expense-policy-target="childcarePanel" hidden>
+      <h2>Kindertagespflege</h2>
+      <p>Erfasse je Kind oder Freihalteplatz Zeiträume mit gleichbleibenden Monatsangaben. Verwende nur anonyme Kürzel. Überlappende Monate desselben Kürzels werden abgewiesen. Bei Änderungen innerhalb eines Monats verwende eine gesonderte Berechnung.</p>
+      <p>Die Berechnung berücksichtigt 400 € je vollem Betreuungsmonat bei 40 Wochenstunden, bei weniger Stunden anteilig. Für Freihalteplätze werden 50 € monatlich um belegte Tage gekürzt und die tageweise Betreuung hinzugerechnet. Insgesamt ist der Abzug auf die maßgeblichen Betriebseinnahmen begrenzt.</p>
+      <div data-euer-expense-policy-target="childcareList">
+        <% rows = @policy.daycare_rows.is_a?(Array) ? @policy.daycare_rows.select { |row| row.is_a?(Hash) } : [] %>
+        <% rows.each_with_index do |row, index| %><%= render "daycare_row", row: row, index: index %><% end %>
+      </div>
+      <template data-euer-expense-policy-target="childcareTemplate"><%= render "daycare_row", row: {}, index: "NEW_ROW" %></template>
+      <p><button type="button" class="button button--secondary" data-action="euer-expense-policy#addChildcare">Betreuungszeitraum hinzufügen</button></p>
+      <%= form.label :daycare_eligibility_confirmed, class: "checkbox-label" do %><%= form.check_box :daycare_eligibility_confirmed %><span>Die Betreuung erfolgt nicht im Haushalt der Eltern und nicht in kostenlos bereitgestellten Räumen. Die angegebenen Monate sind berücksichtigungsfähig; bei Ausfallzeiten wurden die Voraussetzungen für den Pauschalabzug geprüft. Für Freihalteplätze werden die erforderlichen laufenden Geldleistungen gezahlt. Alle zugehörigen Einnahmen sind erfasst.</span><% end %>
+      <p>Steuerfreie Versicherungsbeitragserstattungen nach § 3 Nr. 9 EStG, die in deinen Einnahmen enthalten sind, ergänze unter <%= link_to "Steuerfreie Einnahmen nach § 3 EStG", new_euer_adjustment_path(year: @year, field_key: "tax_exempt_other"), target: "_blank", rel: "noopener" %>. Sie werden bei dieser Methode von der Einnahmengrenze abgezogen.</p>
+      <% if @policy.deduction_method == "daycare" %><% candidate = EuerProfessionAllowance.new(@report, @policy) %><% if candidate.applicable? %><p>Berechnete Pauschale: <strong><%= euro(candidate.amount) %></strong></p><% end %><% end %>
+      <p><%= link_to "BMF-Schreiben zur Kindertagespflege vom 6. April 2023", "https://www.finanzamt-deggendorf.de/fileadmin/RESSOURCEN/INFORMATIONEN/Steuerinfos/Zielgruppen/Familien/2023-04-06-ertragsteuerliche-behandlung-der-kindertagespflege.pdf", target: "_blank", rel: "noopener" %></p>
+    </section>
+    <section class="invoice-panel">
+      <h2>Arbeit zuhause</h2>
+      <p>Für Gewerbebetriebe und freiberufliche Einzelunternehmen kann die App aus deinen dokumentierten Tagen oder Monaten eine Pauschale berechnen. Eine Betriebsausgabenpauschale und diese zusätzliche Pauschale lassen sich hier nicht kombinieren.</p>
+      <div class="field"><%= form.label :home_office_method, "Welche Pauschale zuhause möchtest du verwenden?" %><%= form.select :home_office_method, EuerHomeOfficeAllowance::METHODS.map { |value, label| [label, value] }, {}, data: { euer_expense_policy_target: "method", action: "euer-expense-policy#refresh" } %></div>
+      <div class="field" data-euer-expense-policy-target="daysPanel" hidden>
+        <%= form.label :home_days, "Berücksichtigungsfähige Tage zuhause" %><%= form.number_field :home_days, min: 0, max: (Date.gregorian_leap?(@year) ? 366 : 365), step: 1 %>
+        <small>6 € pro Tag, höchstens 1.260 € im Jahr. Zähle nur Tage, an denen du überwiegend zuhause gearbeitet und keine erste Tätigkeitsstätte aufgesucht hast. Steht dir dauerhaft kein anderer Arbeitsplatz zur Verfügung, kann auch bei auswärtiger Tätigkeit ein berücksichtigungsfähiger Tag vorliegen. Jeden Kalendertag nur einmal berücksichtigen.</small>
+      </div>
+      <div class="field" data-euer-expense-policy-target="monthsPanel" hidden>
+        <%= form.label :home_months, "Monate mit berücksichtigungsfähigem Arbeitszimmer" %><%= form.number_field :home_months, min: 0, max: 12, step: 1 %>
+        <small>Nur für ein häusliches Arbeitszimmer, das den Mittelpunkt deiner gesamten betrieblichen und beruflichen Tätigkeit bildet. Ausgangsbetrag: 1.260 € jährlich. Für jeden vollen Monat ohne diese Voraussetzung entfallen 105 €. Ein Monat mit zeitweise erfüllter Voraussetzung zählt mit.</small>
+      </div>
+      <div data-euer-expense-policy-target="basisPanel" hidden>
+        <div class="field"><%= form.label :home_basis, "Dokumentation der Tage oder Monate" %><%= form.text_area :home_basis, maxlength: 5000, placeholder: "Zum Beispiel: Datumsliste und Zuordnung der Arbeitstage zu diesem Betrieb" %></div>
+        <%= form.label :home_eligibility_confirmed, class: "checkbox-label" do %><%= form.check_box :home_eligibility_confirmed %><span>Die Voraussetzungen für die ausgewählten Tage oder Monate sind erfüllt. Ich ordne den Betrag vollständig diesem Betrieb zu und beanspruche ihn nicht nochmals bei einer anderen Tätigkeit. Für die Tagespauschale bestehen in diesen Zeiträumen weder ein Arbeitszimmerabzug noch abziehbare Unterkunftskosten einer doppelten Haushaltsführung. Bei der Jahrespauschale werden keine tatsächlichen Arbeitszimmerkosten zusätzlich angesetzt.</span><% end %>
+      </div>
+      <p>Die automatische Berechnung verwendet pro Jahr eine der beiden Methoden. Bei wechselnden Methoden oder einer Aufteilung auf mehrere Betriebe beziehungsweise eine Anstellung ergänze die gesondert ermittelten Beträge manuell.</p>
+    </section>
+    <div class="invoice-actions"><%= form.submit "Ausgabenmethode speichern", class: "button button--primary" %><%= link_to "Zur EÜR-Vorbereitung", prepare_euer_bookkeeping_entries_path(year: @year), class: "button button--secondary" %></div>
+  <% end %>
+  <p><%= link_to "Amtlicher Vordruck mit Anleitung: Betriebsausgabenpauschalen", EuerFields::SOURCES.fetch(@year), target: "_blank", rel: "noopener" %> · <%= link_to "§ 4 Abs. 5 EStG: Arbeitszimmer und Tagespauschale", "https://www.gesetze-im-internet.de/estg/__4.html", target: "_blank", rel: "noopener" %></p>
+</main>

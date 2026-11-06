@@ -1,0 +1,7 @@
+<% global_format = @profile.invoice_number_format.presence || InvoiceNumber::DEFAULT_FORMAT %>
+<% custom_format = @invoice.invoice_number_format != global_format %>
+<% local_notice = "Angepasstes Format, gilt nur für #{document ? (document.offer? ? 'dieses Angebot' : 'diesen Auftrag') : 'diese Rechnung'}" %>
+<% global_notice = "Angepasstes Format, wird als globale Vorgabe gespeichert" unless document %>
+<%= content_tag(popup ? :p : :small, document || @invoice.invoice_number_format_once ? local_notice : global_notice,
+  class: popup ? "number-format-notice invoice-status" : "number-format-custom", hidden: !custom_format, role: "status",
+  data: { invoice_number_target: popup ? "popupFormatFlag" : "customFormatFlag", global_format: global_format, local_notice: local_notice, global_notice: global_notice }) %>

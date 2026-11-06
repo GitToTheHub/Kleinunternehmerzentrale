@@ -1,0 +1,8 @@
+  <section>
+    <h2>Steuerliche Ergänzungen</h2>
+    <p>Erfasse fachlich ermittelte Beträge wie Tagespauschalen, Investitionsabzüge oder Gewinnkorrekturen. Bereits erfasste Zahlungen und automatisch berechnete Abschreibungen nicht erneut eintragen.</p>
+    <%= link_to "Ergänzung erfassen", new_euer_adjustment_path(year: @year), class: "button button--secondary" %>
+    <% @report.adjustments.each do |item| %>
+      <div class="invoice-draft-card"><div><strong><%= EuerFields::DEFINITIONS.fetch(item.field_key).label %></strong><span><%= item.description %></span><span><%= euro(item.amount) %></span></div><div class="invoice-draft-card__actions"><%= link_to "Bearbeiten", edit_euer_adjustment_path(item) %><%= button_to "Löschen", euer_adjustment_path(item), method: :delete, class: "button button--danger", data: { turbo_confirm: "Diese Ergänzung löschen?" } %></div></div>
+    <% end %>
+  </section>

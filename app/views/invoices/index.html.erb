@@ -4,20 +4,85 @@
 
   <%= render "invoices/revenue_notice" %>
 
-  <p><%= link_to "Neue Rechnung erstellen", new_invoice_path, class: "button button--primary" %></p>
+  <div class="invoice-actions">
+    <%= link_to "Neue Rechnung erstellen", new_invoice_path, class: "button button--primary" %>
+    <%= link_to "Angebot erstellen", new_sales_document_path, class: "button button--secondary" %>
+    <%= link_to "Auftrag erstellen", new_sales_document_path(kind: "order"), class: "button button--secondary" %>
+    <%= link_to "Schlussrechnung erstellen", new_invoice_path(billing_kind: "final"), class: "button button--secondary" if @settlement_groups.any? %>
+  </div>
 
-  <% if @invoices.any? %>
-    <div class="invoice-list">
-      <% @invoices.each do |invoice| %>
-        <%= link_to invoice_path(invoice), class: "invoice-list__item" do %>
-          <strong><%= invoice.invoice_number %><% if invoice.cancellation? %> (Storno)<% elsif invoice.cancellation %> (storniert)<% end %></strong>
-          <span><%= invoice.buyer_name %></span>
-          <span><%= invoice.issued_on.strftime("%d.%m.%Y") %></span>
-          <strong><%= number_to_currency(invoice.total, unit: "€", format: "%n %u", locale: :de) %></strong>
+  <div class="invoice-list">
+  <% @invoice_drafts.each do |draft| %>
+    <% draft_invoice = Invoice.new(draft.data) %>
+    <section class="invoice-list__item invoice-list__item--draft invoice-draft-card" aria-labelledby="invoice-draft-title-<%= draft.id %>" data-controller="record-link" data-action="click->record-link#open">
+      <div class="invoice-list__labels">
+        <%= link_to "Entwurf", edit_draft_invoices_path(draft_id: draft.id), id: "invoice-draft-title-#{draft.id}", class: "invoice-list__label invoice-list__label--draft invoice-draft-card__link", draggable: false, data: { record_link_target: "link" }, aria: { label: "Entwurf fortsetzen" } %>
+        <% if draft_invoice.corrected_invoice_id.present? %><span class="invoice-list__label invoice-list__label--draft">Korrekturrechnung</span><% end %>
+        <% if draft_invoice.staged_invoice? %><span class="invoice-list__label invoice-list__label--draft"><%= draft_invoice.billing_label %></span><% end %>
+      </div>
+      <span class="invoice-list__identity">
+        <% if draft_invoice.title.present? %><small><%= draft_invoice.title %></small><% end %>
+      </span>
+      <span class="invoice-list__customer invoice-draft-card__customer"><%= draft.data["buyer_name"].presence || "Kunde noch nicht angegeben" %></span>
+      <span class="invoice-list__date"><%= draft_invoice.issued_on&.strftime("%d.%m.%Y") %></span>
+      <div class="invoice-list__amount invoice-draft-card__amount">
+        <strong><%= invoice_money(draft_invoice.total, draft_invoice) %></strong>
+        <div class="invoice-draft-card__actions">
+          <%= button_to discard_invoice_draft_invoices_path(draft_id: draft.id), method: :delete, class: "button button--warning invoice-draft-card__delete", aria: { label: "Verwerfen" }, title: "Verwerfen", form: { data: { turbo_confirm: "Entwurf wirklich verwerfen? Die gespeicherten Angaben gehen dabei verloren." } } do %>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>
+          <% end %>
+        </div>
+      </div>
+      <div class="invoice-list__details">
+        <% if (original = draft.workspace.invoices.includes(:cancellation).find_by(id: draft_invoice.corrected_invoice_id)) %>
+          <span class="invoice-list__relation">Korrigiert Rechnung <%= link_to original.invoice_number, invoice_path(original) %><% if original.cancellation %> (storniert durch <%= link_to original.cancellation.invoice_number, invoice_path(original.cancellation) %>)<% end %></span>
         <% end %>
+        <small>Zuletzt gespeichert: <%= l(draft.updated_at, format: :short) %></small>
+      </div>
+    </section>
+  <% end %>
+
+      <% @invoices.each do |invoice| %>
+        <% billing = @billing_overview[invoice.id] %>
+        <div id="<%= dom_id(invoice) %>" class="invoice-list__item" data-invoice-id="<%= invoice.id %>" data-controller="record-link" data-action="click->record-link#open">
+          <div class="invoice-list__labels">
+            <% if invoice.staged_invoice? %><span class="invoice-list__label"><%= invoice.billing_label %></span><% end %>
+            <% if invoice.corrected_invoice %><span class="invoice-list__label">Korrekturrechnung</span><% end %>
+            <% if invoice.cancelled_invoice %><span class="invoice-list__label">Stornorechnung</span><% end %>
+            <% if invoice.cancellation %><span class="invoice-list__label invoice-list__label--cancelled">Storniert</span><% end %>
+            <% unless invoice.cancelled_invoice || invoice.cancellation %>
+              <% if invoice.payment_entry %>
+                <span class="invoice-list__relation"><%= link_to "#{invoice.payment_status} am #{invoice.payment_entry.paid_on.strftime("%d.%m.%Y")}", edit_bookkeeping_entry_path(invoice.payment_entry), class: "invoice-list__label invoice-list__label--link", aria: { label: "#{invoice.payment_status} am #{invoice.payment_entry.paid_on.strftime("%d.%m.%Y")} – Zahlung in der EÜR ansehen oder bearbeiten" } %></span>
+              <% else %>
+                <span class="<%= class_names('invoice-list__label', 'invoice-list__label--pending' => invoice.payment_status == 'Zahlung ausstehend') %>"><%= invoice.payment_status %></span>
+              <% end %>
+            <% end %>
+            <% if !invoice.payment_received? && invoice.payment_recordable? %>
+              <span class="invoice-list__relation"><%= link_to "Als bezahlt markieren", new_bookkeeping_entry_path(invoice_id: invoice.id), data: { action: "payment-dialog#open" }, aria: { haspopup: "dialog" }, class: "button button--secondary invoice-list__payment-button" %></span>
+            <% end %>
+          </div>
+          <span class="invoice-list__identity">
+            <strong><%= link_to invoice.invoice_number, invoice_path(invoice), class: "invoice-list__number", draggable: false, data: { record_link_target: "link" } %></strong>
+            <% if invoice.title.present? %><small><%= invoice.title %></small><% end %>
+          </span>
+          <span class="invoice-list__customer"><%= invoice.buyer_name %></span>
+          <span class="invoice-list__date"><%= invoice.issued_on.strftime("%d.%m.%Y") %></span>
+          <strong class="invoice-list__amount <%= 'invoice-list__amount--cancelled' if invoice.cancellation %>"><%= invoice_money(invoice.payment_total, invoice) %><% if billing && billing[:total] %> <span>von <%= invoice_money(billing[:total], invoice) %></span><% end %></strong>
+          <div class="invoice-list__details">
+            <% if billing && billing[:count] > 1 %>
+              <span class="invoice-list__relation">Insgesamt berechnet: <%= invoice_money(billing[:billed], invoice) %><% if billing[:total] %> von <%= invoice_money(billing[:total], invoice) %><% end %></span>
+            <% end %>
+            <% if invoice.cancelled_invoice %><span class="invoice-list__relation">Storniert Rechnung <%= link_to invoice.cancelled_invoice.invoice_number, invoice_path(invoice.cancelled_invoice) %></span><% end %>
+            <% if invoice.cancellation %><span class="invoice-list__relation">Storniert durch <%= link_to invoice.cancellation.invoice_number, invoice_path(invoice.cancellation) %></span><% end %>
+            <% if invoice.corrected_invoice %><span class="invoice-list__relation">Korrigiert Rechnung <%= link_to invoice.corrected_invoice.invoice_number, invoice_path(invoice.corrected_invoice) %></span><% end %>
+            <% if invoice.paid? && !invoice.payment_entry && invoice.payment_recordable? %>
+              <span class="invoice-list__relation"><%= link_to "Zahlung in EÜR erfassen", new_bookkeeping_entry_path(invoice_id: invoice.id) %></span>
+            <% end %>
+          </div>
+        </div>
       <% end %>
     </div>
-  <% else %>
+  <% if @invoices.empty? && @invoice_drafts.empty? %>
     <section class="invoice-panel">
       <h2>Noch keine Rechnungen</h2>
       <p>Erstelle deine erste Rechnung. Du kannst sie danach drucken oder als XRechnung herunterladen.</p>
@@ -28,8 +93,8 @@
     <section class="invoice-panel">
       <h2>Aufbewahrung und Datenschutz</h2>
       <p>
-        Rechnungen musst du selbst <strong>8 Jahre lang unverändert aufbewahren</strong>. Speichere dir deshalb jede
-        Rechnung als PDF (Drucken, dann „Als PDF speichern“) und bei E-Rechnungen die XML-Datei auf deinem eigenen Gerät.
+        Rechnungen musst du selbst <strong>8 Jahre lang unverändert aufbewahren</strong>. Bei einer PDF-Rechnung speicherst du die PDF auf deinem eigenen Gerät.
+        Entscheidend ist das Format, das du als Rechnung versendest: Versendest du nur die PDF, ist sie die maßgebliche Rechnung. Versendest du XML und eine inhaltsgleiche PDF zusammen als E-Rechnung, ist die XML-Datei maßgeblich und unverändert aufzubewahren; die PDF dient als zusätzliche Ansicht. Das bloße Erstellen oder Herunterladen einer XML-Datei ändert eine versendete PDF-Rechnung nicht.
         Diese App ist kein Archiv.
       </p>
       <p>

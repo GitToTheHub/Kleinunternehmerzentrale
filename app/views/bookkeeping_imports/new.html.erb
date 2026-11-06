@@ -1,0 +1,72 @@
+<% form_year = EuerFields.supported?(@import.year) ? @import.year : EuerFields::SOURCES.keys.max %>
+<main>
+  <h1>Bisherige Buchhaltung übernehmen</h1>
+  <p>Übernimm die geprüften Summen deiner bisherigen EÜR vom Jahresbeginn bis zu deinem Stichtag. Danach erfasst du neue Zahlungen einzeln. Deine alten Belege und Rechnungen bleiben in deiner bisherigen Ablage.</p>
+  <p><%= link_to "Hilfe zum Wechsel der Buchhaltungssoftware – auch von sevdesk", hilfe_path(anchor: "buchhaltung-wechseln"), target: "_blank", rel: "noopener" %></p>
+  <% unless EuerFields.supported?(@import.year) %><p class="flash-message flash-message--alert">Für das angefragte Steuerjahr sind keine amtlich geprüften Formulardaten verfügbar. Die folgenden Felder gehören zum ausdrücklich ausgewählten unterstützten Jahr.</p><% end %>
+  <% if @import.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @import.errors.full_messages.to_sentence %></div><% end %>
+  <%= form_with model: @import, url: preview_bookkeeping_imports_path, multipart: true, data: { controller: "bookkeeping-import", turbo: false } do |form| %>
+    <div class="form-grid">
+      <div class="field"><%= form.label :year, "Steuerjahr" %><%= form.select :year, EuerFields::SOURCES.keys, { selected: form_year }, data: { bookkeeping_import_target: "year", action: "change->bookkeeping-import#updateReferences" } %></div>
+      <div class="field field--wide"><%= render "shared/euer_form_source", year: form_year, controller: "bookkeeping-import" %></div>
+      <div class="field"><%= form.label :covered_through, "Bisherige EÜR bis einschließlich" %><%= render "shared/date_picker", form: form, attribute: :covered_through, required: true, input_data: { bookkeeping_import_target: "cutoff" } %><small>Wähle den letzten Tag, der in deiner bisherigen EÜR enthalten ist. Ab dem folgenden Tag erfasst du die Zahlungen hier.</small></div>
+      <div class="field field--wide"><%= form.label :source, "Quelle / Bezeichnung" %><%= form.text_field :source, required: true, maxlength: 200, data: { bookkeeping_import_target: "source" }, placeholder: "Name der bisherigen Software oder Auswertung" %></div>
+      <div class="field field--wide"><%= label_tag :input_mode, "Wie möchtest du die Summen übernehmen?" %><%= select_tag :input_mode, options_for_select([["Summen aus meiner EÜR eintragen", "manual"], ["CSV mit EÜR-Summen hochladen", "csv"], ["sevdesk-EÜR als PDF hochladen", "pdf"]], params[:input_mode] || "manual"), data: { bookkeeping_import_target: "mode", action: "change->bookkeeping-import#update" } %></div>
+      <div class="field field--wide" data-bookkeeping-import-target="csv" hidden>
+        <%= label_tag :file, "CSV-Datei mit EÜR-Summen", data: { bookkeeping_import_target: "fileLabel" } %><%= file_field_tag :file, accept: ".csv,text/csv", disabled: true, data: { bookkeeping_import_target: "file" } %>
+        <small data-bookkeeping-import-target="csvHelp">Maximal 1 MB. Spalten: Position und Betrag; Semikolon oder Komma als Trennzeichen. Beträge zum Beispiel 1.234,56. Nutze die Positionsschlüssel aus der Vorlage. Ein DATEV-Buchungsstapel kann hier nicht eingelesen werden.</small>
+        <small data-bookkeeping-import-target="pdfHelp" hidden>Maximal 10 MB. Für textbasierte sevdesk-EÜR-Berichte mit Zeile, Position und Betrag. Jahr und Stichtag werden vorgeschlagen, die Beträge anhand der PDF-Summen geprüft. Du bestätigst die Übernahme erst nach der Vorschau. Gescannte PDFs werden nicht unterstützt. Die PDF wird nur ausgelesen und nicht dauerhaft gespeichert.</small>
+        <%= link_to "CSV-Vorlage herunterladen", template_bookkeeping_imports_path, data: { bookkeeping_import_target: "template" } %>
+      </div>
+      <div class="field field--wide" data-bookkeeping-import-target="manual">
+        <p>Trage die Beträge aus den einzelnen EÜR-Positionen ein, nicht die Gesamtsummen oder den Gewinn. Leere Felder zählen als null. Bei beschränkt abziehbaren Ausgaben trägst du den bereits abziehbaren Anteil aus deiner EÜR ein; die App kürzt ihn nicht noch einmal.</p>
+        <p>Alle Betragsfelder des Hauptvordrucks sind enthalten, auch Sonderfälle und ergänzende Angaben. Summenzeilen und Überträge werden aus diesen Feldern berechnet und in der Vorschau angezeigt. Die Zeilen und Originalbezeichnungen entsprechen dem gewählten Steuerjahr. Bei geteilten Zeilen steht zusätzlich „abziehbar“ oder „nicht abziehbar“ am jeweiligen Feld.</p>
+        <section class="invoice-panel" data-bookkeeping-import-target="totals" hidden>
+          <h2>Deine Summen</h2>
+          <%= render "live_totals", keys: %w[income expenses surplus deposits withdrawals], announce: true %>
+          <small>Die Summen aktualisieren sich beim Eingeben. Einlagen, Entnahmen und ergänzende Davon-Angaben erhöhen den Gewinn nicht nochmals.</small>
+          <p role="status" data-bookkeeping-import-target="sumError" hidden>Mindestens ein Betrag ist noch nicht gültig. Korrigiere ihn, damit die Summen berechnet werden können.</p>
+        </section>
+        <% all_fields = EuerFields::DEFINITIONS.values.sort_by { |field| [field.line_2026 || field.line_2025, field.number.to_s] } %>
+        <% groups = {
+          "Betriebseinnahmen" => all_fields.select { |field| field.section == "20" },
+          "Betriebsausgaben" => all_fields.select { |field| field.section == "25" && field.line_2026 < 78 },
+          "Ermittlung des Gewinns und ergänzende Beträge" => all_fields.select { |field| field.section == "25" && field.line_2026 >= 78 },
+          "Rücklagen, stille Reserven und Ausgleichsposten" => all_fields.select { |field| field.section == "27" },
+          "Einlagen und Entnahmen" => all_fields.select { |field| field.section == "29" }
+        } %>
+        <% groups.each do |heading, fields| %>
+          <% next if fields.empty? %>
+          <section class="bookkeeping-import-group">
+            <h2><%= heading %></h2>
+            <% fields.each do |field| %>
+              <div class="bookkeeping-import-position" data-bookkeeping-import-target="row" data-years="<%= EuerFields::SOURCES.keys.select { |year| EuerFields.line(field.key, year) }.join(" ") %>" <%= "hidden" unless EuerFields.line(field.key, form_year) %>>
+                <%= label_tag "import_amount_#{field.key}" do %>
+                  <span data-bookkeeping-import-target="position" data-references="<%= EuerFields::SOURCES.keys.index_with { |year| EuerFormLabels.reference(field.key, year) }.to_json %>"><%= EuerFormLabels.reference(field.key, form_year) %></span>
+                  <span data-bookkeeping-import-target="caption" data-captions="<%= EuerFields::SOURCES.keys.index_with { |year| EuerFormLabels.label(field.key, year) }.to_json %>"><%= EuerFormLabels.label(field.key, form_year) %></span>
+                  <% if field.effect == :info %><small>Zusatzangabe: zählt nicht nochmals zum Gewinn.</small><% end %>
+                <% end %>
+                <div class="bookkeeping-amount-input"><%= text_field_tag "bookkeeping_import[amounts][#{field.key}]", @values[field.key], id: "import_amount_#{field.key}", inputmode: "decimal", placeholder: "0,00", data: { bookkeeping_import_target: "amount", action: "input->bookkeeping-import#updateTotals", effect: field.effect, key: field.key, section: field.section } %><span aria-hidden="true">€</span></div>
+              </div>
+            <% end %>
+            <% sum_keys = case heading
+              when "Betriebseinnahmen" then %w[income]
+              when "Betriebsausgaben" then %w[expenses]
+              when "Ermittlung des Gewinns und ergänzende Beträge" then %w[corrections surplus]
+              when "Rücklagen, stille Reserven und Ausgleichsposten" then %w[reserveCreate reserveRelease]
+              else %w[deposits withdrawals]
+            end %>
+            <%= render "live_totals", keys: sum_keys %>
+          </section>
+        <% end %>
+      </div>
+    </div>
+    <p>Einlagen und Entnahmen aus deiner bisherigen EÜR übernimmst du als eigene Summen. Aus den übernommenen Einnahmen oder Ausgaben werden keine zusätzlichen privaten Geldbewegungen berechnet.</p>
+    <p>Abschreibungen und Restbuchwerte benötigen besondere Aufmerksamkeit: <%= link_to "Anlagegüter beim Wechsel übernehmen", hilfe_path(anchor: "anlagegueter-beim-wechsel"), target: "_blank", rel: "noopener" %>.</p>
+    <div class="field">
+      <%= form.label :assets_managed_separately, class: "checkbox-label" do %><%= form.check_box :assets_managed_separately %><span>Ich verwalte meine bisherigen Anlagegüter separat im Anlageverzeichnis.</span><% end %>
+      <small>Aktiviere dies nur, wenn du deren Abschreibungen und Restbuchwerte sowie zugehörige Einlagen und Entnahmen aus diesen Summen herausgenommen hast. Die App berücksichtigt diese Beträge dann über die Anlagegüter. Ohne bisherige Anlagegüter lässt du die Option aus.</small>
+    </div>
+    <div class="invoice-actions"><%= form.submit "Übernahme prüfen", class: "button button--primary" %><%= link_to "Zur Buchhaltung", bookkeeping_entries_path, class: "button button--secondary" %></div>
+  <% end %>
+</main>

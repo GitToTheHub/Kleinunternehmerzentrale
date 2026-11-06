@@ -1,0 +1,440 @@
+<% invoice_mode = document.nil? %>
+<main class="invoice-new" <%= tag.attributes(data: { controller: "invoice-preview billing-kind", action: "invoice-draft:preview->invoice-preview#open turbo:before-cache@document->invoice-preview#close" }) if invoice_mode %>>
+  <% if invoice_mode %>
+  <h1 data-billing-kind-target="heading" data-correction="<%= @invoice.corrected_invoice_id.present? %>"><%= @invoice.corrected_invoice_id.present? ? "Korrekturrechnung erstellen" : "#{@invoice.billing_label} erstellen" %></h1>
+  <p data-billing-kind-target="description" data-hints="<%= InvoicesHelper::INVOICE_FORM_HINTS.to_json %>"><%= InvoicesHelper::INVOICE_FORM_HINTS.fetch(@invoice.billing_kind, InvoicesHelper::INVOICE_FORM_HINTS.fetch("regular")) %></p>
+  <% if (original = @invoice.workspace&.invoices&.includes(:cancellation)&.find_by(id: @invoice.corrected_invoice_id)) %>
+    <p class="invoice-status">Dieser Entwurf korrigiert Rechnung <%= link_to original.invoice_number, invoice_path(original) %>.<% if original.cancellation %> Die ursprüngliche Rechnung wurde durch <%= link_to original.cancellation.invoice_number, invoice_path(original.cancellation) %> storniert.<% end %></p>
+  <% end %>
+
+  <%= render "invoices/revenue_notice" %>
+  <% else %>
+    <h1><%= document.label %> <%= document.persisted? ? "bearbeiten" : "erstellen" %></h1>
+    <p><%= document.offer? ? "Beschreibe dein Angebot. Nach Annahme kannst du es als Auftrag übernehmen." : "Erfasse die Vereinbarung mit deinem Kunden – auch ohne vorheriges Angebot." %></p>
+  <% end %>
+
+  <% if !invoice_mode && @available_offers.any? %>
+    <%= render "sales_documents/offer_selection", offers: @available_offers %>
+  <% end %>
+
+  <% form_options = if invoice_mode
+    { html: { class: "invoice-form", data: { currency_url_value: exchange_rate_invoices_path, controller: "currency invoice-number invoice-wizard invoice-draft customer-select invoice-payment order-billing", order_billing_linked_value: @invoice.sales_document_id.present?, order_billing_total_value: @invoice.sales_document&.total_amount || 0, order_billing_prior_value: @invoice.sales_document&.active_invoices&.select(&:partial_invoice?)&.sum(&:total) || 0, invoice_number_url_value: next_number_invoices_path, invoice_draft_delete_url_value: (@draft.persisted? ? discard_invoice_draft_invoices_path(draft_id: @draft.id) : draft_invoices_path), invoice_draft_persisted_value: @draft.persisted?, invoice_draft_content_value: @invoice.errors.any? || params[:copy_from].present?, invoice_draft_url_value: (@draft.persisted? ? save_invoice_draft_invoices_path(draft_id: @draft.id) : draft_invoices_path), action: "input->order-billing#update change->order-billing#update keydown@window->invoice-draft#saveShortcut:capture change->invoice-payment#update input->currency#dateChanged change->currency#dateChanged input->invoice-number#update change->invoice-number#update input->customer-select#changed change->customer-select#changed focusin->invoice-wizard#activate submit->customer-select#review submit->invoice-wizard#submit submit->invoice-draft#prepareSubmit input->invoice-draft#schedule change->invoice-draft#schedule", invoice_wizard_saved_profile_value: @profile.persisted? && @invoice.errors.empty?, hourly_rate: @invoice.seller_hourly_rate } } }
+  else
+    { url: (document.persisted? ? sales_document_path(document) : sales_documents_path), method: (document.persisted? ? :patch : :post), html: { class: "invoice-form", data: { controller: "sales-document invoice-wizard customer-select invoice-number", invoice_number_url_value: next_number_sales_documents_path(document_id: document.id), action: "input->invoice-number#update change->invoice-number#update keydown@window->sales-document#saveShortcut:capture focusin->invoice-wizard#activate submit->invoice-wizard#submit", invoice_wizard_saved_profile_value: @profile.persisted? && document.errors.empty?, hourly_rate: @invoice.seller_hourly_rate } } }
+  end %>
+  <%= form_with model: @invoice, authenticity_token: form_authenticity_token, **form_options do |form| %>
+    <% if invoice_mode %>
+    <%= form.hidden_field :sales_document_id if @invoice.sales_document_id.present? %>
+    <%= form.hidden_field :billing_root_id if @invoice.billing_root_id.present? %>
+    <%= form.hidden_field :corrected_invoice_id if @invoice.corrected_invoice_id.present? %>
+    <%= hidden_field_tag :draft_id, @draft.id, data: { invoice_draft_target: "draftId" } %>
+    <%= hidden_field_tag :form_token, @draft.form_token %>
+    <% else %>
+      <%= hidden_field_tag :kind, document.kind %>
+      <%= hidden_field_tag :document_kind, document.kind, data: { number_code: InvoiceNumber::TYPE_CODES.fetch(document.kind) } %>
+      <%= hidden_field_tag :lock_version, document.lock_version %>
+      <%= form.hidden_field :currency, value: "EUR" %><%= form.hidden_field :tax_mode, value: "small_business" %>
+      <%= form.hidden_field :iban %><%= form.hidden_field :bic %><%= form.hidden_field :payment_method %>
+    <% end %>
+    <% form_errors = invoice_mode ? @invoice.errors : document.errors %>
+    <% if form_errors.any? %>
+      <div class="form-errors" role="alert">
+        <p>Bitte prüfe diese Angaben:</p>
+        <ul>
+          <% form_errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if invoice_mode %>
+    <p class="form-note">Dieses Formular erstellt Rechnungen nach der Kleinunternehmerregelung ohne Umsatzsteuerausweis. Auf der Rechnung steht der Hinweis auf die Steuerbefreiung nach <%= link_to "§ 19 UStG", "https://www.gesetze-im-internet.de/ustg_1980/__19.html", target: "_blank", rel: "noopener" %>.</p>
+
+    <section class="e-invoice-note" aria-labelledby="e-invoice-hint-title">
+      <svg class="e-invoice-note__icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
+      <div class="e-invoice-note__content">
+      <h2 id="e-invoice-hint-title">Musst du eine E-Rechnung ausstellen?</h2>
+      <p class="invoice-hint__answer"><strong>Nein.</strong> Das gilt dauerhaft (<%= link_to "§ 34a UStDV", "https://www.gesetze-im-internet.de/ustdv_1980/__34a.html", target: "_blank", rel: "noopener" %>). Die Pflicht, die ab 2027 und 2028 greift, betrifft nur Unternehmen, die Umsatzsteuer ausweisen. Du kannst eine E-Rechnung freiwillig erstellen. Eine normale PDF- oder Papierrechnung bleibt für dich erlaubt. </p>
+      <p>Empfangen musst du E-Rechnungen aber können, zum Beispiel per E-Mail.</p>
+      <p class="invoice-hint__more"><%= link_to "Weiteres zur E-Rechnung in der Hilfe", hilfe_path(anchor: "e-rechnung"), target: "_blank", rel: "noopener", aria: { label: "Mehr zur E-Rechnung in der Hilfe (öffnet einen neuen Tab)" } %></p>
+      </div>
+    </section>
+
+    <% end %>
+
+    <section class="invoice-step" data-invoice-wizard-target="step" aria-labelledby="invoice-step-seller">
+      <div class="invoice-step__heading"><span class="invoice-step__number" aria-hidden="true">1</span><h2 id="invoice-step-seller" tabindex="-1">Deine Angaben</h2></div>
+      <% seller_address = [@invoice.seller_street, [@invoice.seller_postal_code, @invoice.seller_city].compact_blank.join(" "), Invoice::COUNTRIES.to_h.invert.fetch(@invoice.seller_country, @invoice.seller_country)].compact_blank.join(", ") %>
+      <details class="invoice-seller-details" data-controller="seller-details" data-action="input->seller-details#refresh change->seller-details#refresh toggle->seller-details#refresh" <%= "open" if !@profile.persisted? || form_errors.any? %>>
+        <summary>
+          <span class="invoice-seller-edit-label">Bearbeitung schließen</span>
+          <span class="invoice-seller-summary">
+            <strong data-seller-details-target="name"><%= @invoice.seller_name.presence || "Eigene Angaben" %></strong>
+            <span data-seller-details-target="address"><%= seller_address.presence || "Adresse noch nicht angegeben" %></span>
+            <span data-seller-details-target="taxIdentifier"><%= @invoice.seller_tax_identifier.presence || "Steuernummer oder USt-ID noch nicht angegeben" %></span>
+            <span data-seller-details-target="contact"><%= [@invoice.seller_email, @invoice.seller_phone].compact_blank.join(" · ").presence || "Keine Kontaktdaten angegeben" %></span>
+            <span data-seller-details-target="hourlyRate"><%= @invoice.seller_hourly_rate.nil? ? "Kein allgemeiner Stundensatz hinterlegt" : "Allgemeiner Stundensatz: #{number_to_currency(@invoice.seller_hourly_rate, unit: '€', format: '%n %u', separator: ',', delimiter: '.')} pro Stunde" %></span>
+          </span>
+          <span class="invoice-seller-summary__action">
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 7.5 5 5 5-5"/></svg>
+          </span>
+        </summary>
+        <div class="invoice-step__content">
+    <section class="invoice-panel">
+      <p class="form-note">Deine Angaben werden beim <%= invoice_mode ? "Erstellen der Rechnung" : "Speichern" %> gespeichert und beim nächsten Mal automatisch vorausgefüllt.</p>
+      <div class="form-grid">
+        <div class="field"><%= invoice_field_label(form, :seller_name, "Vollständiger Name oder Firmenname") %><%= form.text_field :seller_name, required: true, autocomplete: "section-seller name" %><small>Als Einzelunternehmer: Vor- und Nachname, bei Bedarf ergänzt um deinen Geschäftsnamen.</small></div>
+        <div class="field"><%= invoice_field_label(form, :seller_email, "Deine E-Mail-Adresse (optional)") %><%= form.email_field :seller_email, autocomplete: "section-seller email" %><small>Erscheint als Kontakt auf deinem Dokument.<% if invoice_mode %> Für den XRechnung-Export dieser App erforderlich. Deine Empfangsmöglichkeit für E-Rechnungen ist davon unabhängig.<% end %></small></div>
+        <div class="field"><%= invoice_field_label(form, :seller_phone, "Deine Telefonnummer (optional)") %><%= form.telephone_field :seller_phone, maxlength: 50, autocomplete: "section-seller tel", placeholder: "+49 30 123456" %><small>Erscheint als Kontakt auf deinem Dokument. Gib sie mit internationaler Ländervorwahl an, z.B. +49 für Deutschland. Die führende Null der Orts- oder Mobilfunkvorwahl entfällt: Aus 0171 … wird +49 171 ….</small></div>
+        <div class="field">
+          <%= invoice_field_label(form, :seller_hourly_rate, "Allgemeiner Stundensatz (EUR pro Stunde, optional)") %>
+          <%= form.text_field :seller_hourly_rate, value: (@invoice.seller_hourly_rate.nil? ? nil : number_with_precision(@invoice.seller_hourly_rate, precision: 2, separator: ",", delimiter: "")), inputmode: "decimal", aria: { describedby: "seller-hourly-rate-help" }, data: { action: "input->customer-select#defaultRateChanged" } %>
+          <small id="seller-hourly-rate-help">Gib hier deinen allgemeinen Stundensatz ein. Dieser gilt pauschal für alle Kunden, kann aber pro Kunde in den Kundendaten angepasst werden. Leer lassen, wenn du nicht nach Stunden abrechnest.</small>
+        </div>
+        <h3 class="form-section-heading">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Adresse
+        </h3>
+        <div class="field field--wide address-autocomplete" data-controller="address-autocomplete" data-address-autocomplete-prefix-value="seller">
+          <%= invoice_field_label(form, :seller_street, "Straße und Hausnummer") %>
+          <%= form.text_field :seller_street, required: true, autocomplete: "section-seller address-line1", role: "combobox", aria: { autocomplete: "list", expanded: "false" }, data: { address_autocomplete_target: "street", action: "input->address-autocomplete#search keydown->address-autocomplete#keydown blur->address-autocomplete#hide" } %>
+          <small class="address-status" role="status" hidden data-address-autocomplete-target="status">Suche läuft … das kann einige Sekunden dauern.</small>
+          <ul class="address-suggestions" role="listbox" hidden data-address-autocomplete-target="list"></ul>
+          <small>Beim Tippen schlägt die App Adressen vor. Dafür werden deine Eingabe und deine IP-Adresse an den Dienst Photon gesendet (<%= link_to "Datenschutz", datenschutz_path %>).</small>
+        </div>
+        <div class="address-row">
+        <div class="field"><%= invoice_field_label(form, :seller_postal_code, "Postleitzahl") %><%= form.text_field :seller_postal_code, required: true, autocomplete: "section-seller postal-code" %></div>
+        <div class="field"><%= invoice_field_label(form, :seller_city, "Ort") %><%= form.text_field :seller_city, required: true, autocomplete: "section-seller address-level2" %></div>
+        <div class="field"><%= invoice_field_label(form, :seller_country, "Land") %><%= form.select :seller_country, Invoice::COUNTRIES, {}, required: true, autocomplete: "section-seller country" %></div>
+        </div>
+        <h3 class="form-section-heading">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H5V3h1Z"/><path d="M14 3v5h5M8 12h8M8 16h5"/></svg>
+          Steuerangaben
+        </h3>
+        <div class="field field--wide">
+          <%= invoice_field_label(form, :seller_tax_identifier, "Steuernummer oder Umsatzsteuer-ID") %>
+          <%= form.text_field :seller_tax_identifier, required: true, aria: { describedby: "tax-id-help" } %>
+          <small id="tax-id-help">Die Nummer steht in dem Schreiben, das du vom Finanzamt nach der Gewerbeanmeldung bekommst (zum Beispiel 12/345/67890). Hast du eine Umsatzsteuer-ID (beginnt mit DE), kannst du stattdessen diese eintragen. <%= link_to "Mehr", hilfe_path(anchor: "steuernummer-oder-umsatzsteuer-id"), target: "_blank", rel: "noopener", aria: { label: "Mehr über Steuernummer und Umsatzsteuer-ID (öffnet einen neuen Tab)" } %></small>
+        </div>
+        </div>
+    </section>
+      </div>
+      </details>
+    </section>
+
+    <section class="invoice-step" data-invoice-wizard-target="step" aria-labelledby="invoice-step-buyer">
+      <div class="invoice-step__heading"><span class="invoice-step__number" aria-hidden="true">2</span><h2 id="invoice-step-buyer" tabindex="-1">Kunde</h2></div>
+      <div class="invoice-step__content">
+    <section class="invoice-panel">
+      <% if @customers.any? %>
+          <select hidden id="customer-select" name="invoice[customer_id]" data-customer-select-target="picker" data-action="customer-select#fill" data-default-rate="<%= @invoice.seller_hourly_rate %>">
+            <option value="">Neue Kundin oder neuen Kunden eingeben</option>
+            <% @customers.each do |customer| %>
+              <option value="<%= customer.id %>" <%= "selected" if @invoice.customer_id == customer.id %> data-values="<%= customer.form_values.to_json %>" data-hourly-rate="<%= customer.hourly_rate %>" data-due-days="<%= customer.payment_due_days %>"><%= customer.name %>, <%= customer.city %></option>
+            <% end %>
+          </select>
+      <% end %>
+      <% if invoice_mode %>
+      <% customer_changes = customer_invoice_changes(@invoice) %>
+      <dialog class="form-popover customer-update-dialog" aria-labelledby="customer-update-title" data-customer-select-target="dialog" data-action="cancel->customer-select#cancelReview">
+      <fieldset class="customer-update-choice" data-customer-select-target="decision" data-change-labels="<%= InvoicesHelper::CUSTOMER_CHANGE_LABELS.to_json %>" hidden>
+        <legend id="customer-update-title" data-customer-select-target="decisionLegend"><%= customer_changes.keys == [:hourly_rate] ? "Stundensatz für diesen Kunden speichern?" : "Änderungen für künftige Rechnungen speichern?" %></legend>
+        <p>Diese Angaben unterscheiden sich von den gespeicherten Vorgaben für diesen Kunden:</p>
+        <ul data-customer-select-target="changeList"><% customer_changes.each_value do |change| %><li><%= change %></li><% end %></ul>
+        <label><%= form.radio_button :customer_update_mode, "update" %><span><strong>Als Vorgabe für diesen Kunden speichern</strong><small>Die oben genannten Änderungen werden beim Erstellen gespeichert und für künftige Rechnungen vorgeschlagen.</small></span></label>
+        <label><%= form.radio_button :customer_update_mode, "invoice_only" %><span><strong>Nur für diese Rechnung verwenden</strong><small>Für künftige Rechnungen bleiben die bisherigen Vorgaben des Kunden erhalten.</small></span></label>
+      </fieldset>
+      <div class="customer-update-dialog__actions">
+        <button type="button" class="button button--secondary" data-action="customer-select#cancelReview">Abbrechen</button>
+        <button type="button" class="button button--primary" data-customer-select-target="continueButton" data-action="customer-select#confirmReview">Weiter</button>
+      </div>
+      </dialog>
+      <p class="form-note">Neue Kunden werden beim Erstellen der Rechnung gespeichert. Bei Änderungen an einem ausgewählten Kunden entscheidest du, ob sie gespeichert werden oder nur für diese Rechnung gelten.</p>
+      <% else %>
+        <p class="form-note">Neue Kunden werden beim Speichern angelegt. Gespeicherte Kundenvorgaben bleiben unverändert.</p>
+      <% end %>
+      <div class="imprint-lookup" data-controller="imprint-lookup" data-imprint-lookup-url-value="<%= lookup_customer_imprint_invoices_path %>">
+        <button type="button" class="button button--secondary" popovertarget="customer-imprint-lookup">Kundendaten aus Impressum</button>
+        <small class="imprint-lookup__hint">Ermittle Kundendaten aus dem Impressum der Kundenwebseite.</small>
+        <div id="customer-imprint-lookup" class="form-popover" popover role="dialog" aria-labelledby="imprint-lookup-title" data-imprint-lookup-target="popover">
+          <div class="form-popover__heading">
+            <h3 id="imprint-lookup-title">Kundendaten aus Impressum</h3>
+            <button type="button" class="form-popover__close" popovertarget="customer-imprint-lookup" popovertargetaction="hide" aria-label="Schließen">×</button>
+          </div>
+          <div class="field" data-imprint-lookup-target="panel">
+            <%= label_tag :customer_imprint_domain, class: "field-label" do %><%= invoice_field_icon(:domain) %><span>Webadresse</span><% end %>
+            <div class="imprint-lookup__controls">
+              <%= text_field_tag :customer_imprint_domain, nil, placeholder: "beispiel.de oder https://beispiel.de/impressum", autocomplete: "url", autofocus: true, data: { imprint_lookup_target: "domain", action: "keydown->imprint-lookup#submitOnEnter input->imprint-lookup#resetResult" } %>
+              <button type="button" class="button button--secondary imprint-lookup__button" data-imprint-lookup-target="button" data-action="imprint-lookup#lookup"><span class="imprint-lookup__spinner" aria-hidden="true" hidden data-imprint-lookup-target="spinner"></span><span data-imprint-lookup-target="buttonLabel">Daten ermitteln</span></button>
+            </div>
+            <small>Gebe eine Webadresse ein aus der die Kundendaten ermittelt werden sollen. Es wird versucht ein Impressum zu finden, aus der die Daten gelesen werden können. Du kannst auch direkt den Link zum Impressum hier einfügen.</small>
+            <small class="address-status" role="status" aria-live="polite" data-imprint-lookup-target="status"></small>
+          </div>
+          <section class="imprint-lookup__results" data-imprint-lookup-target="results" aria-labelledby="imprint-results-title" hidden>
+            <h4 id="imprint-results-title" tabindex="-1" data-imprint-lookup-target="resultHeading">Ermittelte Kundendaten</h4>
+            <dl class="imprint-lookup__data" data-imprint-lookup-target="resultFields"></dl>
+            <p class="form-note">Prüfe die Angaben. Beim Übernehmen werden nur die angezeigten Kundenfelder ersetzt.</p>
+            <div class="imprint-lookup__actions">
+              <button type="button" class="button button--secondary" popovertarget="customer-imprint-lookup" popovertargetaction="hide">Abbrechen</button>
+              <button type="button" class="button button--primary" data-action="imprint-lookup#accept">Daten übernehmen</button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field field--wide customer-name-field">
+          <%= invoice_field_label(form, :buyer_name, "Firmenname oder vollständiger Name") %>
+          <%= form.text_field :buyer_name, required: true, autocomplete: "off", role: "combobox", aria: { autocomplete: "list", expanded: "false", controls: "customer-name-suggestions" }, data: { customer_select_target: "name", action: "focus->customer-select#suggest input->customer-select#suggest keydown->customer-select#navigate blur->customer-select#hideSuggestions" } %>
+          <ul id="customer-name-suggestions" class="customer-name-suggestions" role="listbox" aria-label="Gespeicherte Kunden" data-customer-select-target="suggestions" hidden></ul>
+        </div>
+        <div class="field field--wide buyer-contact-name-field">
+          <%= invoice_field_label(form, :buyer_contact_name, "Inhaber/in oder Ansprechperson (optional)") %>
+          <%= form.text_field :buyer_contact_name, autocomplete: "off", aria: { describedby: "buyer-contact-name-help" } %>
+          <small id="buyer-contact-name-help">Fülle dieses Feld nur aus, wenn <%= invoice_mode ? "die Rechnung" : "das Dokument" %> zusätzlich an eine bestimmte Person gerichtet werden soll, zum Beispiel an die zuständige Ansprechperson oder den Inhaber eines Einzelunternehmens. Der Name erscheint in der Empfängeranschrift<%= " und in der XRechnung" if invoice_mode %>. Genügt der Firmenname, lass das Feld leer.</small>
+        </div>
+        <div class="field" data-invoice-number-target="abbreviationField" <%= "hidden" unless @invoice.invoice_number_format.to_s.include?("[Kundenkürzel]") %>>
+          <%= invoice_field_label(form, :buyer_abbreviation, "Kundenkürzel") %>
+          <%= form.text_field :buyer_abbreviation, maxlength: 20, pattern: '[A-Za-z0-9][A-Za-z0-9_\-]{0,19}', autocomplete: "off", placeholder: "z.B. MF für Musterfirma", data: { invoice_number_target: "abbreviation" } %>
+          <small>Wird für den Platzhalter [Kundenkürzel] im Rechnungsnummernformat verwendet.</small>
+        </div>
+        <div class="field">
+          <%= invoice_field_label(form, :buyer_hourly_rate, "Individueller Stundensatz") %>
+          <%= form.text_field :buyer_hourly_rate, value: (@invoice.buyer_hourly_rate.nil? ? nil : number_with_precision(@invoice.buyer_hourly_rate, precision: 2, separator: ",", delimiter: "")), inputmode: "decimal", placeholder: (@invoice.seller_hourly_rate.nil? ? nil : number_with_precision(@invoice.seller_hourly_rate, precision: 2, separator: ",", delimiter: ".")), aria: { describedby: "buyer-hourly-rate-help" }, data: { action: "input->customer-select#customerRateChanged" } %>
+          <small id="buyer-hourly-rate-help">Du kannst für deinen Kunden einen gesonderten Stundensatz einstellen. Leer lassen, wenn dein allgemeiner Stundensatz gilt.</small>
+        </div>
+        <div class="field"><%= invoice_field_label(form, :buyer_email, (invoice_mode ? "E-Mail-Adresse (für E-Rechnung erforderlich)" : "E-Mail-Adresse (optional)")) %><%= form.email_field :buyer_email, autocomplete: "off" %><% if invoice_mode %><small>Wird als elektronische Adresse in der E-Rechnung verwendet.</small><% end %></div>
+        <h3 class="form-section-heading">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Adresse
+        </h3>
+        <div class="field field--wide address-autocomplete" data-controller="address-autocomplete" data-address-autocomplete-prefix-value="buyer">
+          <%= invoice_field_label(form, :buyer_street, "Straße und Hausnummer") %>
+          <%= form.text_field :buyer_street, required: true, autocomplete: "off", role: "combobox", aria: { autocomplete: "list", expanded: "false" }, data: { address_autocomplete_target: "street", action: "input->address-autocomplete#search keydown->address-autocomplete#keydown blur->address-autocomplete#hide" } %>
+          <small class="address-status" role="status" hidden data-address-autocomplete-target="status">Suche läuft … das kann einige Sekunden dauern.</small>
+          <ul class="address-suggestions" role="listbox" hidden data-address-autocomplete-target="list"></ul>
+          <small>Beim Tippen schlägt die App Adressen vor. Dafür werden deine Eingabe und deine IP-Adresse an den Dienst Photon gesendet (<%= link_to "Datenschutz", datenschutz_path %>).</small>
+        </div>
+        <div class="address-row">
+        <div class="field"><%= invoice_field_label(form, :buyer_postal_code, "Postleitzahl") %><%= form.text_field :buyer_postal_code, required: true, autocomplete: "off" %></div>
+        <div class="field"><%= invoice_field_label(form, :buyer_city, "Ort") %><%= form.text_field :buyer_city, required: true, autocomplete: "off" %></div>
+        <div class="field"><%= invoice_field_label(form, :buyer_country, "Land") %><%= form.select :buyer_country, Invoice::COUNTRIES, {}, required: true, autocomplete: "off" %></div>
+        </div>
+      </div>
+      <section class="invoice-subsection" aria-labelledby="customer-reference-title">
+        <h4 id="customer-reference-title" class="form-section-heading">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 11 22 2 13V2h11l9 9-2 2Z"/><circle cx="7" cy="7" r="1.5"/></svg>
+          Zuordnung beim Kunden (optional)
+        </h4>
+        <p class="form-note invoice-subsection__hint">Nur nötig, wenn dein Kunde eine Bestellnummer vorgibt oder eine Behörde ist. Sonst kannst du diesen Bereich leer lassen.</p>
+        <div class="form-grid">
+        <div class="field">
+          <%= invoice_field_label(form, :buyer_order_number, "Bestellnummer deines Kunden (optional)") %>
+          <%= form.text_field :buyer_order_number, aria: { describedby: "buyer-order-help" } %>
+          <small id="buyer-order-help">Manche Firmen geben bei einem Auftrag eine eigene Nummer vor, zum Beispiel „PO-12345“. Trage sie hier ein, damit dein Kunde die Rechnung seinem Auftrag zuordnen kann. Sie steht auf der Rechnung und in der XRechnung. Hat dein Kunde keine genannt, lass das Feld leer.</small>
+        </div>
+        <div class="field">
+          <%= invoice_field_label(form, :buyer_leitweg_id, "Leitweg-ID (nur für Behörden, optional)") %>
+          <%= form.text_field :buyer_leitweg_id, aria: { describedby: "buyer-leitweg-help" } %>
+          <small id="buyer-leitweg-help">Die Leitweg-ID ist die Adresse einer Behörde oder öffentlichen Einrichtung für E-Rechnungen, zum Beispiel „991-01234-44“. Du brauchst sie nur, wenn dein Kunde eine solche Stelle ist. Frage dann bei deinem Ansprechpartner danach. Privatkunden und Firmen brauchen sie nicht, lass das Feld dann leer.</small>
+        </div>
+        </div>
+      </section>
+    </section>
+
+      </div>
+    </section>
+
+    <section class="invoice-step" data-invoice-wizard-target="step" aria-labelledby="invoice-step-dates">
+      <div class="invoice-step__heading"><span class="invoice-step__number" aria-hidden="true">3</span><h2 id="invoice-step-dates" tabindex="-1"><%= invoice_mode ? "Rechnungsdaten" : "#{document.label}sdaten" %></h2></div>
+      <div class="invoice-step__content">
+    <section class="invoice-panel">
+    <% if invoice_mode %>
+      <p class="form-note"><%= link_to "Was muss auf eine Kleinunternehmerrechnung?", hilfe_path(anchor: "pflichtangaben"), target: "_blank", rel: "noopener" %> Pflichtangaben und Gesetzestext im Überblick.</p>
+      <%= render "invoices/billing_kind", form: form %>
+      <%= render "invoices/settlement_selection", form: form %>
+      <div class="form-grid">
+        <%= render "invoices/number_field", form: form %>
+        <div class="field">
+          <%= invoice_field_label(form, :issued_on, "Rechnungsdatum") %>
+          <%= render "shared/date_picker", form: form, attribute: :issued_on, required: true %>
+          <% issued_on_hints = t("invoices.issued_on_hints") %>
+          <%= tag.small issued_on_hints.fetch(@invoice.billing_kind.to_s.to_sym, issued_on_hints.fetch(:regular)), data: { billing_kind_target: "issuedOnHint", hints: issued_on_hints.to_json } %>
+        </div>
+        <div class="field field--wide">
+          <%= invoice_field_label(form, :title, "Rechnungstitel (optional)") %>
+          <%= form.text_field :title, maxlength: 200, placeholder: "z.B. Website-Betreuung Oktober 2026" %>
+          <small>Erscheint unter der Rechnungsnummer und in der Übersicht.</small>
+        </div>
+        <div class="field field--wide">
+          <div class="form-grid">
+            <% service_date_texts = t("invoices.service_date_texts") %>
+            <% service_texts = service_date_texts.fetch(@invoice.billing_kind == "advance" ? :advance : :regular) %>
+            <div class="field">
+              <%= invoice_field_label(form, :service_on, service_texts.fetch(:from), data: { billing_kind_target: "serviceLabel", texts: service_date_texts.to_json }) %>
+              <%= render "shared/date_picker", form: form, attribute: :service_on, required: true %>
+              <small data-billing-kind-target="serviceHint"><%= service_texts.fetch(:from_hint) %></small>
+            </div>
+            <div class="field">
+              <%= invoice_field_label(form, :service_until_on, service_texts.fetch(:to), data: { billing_kind_target: "serviceEndLabel" }) %>
+              <%= render "shared/date_picker", form: form, attribute: :service_until_on, min_exclusive: true, min_date_field: "invoice_service_on", min_error: "Das Bis-Datum muss nach dem Von-Datum liegen. Für einen einzelnen Tag lass es leer." %>
+              <small data-billing-kind-target="serviceEndHint"><%= service_texts.fetch(:to_hint) %></small>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <%= invoice_field_label(form, :payment_method, "Zahlungsart") %>
+          <%= form.select :payment_method, [["Nicht festgelegt", ""], ["Überweisung", "transfer"], ["Barzahlung", "cash"], ["Andere Zahlungsart", "other"]], { selected: @invoice.payment_method.presence || (@invoice.iban.present? ? "transfer" : "") } %>
+          <small>Die Zahlungsart ist keine Pflichtangabe (<%= link_to "§ 34a UStDV", "https://www.gesetze-im-internet.de/ustdv_1980/__34a.html", target: "_blank", rel: "noopener" %>). Bei „Nicht festgelegt“ vereinbarst du die Zahlungsart separat mit deinem Kunden; die XRechnung enthält dann „Zahlung nach Vereinbarung“. Der Betrag bleibt offen, solange du „Bereits vollständig bezahlt“ nicht aktivierst. Wähle Überweisung, um deine Bankverbindung einzutragen.</small>
+        </div>
+        <div class="field field--wide invoice-payment-status">
+          <span class="field-label invoice-payment-status__heading">Zahlungsstatus</span>
+          <%= form.label :paid, class: "checkbox-label" do %><%= form.check_box :paid, aria: { describedby: "invoice-paid-help" }, data: { invoice_payment_target: "paid" } %><span>Bereits vollständig bezahlt</span><% end %>
+          <small id="invoice-paid-help">Aktivieren, wenn der gesamte Betrag eingegangen ist. Die Rechnung zeigt dann „Bereits bezahlt“. Der Zahlungseingang wird mit dem unten angegebenen Datum und Konto automatisch als Einnahme in der EÜR erfasst.</small>
+        </div>
+
+        <div class="field field--wide" data-invoice-payment-target="details" <%= "hidden" unless @invoice.paid? %>>
+          <div class="form-grid">
+            <div class="field">
+              <%= form.label :received_on, "Datum des Zahlungseingangs" %>
+              <%= render "shared/date_picker", form: form, attribute: :received_on, required: @invoice.paid?, disabled: !@invoice.paid? %>
+              <small>Wann ist das Geld tatsächlich eingegangen? Das Datum kann vom Rechnungsdatum abweichen.</small>
+            </div>
+            <div class="field">
+              <%= form.label :received_account, "Geld erhalten auf" %>
+              <%= form.select :received_account, [["Betriebskonto / Betriebskasse", "business"], ["Privatkonto", "private"]], {}, disabled: !@invoice.paid? %>
+              <small>Bei einem Privatkonto berücksichtigt die App zusätzlich die Geldentnahme. Erfasse die Zahlung nicht noch einmal in der EÜR.</small>
+            </div>
+            <div class="field" data-invoice-payment-target="foreignAmount" <%= "hidden" unless @invoice.foreign_currency? %>>
+              <%= form.label :received_amount, "Tatsächlich erhaltener Betrag in Euro" %>
+              <div class="bookkeeping-amount-input"><%= form.text_field :received_amount, value: (@invoice.received_amount ? number_with_precision(@invoice.received_amount, precision: 2, separator: ",", delimiter: "") : nil), inputmode: "decimal", disabled: !@invoice.paid? || !@invoice.foreign_currency?, required: @invoice.paid? && @invoice.foreign_currency? %><span aria-hidden="true">€</span></div>
+              <small>Trage den tatsächlichen Euro-Gegenwert der vollständig erhaltenen Fremdwährungszahlung ein. Bankgebühren erfasst du separat als Ausgabe.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" data-controller="iban-field payment-bank" data-action="change@document->payment-bank#update" data-iban-field-lengths-value="<%= Invoice::IBAN_LENGTHS.to_json %>"><%= invoice_field_label(form, :iban, "IBAN") %><%= form.text_field :iban, autocomplete: "off", placeholder: "DE00 0000 0000 0000 0000 00", aria: { describedby: "iban-status" }, data: { iban_field_target: "input", action: "input->iban-field#check blur->iban-field#check" } %><small id="iban-status" class="iban-status" role="status" data-iban-field-target="status" aria-live="polite"></small><small>Für die ausgewählte Überweisung ist eine IBAN erforderlich.</small><small>Innerhalb des SEPA-Raums genügt die IBAN. Bei Kunden außerhalb erscheint ein Feld für die BIC.</small></div>
+        <div class="field" data-controller="bic-field" data-bic-field-sepa-value="<%= Invoice::SEPA_COUNTRIES.to_json %>" data-action="change@document->bic-field#update" <%= "hidden" if @invoice.sepa_buyer? %>>
+          <%= invoice_field_label(form, :bic, "BIC (für Kunden außerhalb des SEPA-Raums)") %><%= form.text_field :bic, autocomplete: "off" %>
+          <small>Bei Zahlungen aus Ländern außerhalb des SEPA-Raums, zum Beispiel den USA, verlangt die Bank der Kundin oder des Kunden deine BIC (SWIFT-Code).</small>
+        </div>
+        <div class="field field--wide">
+          <%= invoice_field_label(form, :payment_due_on, "Zahlbar bis (optional)") %>
+          <%= render "shared/date_picker", form: form, attribute: :payment_due_on, min_date_field: "invoice_issued_on", min_error: "Die Zahlungsfrist darf nicht vor dem Rechnungsdatum liegen." %>
+          <small>Das Feld leer lassen, wenn keine Zahlungsfrist auf der Rechnung stehen soll. Mit Datum erscheint: „Bitte den Betrag bis zum … bezahlen“.</small>
+        </div>
+        <div class="field">
+          <%= invoice_field_label(form, :currency, "Währung") %>
+          <%= form.select :currency, Invoice::CURRENCIES.map { |code, name| [name, code] }, {}, aria: { describedby: "invoice-currency-help invoice-currency-change-help" }, data: { currency_target: "currency", action: "currency#changed" } %>
+          <small id="invoice-currency-help">Du kannst auch mit Kunden im Ausland, etwa in Polen oder den USA, Preise und Zahlung in Euro vereinbaren. Wenn du in Euro abrechnest und Euro erhältst, brauchst du keine Währungsumrechnung. Entscheidend ist eure Vereinbarung, nicht das Land des Kunden.</small>
+          <small id="invoice-currency-change-help">Wähle eine andere Währung nur, wenn ihr die Rechnung in dieser Währung vereinbart habt. Alle Positionspreise und Rechnungsbeträge gelten dann in der gewählten Währung. Ein Wechsel rechnet eingegebene Preise nicht automatisch um.</small>
+        </div>
+        <fieldset class="field field--wide currency-conversion" data-currency-target="conversion" <%= "hidden" unless @invoice.foreign_currency? %>>
+          <legend>Euro-Umrechnung für deine Umsatzübersicht</legend>
+          <small>Die Umrechnung zeigt dir den rechnerischen Euro-Gegenwert der Rechnung für deine Umsatzübersicht. Der tatsächliche Zahlungseingang kann durch einen anderen Wechselkurs am Zahlungstag und Bankgebühren abweichen. Beispiel: Bei einer Rechnung über 120 US-Dollar muss der Kunde 120 US-Dollar bezahlen – unabhängig davon, wie viel Euro diese am Zahlungstag wert sind. Die Euro-Umrechnung ändert den Rechnungsbetrag nicht.</small>
+          <small data-currency-target="status" role="status" aria-live="polite"></small>
+          <button type="button" class="button button--secondary" data-action="currency#reload">EZB-Kurs laden</button>
+          <div class="form-grid">
+            <div class="field">
+              <%= invoice_field_label(form, :exchange_rate, "Wechselkurs") %>
+              <div class="exchange-rate-input"><span>1 € =</span><%= form.number_field :exchange_rate_quote, id: "invoice_exchange_rate", aria: { label: "Fremdwährung je 1 Euro" }, min: "0.00000001", max: "999999999.99999999", step: "any", required: @invoice.foreign_currency?, disabled: !@invoice.foreign_currency?, data: { currency_target: "conversionInput rate", action: "input->currency#manualChanged" } %><span data-currency-target="unit"><%= @invoice.currency %></span></div>
+              <small>Beispiel: 1 € = 1,12 USD → 1,12 eintragen. Der Kurs gilt nur für die interne Euro-Übersicht.</small>
+            </div>
+            <div class="field">
+              <%= invoice_field_label(form, :exchange_rate_on, "Kursdatum") %>
+              <%= render "shared/date_picker", form: form, attribute: :exchange_rate_on, required: @invoice.foreign_currency?, disabled: !@invoice.foreign_currency?, input_data: { currency_target: "conversionInput rateDate", action: "input->currency#manualChanged" } %>
+            </div>
+            <div class="field field--wide">
+              <%= invoice_field_label(form, :exchange_rate_source, "Kursquelle") %>
+              <%= form.text_field :exchange_rate_source, maxlength: 200, placeholder: "Zum Beispiel: EZB oder Bankabrechnung", required: @invoice.foreign_currency?, disabled: !@invoice.foreign_currency?, data: { currency_target: "conversionInput source", action: "input->currency#manualChanged" } %>
+            </div>
+          </div>
+          <small>Wir laden den EZB-Referenzkurs zum Rechnungsdatum automatisch. Gibt es für diesen Tag noch keinen Kurs, verwenden wir den letzten verfügbaren Kurs davor. Kurs, Datum und Quelle werden mit der Rechnung gespeichert. Du kannst sie bei Bedarf ändern, z.B. entsprechend deiner Bankabrechnung. Der Referenzkurs dient der Übersicht und ist kein zugesicherter Bank- oder Zahlungskurs. <%= link_to "Quelle: EZB-Referenzkurse", "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html", target: "_blank", rel: "noopener" %></small>
+        </fieldset>
+        <div class="field field--wide"><%= invoice_field_label(form, :payment_terms, "Zahlungshinweis (optional)") %><%= form.text_field :payment_terms, placeholder: "Zum Beispiel: 2 % Skonto bei Zahlung innerhalb von 7 Tagen" %></div>
+      </div>
+    <% else %>
+      <%= render "sales_documents/form_dates", form: form, document: document %>
+    <% end %>
+    </section>
+      </div>
+    </section>
+
+    <section class="invoice-step" data-invoice-wizard-target="step" aria-labelledby="invoice-step-lines">
+      <div class="invoice-step__heading"><span class="invoice-step__number" aria-hidden="true">4</span><h2 id="invoice-step-lines" tabindex="-1" data-order-billing-target="positionsHeading"><%= invoice_mode ? "Rechnungspositionen" : "Vereinbarte Positionen" %></h2></div>
+      <div class="invoice-step__content">
+    <%= render "invoices/order_billing", form: form if invoice_mode %>
+    <p class="form-note" data-order-billing-target="scopeHint">Beschreibe jede Leistung oder jeden Artikel als eigene Position mit Menge und Preis.</p>
+    <% if @invoice.sales_document_id %>
+      <section class="invoice-panel">
+        <p>Vereinbarte Positionen aus <%= link_to @invoice.sales_document.document_number, @invoice.sales_document %>. Änderungen nimmst du am Auftrag vor, solange er noch nicht abgerechnet wurde.</p>
+        <%= render "sales_documents/lines" %>
+        <p class="invoice-total">Gesamtpreis des Auftrags: <strong data-order-billing-target="total"><%= invoice_money(@invoice.sales_document.total_amount, @invoice) %></strong></p>
+        <%= render "invoices/order_billing_calculation", form: form if invoice_mode %>
+      </section>
+    <% else %>
+    <section class="invoice-panel" data-controller="invoice-lines" data-action="currency:changed@window->invoice-lines#refresh">
+      <%= render "invoices/billing_units" %>
+      <div class="invoice-lines" data-invoice-lines-target="list">
+        <%= form.fields_for :invoice_lines do |line_form| %>
+          <%= render "invoices/invoice_line_fields", form: line_form %>
+        <% end %>
+      </div>
+      <template data-invoice-lines-target="template">
+        <%= form.fields_for :invoice_lines, InvoiceLine.new(quantity: 1, unit_price: 0, unit_code: default_invoice_unit, tax_rate: 0), child_index: "NEW_RECORD" do |line_form| %>
+          <%= render "invoices/invoice_line_fields", form: line_form %>
+        <% end %>
+      </template>
+      <button type="button" class="button button--secondary" data-action="invoice-lines#add">Position hinzufügen</button>
+      <p class="invoice-total"><span data-order-billing-target="scopeTotalLabel">Gesamtsumme:</span> <strong data-invoice-lines-target="total" data-order-billing-target="total"><%= invoice_money(0, @invoice) %></strong><small>Keine Umsatzsteuer nach § 19 UStG</small></p>
+      <%= render "invoices/order_billing_calculation", form: form if invoice_mode %>
+
+    </section>
+
+    <% end %>
+      </div>
+    </section>
+
+    <% if invoice_mode %>
+    <aside class="invoice-panel invoice-hint invoice-finalization-hint">
+      <h2>Entwurf oder endgültige Rechnung?</h2>
+      <p>Dein Entwurf wird automatisch gespeichert und bleibt bearbeitbar. Mit „Später“ kannst du später weiterarbeiten. Auch die Vorschau erstellt noch keine endgültige Rechnung.</p>
+      <p>Mit „Festschreiben“ wird die Rechnungsnummer verbindlich vergeben. Die App sperrt anschließend die Bearbeitung, auch wenn du die Rechnung noch nicht versendet hast. Prüfe vorher alle Angaben.</p>
+      <p>Die GoBD sind die Grundsätze zur ordnungsmäßigen Führung und Aufbewahrung elektronischer Bücher, Aufzeichnungen und Unterlagen. Sie verlangen, dass der ursprüngliche Inhalt von Belegen erhalten bleibt und Änderungen nachvollziehbar sind. Noch nicht versendet bedeutet deshalb nicht automatisch, dass ein bereits erfasster Beleg einfach überschrieben werden darf. Diese App korrigiert endgültige Rechnungen durch Storno und eine Korrekturrechnung.</p>
+      <p><%= link_to "Quelle: BMF – GoBD, Abschnitte 3.2.5 und 8", "https://ao.bundesfinanzministerium.de/ao/2026/Anhaenge/BMF-Schreiben-und-gleichlautende-Laendererlasse/Anhang-33/inhalt.html", target: "_blank", rel: "noopener" %></p>
+    </aside>
+
+    <div class="invoice-form__actions">
+      <%= button_tag type: "button", class: "button #{@draft.persisted? ? 'button--warning' : 'button--secondary'}", data: { action: "invoice-draft#discard", invoice_draft_target: "discardButton" } do %>
+        <%= content_tag :span, invoice_action_icon(:delete), hidden: !@draft.persisted?, data: { invoice_draft_target: "discardIcon" } %>
+        <%= content_tag :span, invoice_action_icon(:cancel), hidden: @draft.persisted?, data: { invoice_draft_target: "cancelIcon" } %>
+        <span data-invoice-draft-target="discardLabel"><%= @draft.persisted? ? "Verwerfen" : "Abbrechen" %></span>
+      <% end %>
+      <%= link_to invoices_path, class: "button button--secondary", hidden: !@draft.persisted?, data: { action: "invoice-draft#back", invoice_draft_target: "leave" } do %>
+        <%= invoice_action_icon(:later) %><span>Später</span>
+      <% end %>
+      <%= button_tag type: "submit", value: "Vorschau", class: "button button--secondary", formaction: preview_invoices_path, aria: { haspopup: "dialog" }, data: { invoice_preview: true, turbo: false, disable_with: false } do %>
+        <%= invoice_action_icon(:preview) %><span>Vorschau</span>
+      <% end %>
+      <%= button_tag type: "submit", value: "Festschreiben", class: "button button--primary invoice-form__finalize" do %>
+        <%= invoice_action_icon(:lock) %><span>Festschreiben</span>
+      <% end %>
+      <small class="invoice-draft-status" role="status" aria-live="polite" data-invoice-draft-target="status"></small>
+    </div>
+    <% else %>
+      <div class="invoice-form__actions">
+        <%= button_tag type: "submit", class: "button button--primary" do %><%= invoice_action_icon(:save) %><span><%= document.label %> speichern</span><% end %>
+        <%= link_to sales_documents_path, class: "button button--secondary" do %><%= invoice_action_icon(:cancel) %><span>Abbrechen</span><% end %>
+      </div>
+    <% end %>
+  <% end %>
+  <% if invoice_mode %>
+  <dialog class="form-popover invoice-preview-dialog" aria-labelledby="invoice-preview-title" data-invoice-preview-target="dialog" data-action="pointerdown->invoice-preview#startBackdrop click->invoice-preview#closeOnBackdrop close->invoice-preview#closed">
+    <div class="form-popover__heading">
+      <h3 id="invoice-preview-title" tabindex="-1" data-invoice-preview-target="heading">Rechnungsvorschau</h3>
+      <button type="button" class="form-popover__close" aria-label="Vorschau schließen" title="Vorschau schließen" data-action="invoice-preview#close">×</button>
+    </div>
+    <iframe id="invoice-preview-frame" title="Rechnungsvorschau" data-invoice-preview-target="frame" data-action="load->invoice-preview#loaded"></iframe>
+  </dialog>
+  <% end %>
+</main>

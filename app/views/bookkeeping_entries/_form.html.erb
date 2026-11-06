@@ -1,0 +1,114 @@
+<% if @entry.errors.any? %>
+  <div class="flash-message flash-message--alert" role="alert"><%= @entry.errors.full_messages.to_sentence %></div>
+<% end %>
+<%= render "booking_guidance" if @entry.new_record? %>
+<% if @entry.persisted? && @entry.kind == "noncash_withdrawal" %>
+  <p class="form-hint">Bestehende Sach-, Nutzungs- und Leistungsentnahmen bleiben unverändert erhalten. Wenn dieser Eintrag die private Nutzung eines Anlageguts betrifft, erfasse denselben Wert nicht zusätzlich beim Anlagegut.</p>
+<% end %>
+<%= form_with model: @entry, data: { controller: "euer-entry", action: "expense-search:choose->euer-entry#chooseExpenseCategory" } do |form| %>
+  <div class="booking-kind-summary" data-euer-entry-target="kindSummary" <%= "hidden" if @choose_kind %>>
+    <p class="booking-category-heading"><span data-euer-entry-target="kindIcon" aria-hidden="true"><%= bookkeeping_icon(@entry.kind) %></span>Buchungsart: <strong data-euer-entry-target="kindLabel"><%= bookkeeping_kind_label(@entry.kind) %></strong></p>
+    <button type="button" class="button button--secondary" data-euer-entry-target="kindChange" data-action="euer-entry#editKind" aria-expanded="false" aria-controls="<%= form.field_id(:kind_choices) %>">Buchungsart ändern</button>
+    <% kind_copy = BookkeepingEntriesHelper::BOOKING_ACTIONS.fetch(@entry.kind) %>
+    <div class="booking-kind-description">
+      <p data-euer-entry-target="kindDescription"><%= kind_copy.fetch(:hint) %></p>
+      <p data-euer-entry-target="kindExampleRow" <%= "hidden" if kind_copy[:example].blank? %>><strong>Beispiel:</strong> <span data-euer-entry-target="kindExample"><%= kind_copy[:example] %></span></p>
+      <p data-euer-entry-target="kindDetail"><%= kind_copy.fetch(:detail) %></p>
+    </div>
+  </div>
+  <div id="<%= form.field_id(:kind_choices) %>" data-euer-entry-target="kindChoices" <%= "hidden" unless @choose_kind %>>
+    <%= render "kind_choices", form: form %>
+    <button type="button" class="button button--secondary" data-euer-entry-target="kindCancel" data-action="euer-entry#closeKinds" <%= "hidden" if @choose_kind %>>Auswahl schließen</button>
+  </div>
+  <fieldset class="booking-entry-fields" data-euer-entry-target="fields" <%= "disabled hidden" if @choose_kind %>>
+  <% copy = bookkeeping_entry_copy(@entry.kind) %>
+  <div class="form-grid">
+    <div data-euer-entry-target="reversalField" hidden><%= form.check_box :reversal, data: { euer_entry_target: "reversal" }, hidden: true %></div>
+    <div class="field field--wide" data-euer-entry-target="invoiceField">
+      <%= form.label :invoice_id, "Zahlung zu einer Rechnung (optional)" %>
+      <%= form.select :invoice_id, @payment_invoices.map { |invoice| [[invoice.invoice_number, invoice.title.presence, invoice.buyer_name, invoice_money(invoice.payment_total, invoice)].compact.join(" · "), invoice.id, { data: { amount: invoice.payment_total_in_euros.to_s("F"), reference: invoice.invoice_number, description: invoice.payment_description, foreign: invoice.foreign_currency?, payment_action: invoice_payment_action(invoice) } }] }, { include_blank: "Keine Rechnung zuordnen" }, data: { euer_entry_target: "invoice", action: "change->euer-entry#invoiceChanged" } %>
+      <small>Mit einer zugeordneten Einnahme wird die Rechnung als vollständig bezahlt markiert. Erfasse dafür keine zweite Zahlung. Datum und Konto müssen zum tatsächlichen Zahlungseingang passen.</small>
+      <small data-euer-entry-target="foreignPaymentHint" hidden>Der Eurobetrag ist mit dem Rechnungskurs vorbelegt. Trage den tatsächlichen Euro-Gegenwert der vollständig erhaltenen Zahlung ein. Bankgebühren erfasst du separat als Ausgabe.</small>
+    </div>
+    <div class="field field--wide" data-euer-entry-target="categoryField">
+      <div class="expense-area-field" data-euer-entry-target="expenseGroupField" <%= "hidden" unless @entry.kind == "expense" %>>
+        <div class="booking-kind-summary" data-euer-entry-target="areaSummary" hidden><p>Ausgabenbereich: <strong data-euer-entry-target="areaName"></strong></p><button type="button" class="button button--secondary" data-euer-entry-target="areaEdit" data-action="euer-entry#editExpenseGroup" aria-controls="expense-area-cards" aria-expanded="false">Ausgabenbereich ändern</button></div>
+        <fieldset tabindex="-1" id="expense-area-cards" data-euer-entry-target="areaCards" class="booking-type-group">
+          <legend>Ausgabenbereich auswählen</legend>
+          <div class="booking-actions">
+            <% BookkeepingEntriesHelper::EXPENSE_GROUPS.each_with_index do |(group, keys), index| %>
+              <label class="booking-type-option"><input type="radio" name="expense_area_choice" value="<%= group %>" data-action="click->euer-entry#areaChosen change->euer-entry#areaChosen"><span><strong><%= group %></strong><small><%= keys.filter_map { |key| BookkeepingEntriesHelper::EXPENSE_EXAMPLES[key] }.first(2).join("; ") %></small></span></label>
+            <% end %>
+          </div>
+        </fieldset>
+        <select hidden aria-hidden="true" tabindex="-1" id="expense-area" data-euer-entry-target="expenseGroup" data-action="change->euer-entry#expenseGroupChanged" >
+          <option value="">Bitte wähle einen Bereich</option>
+          <% BookkeepingEntriesHelper::EXPENSE_GROUPS.each_key do |group| %>
+            <option value="<%= group %>" <%= "selected" if @entry.kind == "expense" && @entry.category.present? && bookkeeping_expense_group(@entry.category) == group %>><%= group %></option>
+          <% end %>
+        </select>
+      </div>
+      <div data-euer-entry-target="typePicker" hidden>
+        <div class="booking-kind-summary" data-euer-entry-target="typeSummary" hidden><p>Ausgabenart: <strong data-euer-entry-target="typeName"></strong></p><button type="button" class="button button--secondary" data-euer-entry-target="typeEdit" data-action="euer-entry#editExpenseType" aria-controls="expense-type-cards" aria-expanded="false">Ausgabenart ändern</button><p class="booking-kind-description" data-euer-entry-target="typeDescription"></p></div>
+        <fieldset tabindex="-1" id="expense-type-cards" class="booking-type-group" data-euer-entry-target="typeCards"><legend>Ausgabenart auswählen</legend><div class="booking-actions" data-euer-entry-target="typeOptions"></div></fieldset>
+      </div>
+      <div data-euer-entry-target="categoryChoice">
+      <%= form.label :category, copy.fetch(:category_label), data: { euer_entry_target: "categoryLabel" } %>
+      <select id="bookkeeping_entry_category" name="bookkeeping_entry[category]" aria-describedby="expense-category-example bookkeeping-category-hint bookkeeping-category-help" required data-euer-entry-target="category" data-action="change->euer-entry#refresh">
+        <option value="" data-kinds="expense" <%= "selected" if @entry.kind == "expense" && @entry.category.blank? %>>Bitte wähle die Ausgabenart</option>
+        <% bookkeeping_form_categories(@entry).each do |key| %>
+          <option value="<%= key %>" data-expense-group="<%= bookkeeping_expense_group(key) %>" data-label="<%= EuerFields.selection_label(key) %>" data-example="<%= BookkeepingEntriesHelper::EXPENSE_EXAMPLES[key] %>" data-kinds="<%= BookkeepingEntry::CATEGORIES.select { |_, keys| keys.include?(key) }.keys.join(' ') %>" <%= "selected" if (@entry.kind == "expense" ? @entry.category : @entry.effective_category) == key %>><%= bookkeeping_category_label(key) %></option>
+        <% end %>
+      </select>
+        <small id="expense-category-example" data-euer-entry-target="expenseExample" hidden></small>
+      </div>
+      <%= render "expense_search" %>
+      <div id="bookkeeping-category-hint">
+        <%= bookkeeping_hint(@entry, kinds: %w[expense], excluded_categories: %w[vat_payment]) do %>Kaufst du Betriebsausstattung? Nutze <%= link_to "Anlagegut erfassen", new_business_asset_path %>. Dort verwaltest du die steuerlich abziehbaren Kosten. Buche den Kaufbetrag hier nicht zusätzlich als Ausgabe, damit er nicht doppelt berücksichtigt wird.<% end %>
+        <%= bookkeeping_hint(@entry, kinds: %w[noncash_deposit]) do %>Übernimmst du einen privaten Computer, eine Maschine oder andere Betriebsausstattung in deinen Betrieb? Nutze <%= link_to "Anlagegut erfassen", new_business_asset_path %>. Hier erfasst du nur Waren und Verbrauchsmaterial.<% end %>
+        <%= bookkeeping_hint(@entry, kinds: %w[noncash_withdrawal], categories: %w[other_withdrawal]) do %>Übernimmst du ein Anlagegut dauerhaft ins Privatvermögen? Erfasse die Entnahme direkt im <%= link_to "Anlageverzeichnis", business_assets_path %>. Die App berücksichtigt sie automatisch; hier nicht zusätzlich buchen.<% end %>
+      </div>
+      <div id="bookkeeping-category-help" aria-live="polite">
+        <% BookkeepingEntriesHelper::CATEGORY_HELP.each do |key, help| %>
+          <div class="bookkeeping-category-help" data-euer-entry-target="categoryHelp" data-category="<%= key %>" data-kinds="<%= Array(help[:kinds]).join(" ") %>" <%= "hidden" unless @entry.effective_category == key && (!help[:kinds] || help[:kinds].include?(@entry.kind)) %>>
+            <small><%= help.fetch(:explanation) %></small>
+            <small><strong>Beispiel:</strong> <%= help.fetch(:example).delete_prefix("Beispiel: ") %></small>
+            <% if %w[income_small asset_income].include?(key) %><small><strong>Anmerkung:</strong> Verkaufst du Betriebsausstattung, zum Beispiel einen betrieblichen Computer? Erfasse den Zahlungseingang als „Erlöse / Entnahmen aus Anlagevermögen“ und trage den Verkauf auch im <%= link_to "Anlageverzeichnis", business_assets_path %> ein.</small><% end %>
+            <% if help[:assets] %><small><%= link_to "Anlageverzeichnis öffnen", business_assets_path %></small><% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="field" data-euer-entry-target="dateField" <%= "hidden" if @entry.kind == "expense" && @entry.category.blank? %>><%= form.label :paid_on, bookkeeping_date_label(@entry.kind), data: { euer_entry_target: "dateLabel" } %><%= render "shared/date_picker", form: form, attribute: :paid_on, required: true %></div>
+    <div class="field"><%= form.label :amount, copy.fetch(:amount_label), data: { euer_entry_target: "amountLabel" } %><div class="bookkeeping-amount-input"><%= form.text_field :amount, value: bookkeeping_amount_input(@entry), inputmode: "decimal", required: true, data: { euer_entry_target: "amount", action: "input->euer-entry#updateMixedPreview" } %><span aria-hidden="true">€</span></div><small data-euer-entry-target="amountHint"><%= copy.fetch(:amount_hint) %></small></div>
+    <div class="field"><%= form.label :reference, "Beleg- oder Rechnungsnummer" %><%= form.text_field :reference, data: { euer_entry_target: "reference" } %></div>
+    <div class="field field--wide"><%= form.label :description, copy.fetch(:description_label), data: { euer_entry_target: "descriptionLabel" } %><%= form.text_area :description, required: true, data: { euer_entry_target: "description" } %><small data-euer-entry-target="descriptionHint"><%= copy.fetch(:description_hint) %></small></div>
+    <div class="field field--wide" data-euer-entry-target="mixedUseField" <%= "hidden" unless @entry.kind == "expense" %>>
+      <% mixed = @entry.business_percent != 100 || params[:mixed] == "1" %>
+      <label class="checkbox-label"><%= check_box_tag "mixed_usage", "1", mixed, data: { euer_entry_target: "mixedToggle", action: "euer-entry#updateMixedUse" } %><span>Diese Ausgabe ist teilweise privat</span></label>
+      <small>Zum Beispiel: dein Mobilfunkvertrag oder Internetanschluss. Bei ausschließlich betrieblichen Kosten lässt du das Kästchen frei.</small>
+      <div data-euer-entry-target="mixedPanel" <%= "hidden" unless mixed %>>
+        <%= form.label :business_percent, "Wie viel Prozent nutzt du betrieblich?" %>
+        <%= form.text_field :business_percent, value: @entry.business_percent_before_type_cast, inputmode: "decimal", required: true, data: { euer_entry_target: "businessPercent", action: "input->euer-entry#updateMixedPreview" } %>
+        <%= form.label :usage_notes, "Wie hast du den Anteil ermittelt?" %><%= form.text_area :usage_notes, data: { euer_entry_target: "usageNotes" } %>
+        <small>Notiere Zeitraum und Grundlage. Wenn eine genaue Trennung nur mit unverhältnismäßigem Aufwand möglich ist, dokumentiere eine sachgerecht begründete Schätzung, zum Beispiel anhand deiner beruflichen und privaten Nutzung in einem typischen Zeitraum. Eine technische Verbrauchsauswertung ist dafür nicht zwingend erforderlich. <%= link_to "Nutzungsanteil nachvollziehbar ermitteln", hilfe_path(anchor: "gemischte-telefonkosten"), target: "_blank", rel: "noopener" %></small>
+        <p data-euer-entry-target="mixedPreview" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+    <details class="field" data-euer-entry-target="expenseField" <%= "open" if @entry.deductible_percent.present? %>><summary>Besondere Abzugsregeln (bei Bedarf)</summary><%= form.label :deductible_percent, "Steuerlich abziehbarer Anteil in Prozent (optional)" %><%= form.text_field :deductible_percent, value: @entry.deductible_percent_before_type_cast, inputmode: "decimal" %>
+      <%= bookkeeping_hint(@entry, kinds: %w[expense], categories: %w[expense_meals]) do %>Bei geschäftlicher Bewirtung sind 70 % vorbelegt, wenn du das Feld leer lässt. Trage den gesamten betrieblichen Rechnungsbetrag oben ein; die App berechnet den abziehbaren Anteil.<% end %>
+      <%= bookkeeping_hint(@entry, kinds: %w[expense], categories: %w[expense_gifts expense_home_office expense_limited]) do %>Prüfe den steuerlich zulässigen Anteil für diese Ausgabe und gib ihn in Prozent an. Leer bedeutet 100 %.<% end %>
+      <%= bookkeeping_hint(@entry, kinds: %w[expense], excluded_categories: %w[expense_meals expense_gifts expense_home_office expense_limited]) do %>Leer bedeutet 100 %. Falls die Ausgabe steuerlich nur teilweise abziehbar ist, gib den zulässigen Anteil an.<% end %>
+    </details>
+    <%= render "payment_account", form: form, euer: true, label: copy.fetch(:account_label) do %>
+      <%= bookkeeping_hint(@entry, kinds: %w[expense], accounts: %w[private], reversal: false) do %>Die App zählt den betrieblichen Anteil dieser Ausgabe automatisch zu deinen Einlagen. Du brauchst dafür keinen zusätzlichen Eintrag als Geldeinlage anzulegen.<% end %>
+      <%= bookkeeping_hint(@entry, kinds: %w[income], accounts: %w[private], reversal: true) do %>Die Rückzahlung über dein Privatkonto vermindert die zuvor berücksichtigte Einnahme und Geldentnahme.<% end %>
+      <%= bookkeeping_hint(@entry, kinds: %w[expense], accounts: %w[private], reversal: true) do %>Die Erstattung auf dein Privatkonto vermindert die zuvor berücksichtigte Ausgabe und Geldeinlage.<% end %>
+    <% end %>
+    <details class="field" data-euer-entry-target="cashField" <%= "open" if @entry.tax_year.present? %>><summary>Zahlung einem anderen Steuerjahr zuordnen</summary><%= form.label :tax_year, "Abweichendes Steuerjahr (optional)" %><%= form.number_field :tax_year, min: 1900, max: 9999 %><small>Meistens leer lassen: Es zählt das Jahr der Zahlung. Für regelmäßig wiederkehrende Zahlungen rund um den Jahreswechsel kann eine Ausnahme gelten. <%= link_to "Zehn-Tage-Regel einfach erklärt", hilfe_path(anchor: "zehn-tage-regel"), target: "_blank", rel: "noopener" %></small></details>
+
+  </div>
+
+  <div class="invoice-actions"><%= form.button "Speichern", type: "submit", data: { euer_entry_target: "submit" }, class: "button button--primary" %><%= link_to "Zur Übersicht", bookkeeping_entries_path, class: "button button--secondary" %></div>
+  </fieldset>
+<% end %>

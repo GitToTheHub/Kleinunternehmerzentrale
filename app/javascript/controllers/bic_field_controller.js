@@ -4,9 +4,11 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static values = { sepa: Array }
 
-  update({ target }) {
-    if (target.id !== "invoice_buyer_country") return
+  connect() { this.update() }
 
-    this.element.hidden = this.sepaValue.includes(target.value)
+  update() {
+    const transfer = document.getElementById("invoice_payment_method")?.value === "transfer"
+    this.element.hidden = !transfer || this.sepaValue.includes(document.getElementById("invoice_buyer_country")?.value)
+    this.element.querySelectorAll("input").forEach(input => { input.disabled = this.element.hidden })
   }
 }

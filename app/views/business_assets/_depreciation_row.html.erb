@@ -1,0 +1,7 @@
+<div class="form-grid euer-depreciation-row">
+  <div class="field"><%= form.label :year, "Jahr" %><%= form.number_field :year, min: 1900, max: 9999 %></div>
+  <div class="field"><%= form.label :amount, "AfA in Euro (ersetzt den Jahresbetrag)" %><%= form.text_field :amount, value: form.object.amount_before_type_cast, inputmode: "decimal" %></div>
+  <div class="field"><%= form.label :special_amount, "Zusätzliche Sonder-AfA in Euro" %><%= form.text_field :special_amount, value: form.object.special_amount_before_type_cast, inputmode: "decimal" %></div>
+  <div class="field"><%= form.label :reason, "Begründung / Rechtsgrundlage" %><%= form.text_field :reason %></div>
+  <% if form.object.persisted? %><div class="field field--wide"><label class="checkbox-label"><%= form.check_box :_destroy %><span>Diesen Jahresbetrag entfernen</span></label></div><% end %>
+</div>

@@ -1,0 +1,18 @@
+<details class="expense-search" data-euer-entry-target="expenseSearch" data-controller="expense-search" data-action="expense-search:reset->expense-search#reset" data-expense-search-categories-value="<%= expense_search_categories.to_json %>" <%= "hidden" unless @entry.kind == "expense" %>>
+  <summary>Hilfe bei der Zuordnung</summary>
+  <p>Beschreibe deinen Einkauf, um passende Ausgabenarten zu finden.</p>
+  <label for="expense-category-search">Was möchtest du buchen?</label>
+  <input type="search" id="expense-category-search" maxlength="300" placeholder="Zum Beispiel: Servermiete, Büromaterial oder Telefonrechnung" autocomplete="off" aria-describedby="expense-search-hint" data-expense-search-target="query" data-action="input->expense-search#search keydown.enter->expense-search#search:prevent">
+  <small id="expense-search-hint">Suche nach Ausgabenarten, Beispielen und ähnlichen Begriffen. Deine Eingabe bleibt im Browser und wählt keine Ausgabenart automatisch.</small>
+  <p data-expense-search-target="status" role="status" aria-live="polite"></p>
+  <p data-expense-search-target="note" hidden></p>
+  <div class="expense-search-results" data-expense-search-target="results"></div>
+  <button type="button" class="button button--secondary" data-expense-search-target="more" data-action="expense-search#showAll" hidden>Weitere Treffer anzeigen</button>
+  <div class="expense-search-question" data-expense-search-target="question" hidden>
+    <button type="button" class="button button--secondary" data-action="expense-search#ownEquipment">Für meinen Betrieb nutzen</button>
+    <button type="button" class="button button--secondary" data-action="expense-search#resaleEquipment">Zum Weiterverkauf</button>
+  </div>
+  <p data-expense-search-target="own" hidden><%= link_to "Anlagegut erfassen", new_business_asset_path %></p>
+  <p data-expense-search-target="resale" hidden><button type="button" class="button button--secondary" data-action="expense-search#chooseGoods">Waren und Material auswählen</button></p>
+  <p class="expense-search-all">Über den Ausgabenbereich und die Ausgabenart kannst du auch selbst auswählen.</p>
+</details>

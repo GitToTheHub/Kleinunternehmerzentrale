@@ -1,0 +1,34 @@
+<% invoice = @entry.invoice %>
+<% if @entry.errors.any? %>
+  <div class="flash-message flash-message--alert" role="alert"><%= @entry.errors.full_messages.to_sentence %></div>
+<% end %>
+<div class="booking-kind-summary" data-payment-title="<%= invoice_payment_title(invoice) %>">
+  <p>Rechnungsnummer: <%= invoice.invoice_number %></p>
+  <p>Kunde: <%= invoice.buyer_name %></p>
+  <p><%= invoice_payment_amount_label(invoice) %>: <strong><%= invoice_money(invoice.payment_total, invoice) %></strong></p>
+</div>
+<%= form_with model: @entry, data: { turbo: false } do |form| %>
+  <%= hidden_field_tag :invoice_payment, "1" %>
+  <%= hidden_field_tag :payment_popup, "1" if params[:payment_popup] == "1" %>
+  <%= form.hidden_field :invoice_id %>
+  <div class="form-grid">
+    <div class="field">
+      <%= form.label :paid_on, "Datum des Zahlungseingangs" %>
+      <%= render "shared/date_picker", form: form, attribute: :paid_on, required: true %>
+    </div>
+    <%= render "payment_account", form: form %>
+    <% if invoice.foreign_currency? %>
+      <div class="field field--wide">
+        <%= form.label :amount, "Erhaltener Betrag in Euro" %>
+        <div class="bookkeeping-amount-input"><%= form.text_field :amount, value: bookkeeping_amount_input(@entry), inputmode: "decimal", required: true %><span aria-hidden="true">€</span></div>
+        <small>Mit dem Rechnungskurs vorbelegt. Trage den tatsächlichen Euro-Gegenwert der vollständig erhaltenen Zahlung ein. Bankgebühren erfasst du separat als Ausgabe.</small>
+      </div>
+    <% end %>
+  </div>
+  <div class="invoice-actions">
+    <%= form.button invoice_payment_action(invoice), type: "submit", class: "button button--primary" %>
+    <% unless params[:payment_popup] == "1" %>
+      <%= link_to "Abbrechen", invoice_path(invoice), class: "button button--secondary" %>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,19 @@
+<% original = @original_entry || @entry.original_entry %>
+<p><strong>Ursprünglicher Vorgang:</strong> <%= original.description %> · <%= euro(original.amount) %> vom <%= original.paid_on.strftime("%d.%m.%Y") %></p>
+<p>Erfasse nur Geld, das tatsächlich zurückgezahlt wurde. Die App übernimmt die steuerliche Zuordnung und verringert automatisch deine <%= original.kind == "income" ? "Einnahmen" : "Ausgaben" %>. Der ursprüngliche Vorgang bleibt erhalten. Auch Teilrückzahlungen sind möglich.</p>
+<% if @entry.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @entry.errors.full_messages.to_sentence %></div><% end %>
+<%= form_with model: @entry, url: @entry.persisted? ? bookkeeping_entry_path(@entry) : create_refund_bookkeeping_entry_path(original) do |form| %>
+  <div class="form-grid">
+    <div class="field"><%= form.label :paid_on, original.kind == "income" ? "Datum der Rückzahlung" : "Datum der Erstattung" %><%= render "shared/date_picker", form: form, attribute: :paid_on, required: true %></div>
+    <div class="field"><%= form.label :amount, "Zurückgezahlter Betrag in Euro" %><div class="bookkeeping-amount-input"><%= form.text_field :amount, value: bookkeeping_amount_input(@entry), inputmode: "decimal", required: true %><span aria-hidden="true">€</span></div><small>Trage den Betrag positiv ein. Noch verfügbar: <%= euro(original.refundable_amount + (@entry.persisted? ? @entry.amount : 0)) %>.</small></div>
+    <% if original.kind == "income" %>
+      <%= render "payment_account", form: form %>
+    <% else %>
+    <div class="field"><%= form.label :payment_account, original.kind == "income" ? "Bezahlt von" : "Geld erhalten auf" %><%= form.select :payment_account, [["Betriebskonto / Betriebskasse", "business"], ["Privatkonto", "private"]] %><small>Wähle das Konto, über das die Rückzahlung tatsächlich erfolgt ist. Die App berücksichtigt bei einem Privatkonto auch die zugehörige Einlage oder Entnahme.</small></div>
+    <% end %>
+    <div class="field"><%= form.label :reference, "Beleg- oder Rechnungsnummer" %><%= form.text_field :reference %></div>
+    <div class="field field--wide"><%= form.label :description, "Beschreibung der Rückzahlung" %><%= form.text_area :description, required: true %></div>
+    <div class="field"><%= form.label :tax_year, "Abweichendes Steuerjahr (optional)" %><%= form.number_field :tax_year, min: 1900, max: 9999 %><small>Meistens leer lassen: Es zählt das Jahr der Rückzahlung. <%= link_to "Zehn-Tage-Regel einfach erklärt", hilfe_path(anchor: "zehn-tage-regel"), target: "_blank", rel: "noopener" %></small></div>
+  </div>
+  <div class="invoice-actions"><%= form.submit "Rückzahlung speichern", class: "button button--primary" %><%= link_to "Zur Übersicht", bookkeeping_entries_path(year: original.effective_year), class: "button button--secondary" %></div>
+<% end %>

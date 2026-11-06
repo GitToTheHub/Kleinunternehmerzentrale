@@ -1,0 +1,5 @@
+<% if local_assigns[:controller].present? %>
+  <p class="form-note" data-<%= controller %>-target="sourceNote" data-notes="<%= EuerFields::SOURCES.keys.index_with { |source_year| EuerFields.source_note(source_year) }.to_json %>"><%= EuerFields.source_note(year) %></p>
+<% else %>
+  <p class="form-note"><%= EuerFields.source_note(year) %></p>
+<% end %>

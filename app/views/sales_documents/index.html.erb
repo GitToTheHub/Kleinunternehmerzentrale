@@ -1,0 +1,14 @@
+<main>
+  <h1>Angebote und Aufträge</h1>
+  <div class="invoice-actions"><%= link_to "Angebot erstellen", new_sales_document_path, class: "button button--primary" %><%= link_to "Auftrag erstellen", new_sales_document_path(kind: "order"), class: "button button--secondary" %><%= link_to "Rechnung erstellen", new_invoice_path, class: "button button--secondary" %></div>
+  <div class="invoice-list">
+    <% @documents.each do |document| %>
+      <div class="invoice-list__item" data-controller="record-link" data-action="click->record-link#open">
+        <div class="invoice-list__labels"><span class="invoice-list__label"><%= document.label %></span><% if document.accepted_order %><span class="invoice-list__label">Als Auftrag übernommen</span><% elsif document.order? && document.closed? %><span class="invoice-list__label">Abgerechnet</span><% end %></div>
+        <span class="invoice-list__identity"><strong><%= link_to document.document_number, document, class: "invoice-list__number", data: { record_link_target: "link" }, draggable: false %></strong><% if document.title %><small><%= document.title %></small><% end %></span>
+        <span class="invoice-list__customer"><%= document.buyer_name %></span><span class="invoice-list__date"><%= l(document.document_date) %></span><strong class="invoice-list__amount"><%= number_to_currency(document.total_amount, locale: :de) %></strong>
+      </div>
+    <% end %>
+  </div>
+  <% if @documents.empty? %><p>Ein Angebot ist optional. Du kannst einen vereinbarten Auftrag erstellen oder gleich eine Rechnung schreiben.</p><% end %>
+</main>

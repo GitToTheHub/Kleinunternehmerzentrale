@@ -1,0 +1,9 @@
+<div class="sales-scope">
+  <% used = OrderPositionAllocation.used(@invoice.sales_document, @invoice.invoice_lines.map(&:line_total)) %>
+  <% @invoice.invoice_lines.each_with_index do |line, index| %>
+    <div class="sales-scope__line" data-order-position-key="<%= index %>" data-order-position-title="<%= line.description %>" data-order-position-total="<%= line.line_total %>" data-order-position-remaining="<%= [line.line_total - used[index], 0].max %>">
+      <div><strong><%= line.description %></strong><div class="invoice-line-details"><%= line.details_html %></div><small><%= line.quantity %> <%= line.unit_label %> · <%= invoice_money(line.unit_price, @invoice) %></small></div>
+      <strong><%= invoice_money(line.line_total, @invoice) %></strong>
+    </div>
+  <% end %>
+</div>

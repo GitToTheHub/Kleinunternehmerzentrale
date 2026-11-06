@@ -1,0 +1,20 @@
+<div data-controller="billing-units" data-billing-units-url-value="<%= workflow_path %>" data-billing-units-options-value="<%= InvoiceLine::UNIT_CODES.to_json %>">
+
+  <div id="billing-units" class="form-popover" popover role="dialog" aria-labelledby="billing-units-title" data-billing-units-target="popover">
+    <div class="form-popover__heading">
+      <h3 id="billing-units-title">Einheiten für Rechnungspositionen</h3>
+      <button type="button" class="form-popover__close" popovertarget="billing-units" popovertargetaction="hide" aria-label="Schließen">×</button>
+    </div>
+    <p>Wähle, welche Einheiten dir zur Auswahl stehen. Die Auswahl gilt auch für künftige Rechnungen. Standardmäßig sind alle aktiviert. Wird eine verwendete Einheit deaktiviert, wechselt die Position zur ersten aktivierten Einheit. Bitte prüfe danach Menge und Preis.</p>
+    <fieldset class="workflow-options">
+      <legend>Verfügbare Einheiten</legend>
+      <% units = current_workspace&.invoice_units&.keys || Workspace::WORKFLOW_DEFAULTS.fetch("units") %>
+      <% InvoiceLine::UNIT_CODES.each do |code, label| %>
+        <label class="checkbox-label"><%= check_box_tag nil, code, units.include?(code), id: "billing_unit_#{code.downcase}", data: { billing_units_target: "unit" } %><span><%= label %></span></label>
+      <% end %>
+    </fieldset>
+    <p role="alert" data-billing-units-target="error"></p>
+    <button type="button" class="button button--primary" data-action="billing-units#save" data-billing-units-target="save">Einheiten speichern</button>
+  </div>
+  <p role="status" aria-live="polite" data-billing-units-target="status"></p>
+</div>

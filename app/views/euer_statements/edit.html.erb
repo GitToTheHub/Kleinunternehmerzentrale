@@ -1,0 +1,23 @@
+<main>
+  <h1>Vollständige Anlage EÜR <%= @year %></h1>
+  <%= render "shared/euer_form_source", year: @year %>
+  <p>Hier findest du alle Zeilen des Hauptvordrucks. Beträge aus deiner Buchhaltung und steuerliche Ergänzungen werden zusammengeführt. Summen und Überträge berechnet die App; „Davon“-Angaben zählen nicht nochmals als Einnahme oder Ausgabe.</p>
+  <%= form_with url: edit_euer_statement_path, method: :get, data: { controller: "auto-submit" } do %>
+    <div class="field"><%= label_tag :year, "Steuerjahr" %><%= select_tag :year, options_for_select(EuerFields::SOURCES.keys, @year), data: { action: "change->auto-submit#submit" } %></div>
+  <% end %>
+  <% if @statement.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @statement.errors.full_messages.to_sentence %></div><% end %>
+  <%= form_with url: euer_statement_path(year: @year), method: :patch, id: "betriebsangaben" do %>
+    <p>Du kannst diese Angaben schrittweise ergänzen. Nach dem Speichern werden die Hinweise zur EÜR-Vorbereitung aktualisiert; deine Buchungen werden durch die Auswahl nicht neu berechnet.</p>
+    <% if @suggested_details.present? %>
+      <p class="form-note">Name und vorhandene Steuernummer werden aus deinen gespeicherten Rechnungsangaben vorgeschlagen. Prüfe die Angaben vor dem Speichern. Bei einer natürlichen Person verteilst du den Namen auf Name und Vorname; eine Umsatzsteuer-ID wird nicht als Steuernummer übernommen.</p>
+    <% end %>
+    <%= render "details", prefix: "euer_statement", details: @statement.details, expanded: true %>
+    <%= submit_tag "Betriebsangaben speichern", class: "button button--primary" %>
+  <% end %>
+  <%= render "preparation_check", link_to_details: false %>
+  <%= render "expense_policy" %>
+  <p><%= link_to "Zur EÜR-Vorbereitung", prepare_euer_bookkeeping_entries_path(year: @year), class: "button button--secondary" %></p>
+  <p><%= link_to "Amtlicher Vordruck und Anleitungen #{@year}", EuerFields::SOURCES.fetch(@year), target: "_blank", rel: "noopener" %> · <%= link_to "Zur Buchhaltung", bookkeeping_entries_path(year: @year) %></p>
+  <p>Die Anlage AVEÜR findest du beim Anlageverzeichnis. Ergänzende Anlagen wie SZ, LuF sowie Sonder- und Ergänzungsrechnungen für Mitunternehmer werden nicht automatisch erstellt. Ihre fachlich ermittelten Übertragswerte kannst du in den dafür vorgesehenen EÜR-Zeilen ergänzen. Die Ansicht ersetzt keine steuerliche Prüfung und sendet keine Daten an ELSTER.</p>
+  <%= render "table", report: @report %>
+</main>

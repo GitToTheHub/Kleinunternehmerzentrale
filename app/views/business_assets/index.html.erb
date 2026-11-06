@@ -1,0 +1,10 @@
+<main>
+  <h1>Dein Anlageverzeichnis</h1>
+  <p>Verwalte angeschaffte und aus Privatvermögen eingelegte Anlagegüter. Die App berücksichtigt Abschreibungen, Einlagen und Abgänge in deiner EÜR.</p>
+  <div class="invoice-actions"><%= link_to "Anlagegut erfassen", new_business_asset_path, class: "button button--secondary" %><%= link_to "Zur Buchhaltung", bookkeeping_entries_path, class: "button button--secondary" %></div>
+  <% if @assets.any? %>
+    <div class="bookkeeping-table"><table><thead><tr><th scope="col">Anlagegut</th><th scope="col">Zugang</th><th scope="col">Kosten / Einlagewert</th><th scope="col">Abschreibung</th><th scope="col">Aktionen</th></tr></thead><tbody>
+      <% @assets.each do |asset| %><tr><td><%= asset.name %><br><small><%= BusinessAsset::CATEGORIES.fetch(asset.category) %><% if asset.disposed_on %> · Abgang <%= asset.disposed_on.strftime("%d.%m.%Y") %><% end %></small></td><td><%= asset.acquired_on.strftime("%d.%m.%Y") %><br><small><%= BusinessAsset::ORIGINS.fetch(asset.origin) %></small></td><td><%= euro(asset.cost) %></td><td><%= BusinessAsset::METHODS.fetch(asset.depreciation_method) %><% asset.private_use_records.sort_by(&:year).each do |usage| %><br><small>Private Nutzung <%= usage.year %>: <%= euro(usage.amount) %> · <%= usage.business_percent %> % betrieblich</small><% end %></td><td><%= link_to "Bearbeiten", edit_business_asset_path(asset) %><%= button_to "Löschen", business_asset_path(asset), method: :delete, class: "button button--danger", data: { turbo_confirm: "Anlagegut und alle zugehörigen Abschreibungen löschen?" } %></td></tr><% end %>
+    </tbody></table></div>
+  <% else %><section><h2>Noch keine Anlagegüter</h2><p>Erfasse beispielsweise einen betrieblichen Computer oder eine Maschine, die du gekauft oder aus deinem Privatvermögen eingelegt hast.</p></section><% end %>
+</main>

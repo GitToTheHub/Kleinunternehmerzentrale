@@ -1,0 +1,11 @@
+<% document = local_assigns[:document] %>
+<% number_label = document ? (document.offer? ? "Angebotsnummer" : "Auftragsnummer") : "Rechnungsnummer" %>
+<% number_preview = document ? document.proposed_number : @invoice.invoice_number.presence || @invoice.proposed_invoice_number %>
+        <div class="field field--wide invoice-number-field">
+          <label for="invoice-number-preview" class="field-label"><%= invoice_field_icon(:invoice_number) %><span><%= number_label %></span></label>
+          <%= tag.input type: "text", id: "invoice-number-preview", class: "invoice-number-trigger", value: number_preview, autocomplete: "off", inputmode: "none", readonly: true, data: { invoice_number_target: "number", action: "click->invoice-number#open keydown->invoice-number#edit" }, aria: { describedby: "invoice-number-help", expanded: "false", haspopup: "dialog", controls: "invoice-number-editor" } %>
+          <%= render "invoices/format_flag", document: document, popup: false %>
+          <small id="invoice-number-help">Zum Bearbeiten anklicken. Die Nummer ist bis zum Erstellen vorläufig.</small>
+          <small class="field-error" data-invoice-number-target="status" role="status" aria-live="polite" hidden></small>
+          <%= render "invoices/invoice_number_formatter", form: form, document: document, number_label: number_label, number_preview: number_preview %>
+        </div>

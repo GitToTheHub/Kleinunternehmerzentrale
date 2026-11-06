@@ -1,0 +1,35 @@
+<main>
+  <h1 class="no-print"><%= @document.label %> <%= @document.document_number %></h1>
+  <div class="invoice-actions no-print">
+    <%= link_to "Übersicht", sales_documents_path, class: "button button--secondary" %>
+    <button type="button" class="button button--secondary" data-controller="print" data-action="print#print">Drucken oder als PDF speichern</button>
+    <% if @document.editable? %><%= link_to "Bearbeiten", edit_sales_document_path(@document), class: "button button--secondary" %><% end %>
+    <% if @document.offer? %>
+      <% if @document.accepted_order %><%= link_to "Zum Auftrag", @document.accepted_order, class: "button button--primary" %><% else %><%= button_to "Als Auftrag übernehmen", accept_sales_document_path(@document), class: "button button--primary" %><% end %>
+    <% elsif !@document.closed? %>
+      <% if @document.active_invoices.any? %><%= link_to "Schlussrechnung erstellen", new_invoice_path(sales_document_id: @document.id, billing_kind: "final"), class: "button button--primary" %><%= link_to "Weitere Anzahlung erstellen", new_invoice_path(sales_document_id: @document.id, billing_kind: "advance"), class: "button button--secondary" %><%= link_to "Abschlagsrechnung erstellen", new_invoice_path(sales_document_id: @document.id, billing_kind: "progress"), class: "button button--secondary" %>
+      <% else %><%= link_to "Rechnung erstellen", new_invoice_path(sales_document_id: @document.id), class: "button button--primary" %><%= link_to "Anzahlung berechnen", new_invoice_path(sales_document_id: @document.id, billing_kind: "advance"), class: "button button--secondary" %><% end %>
+    <% end %>
+  </div>
+  <% if @document.order? %>
+    <section class="invoice-panel no-print"><h2>Abrechnung</h2><p>Vereinbarter Gesamtpreis: <strong><%= invoice_money(@document.total_amount, @invoice) %></strong></p>
+      <% if @document.invoices.any? %><ul><% @document.invoices.order(:issued_on, :id).each do |invoice| %><li><%= link_to "#{invoice.billing_label} #{invoice.invoice_number}", invoice %> · <%= invoice_money(invoice.payment_total, invoice) %> · <%= invoice.payment_status %></li><% end %></ul><% else %><p>Noch keine Rechnung erstellt.</p><% end %>
+      <% if @document.source_offer %><p>Aus <%= link_to "Angebot #{@document.source_offer.document_number}", @document.source_offer %> übernommen.</p><% end %>
+    </section>
+  <% end %>
+  <div class="invoice-sheet-preview" data-controller="invoice-pagination" data-action="turbo:before-cache@document->invoice-pagination#teardown">
+    <p class="form-note no-print" role="status" data-invoice-pagination-target="status">Seitenvorschau wird vorbereitet …</p>
+    <article class="print-invoice" data-invoice-pagination-target="source">
+      <header class="print-invoice__header">
+        <p class="print-invoice__return-address"><%= @invoice.seller_name %> · <%= @invoice.seller_street %> · <%= @invoice.seller_postal_code %> <%= @invoice.seller_city %></p>
+        <section class="print-invoice__recipient"><strong><%= @invoice.buyer_name %></strong><br><%= @invoice.buyer_contact_name %><% if @invoice.buyer_contact_name.present? %><br><% end %><%= @invoice.buyer_street %><br><%= @invoice.buyer_postal_code %> <%= @invoice.buyer_city %></section>
+        <div class="print-invoice__seller"><strong><%= @invoice.seller_name %></strong><br><%= @invoice.seller_street %><br><%= @invoice.seller_postal_code %> <%= @invoice.seller_city %><% if @invoice.seller_email.present? %><br><%= @invoice.seller_email %><% end %></div>
+      </header>
+      <div class="print-invoice__title"><p class="eyebrow"><%= @document.label %></p><h1><%= @document.document_number %></h1><% if @document.title %><p class="print-invoice__subject"><%= @document.title %></p><% end %></div>
+      <dl class="invoice-meta"><div><dt>Datum</dt><dd><%= l(@document.document_date) %></dd></div><% if @document.data["service_on"].present? %><div><dt>Voraussichtliche Leistung</dt><dd><%= l(@invoice.service_on) %><% if @invoice.service_until_on %> bis <%= l(@invoice.service_until_on) %><% end %></dd></div><% end %></dl>
+      <%= render "invoices/table" %>
+      <p class="invoice-tax-note">Keine Umsatzsteuer ausgewiesen. Es gilt die Steuerbefreiung für Kleinunternehmer (§ 19 UStG).</p>
+    </article>
+    <div class="invoice-pages invoice-pages--rendering" data-invoice-pagination-target="pages"></div>
+  </div>
+</main>

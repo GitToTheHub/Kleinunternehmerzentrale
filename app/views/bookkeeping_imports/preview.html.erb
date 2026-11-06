@@ -1,0 +1,11 @@
+<main>
+  <h1>Übernahme prüfen</h1>
+  <p>Die Vorschau verändert deine EÜR noch nicht. Vergleiche die Positionen und Summen mit deiner bisherigen Auswertung. Nach der Übernahme werden diese Beträge zu den neuen Vorgängen des Jahres addiert.</p>
+  <% if @import.errors.any? %><div class="flash-message flash-message--alert" role="alert"><%= @import.errors.full_messages.to_sentence %></div><% end %>
+  <%= render "summary" %>
+  <%= form_with url: bookkeeping_imports_path do %>
+    <%= hidden_field_tag :token, @token %>
+    <label class="checkbox-label"><%= check_box_tag :confirmed, "1", false, required: true %><span>Ich habe die Summen mit meiner bisherigen EÜR abgeglichen. Der Zeitraum ist vollständig berücksichtigt und wird hier nicht zusätzlich einzeln erfasst.</span></label>
+    <div class="invoice-actions"><%= submit_tag "EÜR-Summen übernehmen", class: "button button--primary" %><%= link_to "Neu beginnen", new_bookkeeping_import_path, class: "button button--secondary" %></div>
+  <% end %>
+</main>

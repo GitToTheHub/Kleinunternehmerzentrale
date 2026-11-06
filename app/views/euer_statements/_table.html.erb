@@ -1,0 +1,17 @@
+<div class="bookkeeping-table euer-form-table"><table>
+  <thead><tr><th scope="col">EÜR-Zeile</th><th scope="col">Amtliche EÜR-Bezeichnung</th><th scope="col">Wert</th><th scope="col">Bearbeitung</th></tr></thead>
+  <tbody>
+    <% EuerForm.rows(report.year).each do |row| %>
+      <tr data-euer-line="<%= row.line %>">
+        <td>Zeile <%= row.line %></td>
+        <td><%= row.label %></td>
+        <% if row.kind == :detail %>
+          <td><%= report.detail_value(row.key).presence || "–" %></td><td>Betriebsangabe</td>
+        <% else %>
+          <td><%= euro(EuerForm.amount(row.key, report)) %></td>
+          <td><% if row.kind == :computed %>Automatisch berechnet<% elsif local_assigns.fetch(:allow_adjustments, true) %><%= link_to "Ergänzen", new_euer_adjustment_path(year: report.year, field_key: row.key), aria: { label: "Zeile #{row.line}: #{row.label} ergänzen" } %><% if EuerFields::DEFINITIONS.fetch(row.key).effect == :info %><br><small>Zusatzangabe; erhöht den Gewinn nicht erneut.</small><% end %><% end %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table></div>

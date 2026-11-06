@@ -3,6 +3,12 @@
   <head>
     <title><%= content_for(:title) || "Kleinunternehmerzentrale" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <style>
+      html { background-color: #fff; }
+      @media screen and (prefers-color-scheme: dark) { html { background-color: #121a16; } }
+      @media print { html { background-color: #fff; } }
+    </style>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Kleinunternehmerzentrale">
     <meta name="mobile-web-app-capable" content="yes">
@@ -19,22 +25,28 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag "trix", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <header class="site-header">
+  <body data-controller="payment-dialog" data-action="turbo:before-cache@document->payment-dialog#close">
+    <header class="site-header" data-controller="site-navigation" data-action="keydown.esc->site-navigation#close click@document->site-navigation#outside turbo:before-cache@document->site-navigation#close">
       <div class="site-header__inner">
         <%= link_to root_path, class: "brand", aria: { label: "Kleinunternehmerzentrale – Startseite" } do %>
           <span class="brand__mark" aria-hidden="true">k</span>
           <span>Kleinunternehmer<span class="brand__light">zentrale</span></span>
         <% end %>
-        <nav class="site-nav" aria-label="Hauptnavigation">
+        <button type="button" class="site-nav-toggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="site-navigation" data-site-navigation-target="toggle" data-action="site-navigation#toggle">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <nav id="site-navigation" class="site-nav" aria-label="Hauptnavigation">
           <%= link_to "Startseite", root_path %>
           <%= link_to "Rechnungen", invoices_path %>
-          <%= link_to "Gründung", gruendungskosten_path %>
-          <%= link_to "Anmeldung", gewerbeanmeldung_path %>
+          <%= link_to "Angebote & Aufträge", sales_documents_path %>
+          <%= link_to "Buchhaltung", bookkeeping_entries_path %>
+          <%= link_to "Gründungskoten", gruendungskosten_path %>
+          <%= link_to "Gewerbeanmeldung", gewerbeanmeldung_path %>
           <%= link_to "Vorteile", vorteile_path %>
           <% if current_workspace&.account? %>
             <%= button_to "Abmelden", session_path, method: :delete, class: "site-nav__button" %>
@@ -43,6 +55,9 @@
           <% end %>
         </nav>
       </div>
+      <% if current_workspace&.account? %>
+        <p class="site-account" aria-label="Angemeldetes Konto">Angemeldet als <span><%= current_workspace.email %></span></p>
+      <% end %>
     </header>
 
     <% flash.each do |type, message| %>
@@ -50,15 +65,15 @@
       <div class="flash-message flash-message--<%= type %>" role="status"><%= message %></div>
     <% end %>
 
-    <% if workspace? && !current_workspace.account? %>
+    <% if %w[invoices bookkeeping_entries business_assets euer_adjustments].include?(controller_name) && !current_workspace&.account? %>
       <aside class="guest-notice" aria-label="Hinweis zu deinen Daten">
         <p>
           <strong>Du arbeitest ohne Konto.</strong> Deine Daten sind nur in diesem Browser gespeichert und werden
-          gelöscht, wenn du 3 Monate lang nichts machst.
+          gelöscht, wenn du 3 Monate lang inaktiv bist.
           <%= link_to "Konto anlegen", new_account_path %>, damit sie bleiben.
         </p>
       </aside>
-    <% elsif workspace? && !current_workspace.email_confirmed? %>
+    <% elsif workspace? && current_workspace.account? && !current_workspace.email_confirmed? %>
       <aside class="guest-notice" aria-label="E-Mail bestätigen">
         <p>
           <strong>Bitte bestätige deine E-Mail-Adresse.</strong> Wir haben dir einen Link geschickt. Ohne Bestätigung
@@ -69,12 +84,18 @@
     <% end %>
 
     <%= yield %>
+    <dialog class="form-popover customer-update-dialog payment-dialog" aria-labelledby="payment-dialog-title" data-payment-dialog-target="dialog">
+      <h2 id="payment-dialog-title" data-payment-dialog-target="title">Rechnung als bezahlt markieren</h2>
+      <div data-payment-dialog-target="content" data-action="submit->payment-dialog#submit"></div>
+      <button type="button" class="button button--secondary" data-action="payment-dialog#close">Abbrechen</button>
+    </dialog>
 
     <footer class="site-footer">
       <div class="site-footer__inner">
         <span>Klarheit für deinen Start in die Selbstständigkeit.</span>
         <span>Allgemeine Informationen – keine Steuer- oder Rechtsberatung.</span>
         <%= link_to "Datenschutz", datenschutz_path %>
+        <%= link_to "Hilfe", hilfe_path %>
         <%= link_to "Impressum", "https://manuelbeck.software/impressum", target: "_blank", rel: "noopener" %>
         <%= link_to "Spenden", spenden_path %>
       </div>

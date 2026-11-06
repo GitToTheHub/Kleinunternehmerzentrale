@@ -1,0 +1,33 @@
+<% euer = local_assigns.fetch(:euer, false) %>
+<% income = @entry.kind == "income" %>
+<% reversal = @entry.reversal? %>
+<div class="field" data-controller="cash-payment" data-cash-payment-income-value="<%= income %>" data-cash-payment-reversal-value="<%= reversal %>" data-action="change->cash-payment#refresh payment-kind-change->cash-payment#refresh" data-euer-entry-target="<%= "cashField" if euer %>">
+  <%= form.label :payment_account, income ? "Zahlungsart" : local_assigns.fetch(:label, "Bezahlt von"), data: (euer ? { euer_entry_target: "accountLabel" } : {}) %>
+  <%= form.select :payment_account, [[income ? "Geschäftskonto" : "Betriebskonto / Betriebskasse", "business"], ["Privatkonto", "private"], ["Bargeld / Betriebskasse", "cash", { disabled: !income, hidden: !income }]], {}, data: { cash_payment_target: "account", **(euer ? { euer_entry_target: "account", action: "change->euer-entry#updateHints" } : {}) } %>
+  <small>Wähle, ob die Zahlung über dein Geschäfts- oder Privatkonto oder bar erfolgt ist.</small>
+  <small data-cash-payment-target="privateHint" <%= "hidden" unless income && !reversal && @entry.payment_account == "private" %>>Die App berücksichtigt die Zahlung zusätzlich als Privatentnahme: Geld aus dem Betrieb gelangt in deinen privaten Bereich. Erfasse dafür keine weitere Entnahme.</small>
+  <div data-cash-payment-target="panel" <%= "hidden" unless @entry.payment_account == "cash" %>>
+    <p class="form-hint">Zur Betriebskasse gehört Bargeld, das du für betriebliche Zahlungen bereithältst. Bargeld, das du direkt privat übernimmst, zählt als Privatentnahme.</p>
+    <fieldset class="booking-type-group cash-payment-choices">
+      <legend><%= reversal ? "Woher stammt das Bargeld für die Rückzahlung?" : "Wie möchtest du das Bargeld erfassen?" %></legend>
+      <% unless reversal %><small>Übernimmst du das Geld erst später privat, erfasst du dann eine eigene Privatentnahme.</small><% end %>
+      <% choices = reversal ? [["Aus der Betriebskasse", "business"], ["Vollständig privat bezahlt", "private"], ["Teilweise privat bezahlt", "split"]] : [["Bleibt in der Betriebskasse", "business"], ["Vollständig privat übernommen", "private"], ["Teilweise privat übernommen", "split"]] %>
+      <div class="booking-actions">
+        <% choices.each do |title, value| %>
+          <label class="booking-type-option">
+            <%= form.radio_button :cash_usage, value, required: @entry.payment_account == "cash", disabled: @entry.payment_account != "cash", data: { cash_payment_target: "usage" } %>
+            <span><strong><%= title %></strong></span>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+    <div class="field" data-cash-payment-target="split" <%= "hidden" unless @entry.cash_usage == "split" %>>
+      <%= form.label :cash_private_amount, reversal ? "Privat bezahlter Betrag in Euro" : "Privat übernommener Betrag in Euro" %>
+      <% raw = @entry.cash_private_amount_before_type_cast %>
+      <%= form.text_field :cash_private_amount, value: raw.is_a?(String) ? raw : (number_with_precision(@entry.cash_private_amount, precision: 2, separator: ",", delimiter: ".") if @entry.cash_private_amount), inputmode: "decimal", required: @entry.payment_account == "cash" && @entry.cash_usage == "split", disabled: @entry.payment_account != "cash" || @entry.cash_usage != "split", data: { cash_payment_target: "amount" } %>
+      <small>Gib nur den privaten Anteil an. Der Rest gehört zur Betriebskasse.</small>
+    </div>
+    <% if reversal %><p class="form-hint">Die Rückzahlung vermindert deine Betriebseinnahmen. Der privat bezahlte Anteil vermindert zusätzlich deine Privatentnahmen.</p><% end %>
+  </div>
+  <%= yield if block_given? %>
+</div>

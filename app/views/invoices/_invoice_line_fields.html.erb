@@ -1,61 +1,84 @@
-<details class="invoice-line" data-invoice-lines-target="row" data-controller="line-quantity" data-action="hourly-rate:changed@window->line-quantity#rateChanged input->invoice-lines#updateSummary change->invoice-lines#updateSummary">
-  <summary class="invoice-line__summary" data-action="click->invoice-lines#toggle">
+<section class="invoice-line" data-invoice-lines-target="row" data-controller="line-quantity" data-action="hourly-rate:changed@window->line-quantity#rateChanged input->invoice-lines#updateSummary change->invoice-lines#updateSummary">
+  <div class="invoice-line__heading">
     <span class="invoice-line__title" data-invoice-lines-target="title">Position</span>
-    <span class="invoice-line__text"><strong data-summary="description"></strong><small data-summary="details"></small></span>
-    <span class="invoice-line__calc" data-summary="calc"></span>
     <button type="button" class="invoice-line__remove" data-invoice-lines-target="remove" aria-label="Position löschen" title="Position löschen" data-action="click->invoice-lines#remove">
       <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4h4v2m-6 0 .7 10h6.6L14 6M8.5 9v4m3-4v4"/></svg>
     </button>
-    <span class="invoice-line__chevron" aria-hidden="true"></span>
-  </summary>
-  <div class="invoice-line__content">
-    <div class="invoice-line__body">
+  </div>
+  <div class="invoice-line__body">
+    <div class="invoice-line__description">
       <div class="field">
-        <%= form.label :description, "Leistung oder Artikel" %>
+        <%= invoice_field_label(form, :description, "Titel") %>
         <%= form.text_field :description, required: true %>
       </div>
       <div class="field">
-        <%= form.label :details, "Beschreibung (optional)", id: "#{form.field_id(:details)}_label" %>
-        <div class="rich-text" data-controller="rich-text" data-action="rich-text:clear->rich-text#clear">
-          <div class="rich-text__toolbar" role="toolbar" aria-label="Textformatierung">
-            <button type="button" data-rich-text-target="button" data-command="bold" aria-label="Fett" title="Fett" data-action="mousedown->rich-text#keepSelection click->rich-text#format"><strong>F</strong></button>
-            <button type="button" data-rich-text-target="button" data-command="italic" aria-label="Kursiv" title="Kursiv" data-action="mousedown->rich-text#keepSelection click->rich-text#format"><em>K</em></button>
-            <button type="button" data-rich-text-target="button" data-command="insertUnorderedList" aria-label="Aufzählung" title="Aufzählung" data-action="mousedown->rich-text#keepSelection click->rich-text#format">• Liste</button>
-          </div>
-          <div class="rich-text__editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="<%= form.field_id(:details) %>_label" data-rich-text-target="editor" data-action="input->rich-text#sync keyup->rich-text#sync mouseup->rich-text#sync paste->rich-text#paste"></div>
-          <%= form.hidden_field :details, data: { rich_text_target: "input" } %>
+        <div id="<%= form.field_id(:details) %>_label" class="field-label"><%= invoice_field_icon(:details) %><span>Beschreibung (optional)</span></div>
+        <small>Nur wenn der Titel nicht reicht, zum Beispiel Umfang, Lieferumfang oder Projektname.</small>
+        <div class="rich-text" data-controller="rich-text" data-action="rich-text:clear->rich-text#clear click->rich-text#normalizeLink:capture keydown->rich-text#normalizeLink:capture">
+          <trix-toolbar id="<%= form.field_id(:details, :toolbar) %>" class="rich-text__toolbar" role="toolbar" aria-label="Textformatierung">
+            <button type="button" data-trix-attribute="bold" aria-label="Fett" title="Fett"><strong>F</strong></button>
+            <button type="button" data-trix-attribute="italic" aria-label="Kursiv" title="Kursiv"><em>K</em></button>
+            <button type="button" data-trix-attribute="bullet" aria-label="Aufzählung" title="Aufzählung">• Liste</button>
+            <button type="button" data-trix-attribute="number" aria-label="Nummerierte Liste" title="Nummerierte Liste">1. Liste</button>
+            <button type="button" data-trix-action="increaseNestingLevel" aria-label="Einrücken" title="Einrücken">Einrücken</button>
+            <button type="button" data-trix-action="decreaseNestingLevel" aria-label="Ausrücken" title="Ausrücken">Ausrücken</button>
+            <button type="button" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" aria-label="Link" title="Link">Link</button>
+            <div class="rich-text__dialogs" data-trix-dialogs>
+              <div class="rich-text__link-dialog" data-trix-dialog="href" data-trix-dialog-attribute="href">
+                <div class="rich-text__link-field">
+                  <label for="<%= form.field_id(:details, :link_text) %>">Anzeigetext</label>
+                  <input type="text" id="<%= form.field_id(:details, :link_text) %>" name="link_text" placeholder="Leer: Linkadresse anzeigen" data-rich-text-target="linkText" data-trix-input>
+                </div>
+                <div class="rich-text__link-field">
+                  <label for="<%= form.field_id(:details, :link_address) %>">Linkadresse</label>
+                  <input type="url" id="<%= form.field_id(:details, :link_address) %>" name="href" placeholder="https://…" data-action="input->rich-text#clearLinkError" data-trix-input data-trix-validate-href required>
+                </div>
+                <button type="button" data-trix-method="setAttribute">Übernehmen</button>
+                <button type="button" data-trix-method="removeAttribute">Entfernen</button>
+              </div>
+            </div>
+          </trix-toolbar>
+          <%= form.rich_text_area :details, value: form.object.details_html, id: form.field_id(:details, :editor), input: form.field_id(:details), toolbar: form.field_id(:details, :toolbar), class: "trix-content rich-text__editor", aria: { labelledby: "#{form.field_id(:details)}_label" }, data: { rich_text_target: "editor", action: "keydown->rich-text#listShortcut:capture trix-toolbar-dialog-show->rich-text#showLink trix-toolbar-dialog-hide->rich-text#finishLink trix-initialize->rich-text#ready trix-change->rich-text#sync trix-file-accept->rich-text#blockFiles trix-attachment-add->rich-text#blockAttachment paste->rich-text#paste:capture" } %>
         </div>
-        <small>Nur wenn der Titel nicht reicht, zum Beispiel Umfang, Lieferumfang oder Projektname. Du kannst Text fett oder kursiv setzen und Listen anlegen.</small>
       </div>
+    </div>
+    <div class="invoice-line__pricing">
       <div class="field">
-        <%= form.label :unit_code, "Einheit" %>
-        <%= form.select :unit_code, InvoiceLine::UNIT_CODES.map { |code, label| [label, code] }, {}, required: true, data: { line_quantity_target: "unit", action: "line-quantity#unitChanged" } %>
+        <div class="unit-label">
+          <%= invoice_field_label(form, :unit_code, "Einheit") %>
+          <button type="button" class="hours-calculator-toggle unit-settings" popovertarget="billing-units" aria-label="Positionseinheiten ändern" title="Positionseinheiten ändern" aria-haspopup="dialog"><%= invoice_field_icon(:settings) %></button>
+        </div>
+        <%= form.select :unit_code, workflow_units.map { |code, label| [label, code] }, { include_blank: false, selected: workflow_units.key?(form.object.unit_code) ? form.object.unit_code : default_invoice_unit }, required: false, data: { line_quantity_target: "unit", action: "line-quantity#unitChanged" } %>
       </div>
-      <div class="field" data-line-quantity-target="field" data-action="focusin->line-quantity#focus focusout->line-quantity#blur">
-        <%= form.label :quantity, "Menge" %>
+      <div class="field invoice-line__quantity" data-line-quantity-target="field" <%= "hidden" if form.object.flat_rate? %>>
+        <div class="quantity-label">
+          <%= form.label :quantity, class: "field-label" do %>
+            <span data-line-quantity-target="hourIcon" <%= "hidden" unless form.object.unit_code == "HUR" %>><%= invoice_field_icon(:clock) %></span>
+            <span data-line-quantity-target="packagesIcon" <%= "hidden" unless form.object.unit_code == "C62" %>><%= invoice_field_icon(:packages) %></span>
+            <span data-line-quantity-target="calendarIcon" <%= "hidden" unless %w[DAY MON].include?(form.object.unit_code) %>><%= invoice_field_icon(:service_on) %></span>
+            <span data-line-quantity-target="quantityIcon" <%= "hidden" if %w[HUR C62 DAY MON].include?(form.object.unit_code) %>><%= invoice_field_icon(:quantity) %></span>
+            <span data-line-quantity-target="quantityLabel"><%= { "HUR" => "Stunden", "DAY" => "Tage", "MON" => "Monate" }.fetch(form.object.unit_code, "Menge") %></span>
+          <% end %>
+        </div>
         <div class="quantity-input">
           <button type="button" class="quantity-input__step" aria-label="Menge um 1 verringern" data-action="mousedown->line-quantity#keepFocus line-quantity#decrease">−</button>
-          <%= form.number_field :quantity, min: "0.01", step: "any", required: true, inputmode: "decimal", data: { line_quantity_target: "quantity", action: "input->line-quantity#prefillTime" } %>
+          <div class="calculator-input">
+          <%= form.text_field :quantity, value: (form.object.flat_rate? ? 1 : form.object.quantity), min: "0.01", step: "any", required: !form.object.flat_rate?, disabled: form.object.flat_rate?, inputmode: "text", aria: { describedby: form.field_id(:quantity_help) }, data: { controller: "inline-calculation", line_quantity_target: "quantity" } %>
+          </div>
           <button type="button" class="quantity-input__step" aria-label="Menge um 1 erhöhen" data-action="mousedown->line-quantity#keepFocus line-quantity#increase">+</button>
         </div>
-        <small>Ganze Zahlen, bei Bedarf auch Kommazahlen wie 1,5.</small>
-        <div class="hours-calculator" data-line-quantity-target="hours" hidden>
-          <label>Stunden und Minuten umrechnen
-            <input type="text" inputmode="numeric" placeholder="z. B. 1:30" autocomplete="off" data-line-quantity-target="time" data-action="input->line-quantity#convert">
-          </label>
-          <small data-line-quantity-target="result"></small>
+        <small id="<%= form.field_id(:quantity) %>_calculation_result" class="inline-calculation-result" role="status" aria-live="polite" hidden></small>
+        <small id="<%= form.field_id(:quantity_help) %>">Kommazahlen und Rechenwege sind möglich, z. B. 1,5 oder 2 + 3. Zeiten kannst du als 20 min, 1,5 Std oder 1:30 eingeben und addieren; sie werden in Dezimalstunden umgerechnet. Das Ergebnis siehst du sofort; mit Enter oder beim Verlassen übernimmst du es.</small>
+      </div>
+      <div class="field invoice-line__price">
+        <%= form.label :unit_price, class: "field-label" do %><%= invoice_field_icon(:unit_price) %><span data-line-quantity-target="priceLabel"><%= form.object.flat_rate? ? "Pauschalpreis" : "Preis pro #{InvoiceLine::UNIT_CODES.fetch(form.object.unit_code, "Stück")}" %></span><% end %>
+        <div class="money-input calculator-input"><%= form.text_field :unit_price, value: (form.object.unit_price.nil? ? nil : number_with_precision(form.object.unit_price, precision: 2, separator: ",", delimiter: "")), inputmode: "text", required: true, aria: { describedby: form.field_id(:unit_price_help) }, data: { controller: "price-input inline-calculation", inline_calculation_price_value: true, action: "input->price-input#validate change->price-input#format blur->price-input#format", line_quantity_target: "price" } %>
         </div>
+        <small id="<%= form.field_id(:unit_price) %>_calculation_result" class="inline-calculation-result" role="status" aria-live="polite" hidden></small>
+        <small id="<%= form.field_id(:unit_price_help) %>">Rechenwege sind möglich, z. B. 800 / 2. Zeiten kannst du mit einem Stundensatz verrechnen, z. B. (30 min + 1 Std) * 60. Setze die gesamte Zeit in Klammern, damit sie vollständig mit dem Stundensatz multipliziert wird. Das Ergebnis siehst du sofort; mit Enter oder beim Verlassen übernimmst du es.</small>
       </div>
-      <div class="field">
-        <%= form.label :unit_price do %>Preis je Einheit<span data-show-for="small_business"> (€)</span><span data-show-for="standard"> (€ netto)</span><% end %>
-        <%= form.number_field :unit_price, min: "0", step: "0.01", required: true, data: { line_quantity_target: "price" } %>
-      </div>
-      <div class="field" data-show-for="standard">
-        <%= form.label :tax_rate, "Umsatzsteuersatz" %>
-        <%= form.select :tax_rate, InvoiceLine::TAX_RATES.map { |rate| ["#{rate} %", rate] }, { selected: form.object.tax_rate_percent.nonzero? || 19 } %>
-        <small>19 % ist der Regelsatz. 7 % gilt nur für bestimmte Leistungen, zum Beispiel Bücher oder Lebensmittel.</small>
-      </div>
-      <p class="invoice-line__total">Summe der Position: <strong data-summary="total">0,00 €</strong></p>
+      <p class="invoice-line__total">Summe der Position: <strong data-summary="total"><%= invoice_money(0, @invoice) %></strong></p>
+
     </div>
   </div>
-</details>
+</section>

@@ -1,0 +1,7 @@
+  <% @report.imports.each do |import| %>
+    <section>
+      <h2>Übernommene Buchhaltung</h2>
+      <p><%= import.source %> · 01.01.<%= import.year %> bis <%= import.covered_through.strftime("%d.%m.%Y") %>. Diese Summen sind in der EÜR enthalten. Neue Vorgänge erfasst du ab <%= (import.covered_through + 1).strftime("%d.%m.%Y") %>.</p>
+      <%= link_to "Übernahme ansehen", bookkeeping_import_path(import) %>
+    </section>
+  <% end %>

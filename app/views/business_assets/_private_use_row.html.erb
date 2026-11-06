@@ -1,0 +1,13 @@
+<div class="asset-private-use-row" data-controller="asset-private-use">
+  <div class="form-grid">
+    <div class="field"><%= form.label :year, "Nutzungsjahr" %><%= form.number_field :year, min: 1900, max: 9999 %></div>
+    <div class="field"><%= form.label :business_percent, "Betriebliche Nutzung in diesem Jahr (%)" %><%= form.text_field :business_percent, value: form.object.business_percent_before_type_cast, inputmode: "decimal" %></div>
+    <div class="field field--wide"><%= form.label :basis, "Wie hast du die Nutzung für dieses Jahr ermittelt?" %><%= form.text_area :basis, rows: 2 %></div>
+    <div class="field field--wide"><%= form.label :calculation_mode, "Private Nutzung berücksichtigen" %><%= form.select :calculation_mode, AssetPrivateUse::MODES.map { |key, label| [label, key] }, {}, data: { asset_private_use_target: "mode", action: "asset-private-use#refresh" } %></div>
+    <div class="field" data-asset-private-use-target="manual" <%= "hidden" unless form.object.calculation_mode == "manual" %>><%= form.label :manual_amount, "Fachlich ermittelter Privatnutzungswert in Euro" %><%= form.text_field :manual_amount, value: form.object.manual_amount_before_type_cast, inputmode: "decimal", data: { asset_private_use_target: "amount" } %></div>
+  </div>
+  <% if form.object.persisted? %>
+    <p>Für <%= form.object.year %> werden <strong><%= euro(form.object.amount) %></strong> als private Nutzung in der EÜR und den Entnahmen berücksichtigt.</p>
+  <% end %>
+  <label class="checkbox-label"><%= form.check_box :_destroy %><span>Diese Jahresnutzung entfernen</span></label>
+</div>

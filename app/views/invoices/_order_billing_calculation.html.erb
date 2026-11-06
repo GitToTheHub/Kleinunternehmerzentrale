@@ -1,0 +1,14 @@
+<div class="order-billing-calculation" data-order-billing-target="calculation" hidden>
+    <div data-order-billing-target="totalFields">
+    <div class="form-grid">
+      <div class="field"><%= form.label :allocation_mode, "Berechnen nach" %><%= form.select :allocation_mode, [["Prozent des Gesamtpreises", "percent"], ["Fester Betrag", "amount"]], { selected: @invoice.allocation_mode.presence || "percent" }, data: { order_billing_target: "mode" } %></div>
+      <div class="field" data-order-billing-target="percentField"><%= form.label :allocation_percent, "Anteil in Prozent" %><%= form.text_field :allocation_percent, value: @invoice.allocation_percent ? number_with_precision(@invoice.allocation_percent, precision: 2, separator: ",", delimiter: "") : "50,00", inputmode: "decimal", data: { order_billing_target: "percent" } %></div>
+      <div class="field" data-order-billing-target="amountField"><%= form.label :allocation_amount, "Jetzt berechnen in Euro" %><%= form.text_field :allocation_amount, value: @invoice.allocation_amount && number_with_precision(@invoice.allocation_amount, precision: 2, separator: ",", delimiter: ""), inputmode: "decimal", data: { order_billing_target: "amount" } %></div>
+    </div>
+    </div>
+    <dl class="order-billing-summary" aria-live="polite">
+      <div data-order-billing-target="priorRow"><dt>Bereits abgerechnet</dt><dd data-order-billing-target="prior">—</dd></div>
+      <div><dt data-order-billing-target="requestedLabel"><%= @invoice.billing_kind == "progress" ? "Dieser Abschlag" : "Diese Anzahlung" %></dt><dd data-order-billing-target="requested">—</dd></div>
+      <div><dt>Danach noch nicht abgerechnet</dt><dd data-order-billing-target="remaining">—</dd></div>
+    </dl>
+</div>

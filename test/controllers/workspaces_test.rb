@@ -4,7 +4,7 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
   def invoice_params(name = "Kundin GmbH")
     {
       invoice: {
-        issued_on: "2026-10-05", service_on: "2026-10-05", seller_name: "Muster", seller_street: "Weg 1",
+        issued_on: "2026-10-05", service_on: "2026-10-05", seller_name: "Muster", seller_email: "muster@example.test", seller_street: "Weg 1",
         seller_postal_code: "20095", seller_city: "Hamburg", seller_country: "DE", seller_tax_identifier: "12/345/67890",
         buyer_name: name, buyer_street: "Straße 2", buyer_postal_code: "10115", buyer_city: "Berlin", buyer_country: "DE",
         invoice_lines_attributes: { "0" => { description: "Arbeit", quantity: "1", unit_price: "10", unit_code: "HUR" } }
@@ -20,12 +20,20 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
   end
 
   test "die erste Rechnung legt einen Gast-Bereich an und der Hinweis erscheint" do
+    get new_invoice_url
+    assert_select ".guest-notice", /Du arbeitest ohne Konto/
     assert_difference "Workspace.count", 1 do
       post invoices_url, params: invoice_params
     end
     follow_redirect!
     assert_select ".guest-notice", /3 Monate/
+    get invoices_url
+    assert_select ".guest-notice", /3 Monate/
     assert_equal Workspace.last, Invoice.last.workspace
+    get new_invoice_url
+    assert_select ".guest-notice", /3 Monate/
+    get root_url
+    assert_select ".guest-notice", count: 0
   end
 
   test "Rechnungen anderer Bereiche sind nicht erreichbar" do
@@ -45,6 +53,45 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
     assert_equal "RE-2026-0001", Invoice.last.invoice_number
   end
 
+  test "Formular Entwurf Vorschau und Speicherung verwenden dieselbe eigene Rechnungsnummer" do
+    travel_to Time.zone.local(2026, 10, 5) do
+      Invoice.where(id: invoices(:one).id).update_all(invoice_number: "RE-2026-0008")
+
+      2.times { post invoices_url, params: invoice_params }
+      get new_invoice_url
+      assert_select "#invoice-number-preview[readonly][value='RE-2026-0003']"
+
+      patch draft_invoices_url, params: invoice_params, as: :json
+      id = response.parsed_body.fetch("draft_id")
+      get edit_draft_invoices_url(draft_id: id)
+      assert_select "#invoice-number-preview[readonly][value='RE-2026-0003']"
+
+      post preview_invoices_url, params: invoice_params.merge(draft_id: id)
+      assert_response :see_other
+      follow_redirect!
+      assert_response :success
+      assert_select ".print-invoice h1", "RE-2026-0003"
+
+      post invoices_url, params: invoice_params
+      assert_response :redirect
+      invoice = Invoice.order(:id).last
+      assert_equal "RE-2026-0003", invoice.invoice_number
+      follow_redirect!
+      assert_select ".print-invoice h1", "RE-2026-0003"
+    end
+  end
+
+  test "Formular ohne eigenen Bereich beginnt unabhängig von fremden Rechnungen bei eins" do
+    travel_to Time.zone.local(2026, 10, 7) do
+      Invoice.where(id: invoices(:one).id).update_all(invoice_number: "RE-2026-0008")
+
+      assert_no_difference "Workspace.count" do
+        get new_invoice_url
+      end
+      assert_select "#invoice-number-preview[readonly][value='RE-2026-0001']"
+    end
+  end
+
   test "Konto anlegen übernimmt die bisherigen Daten und Anmelden auf anderem Gerät funktioniert" do
     post invoices_url, params: invoice_params
     workspace = Workspace.last
@@ -57,6 +104,7 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
     delete session_url
     get invoices_url
     assert_select ".invoice-list__item", 0
+    assert_select ".site-account", count: 0
 
     post session_url, params: { email: "ich@example.de", password: "falsch" }
     assert_response :unprocessable_entity
@@ -64,6 +112,7 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
     get invoices_url
     assert_select ".invoice-list__item", 1
     assert_select ".guest-notice", /bestätige deine E-Mail/
+    assert_select ".site-account", text: "Angemeldet als ich@example.de"
   end
 
   test "Konto braucht ein ausreichend langes Passwort" do
@@ -157,7 +206,7 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
 
     get new_invoice_url(copy_from: original.id)
     assert_select "input[name='invoice[buyer_name]'][value='Kundin GmbH']"
-    assert_select "input[name='invoice[invoice_lines_attributes][0][unit_price]'][value='10.0']"
+    assert_select "input[name='invoice[invoice_lines_attributes][0][unit_price]'][value='10,00']"
 
     assert_no_difference "Invoice.count" do
       post cancel_invoice_url(original)
@@ -185,6 +234,9 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
 
     post invoices_url, params: invoice_params.deep_merge(invoice: { seller_email: "a@example.de", buyer_email: "b@example.de", buyer_name: "=Evil" })
     number = Invoice.last.invoice_number
+    draft = Invoice.last.workspace.invoice_drafts.create!(data: { "buyer_name" => "Entwurfskunde" })
+    second = Invoice.last.workspace.invoice_drafts.create!(data: { "buyer_name" => "Zweiter Entwurf" })
+    Invoice.last.workspace.invoice_drafts.create!(data: {}, status: :discarded)
 
     get export_url
     assert_response :success
@@ -194,10 +246,11 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
         entries[entry.name] = zip.read.force_encoding("UTF-8")
       end
     end
-    assert_equal %w[absender.csv kunden.csv positionen.csv rechnungen.csv xrechnung/#{number}.xml].sort, entries.keys.sort.map { |k| k.sub(number, '#{number}') }
+    assert_equal [ "absender.csv", "angebote-und-auftraege.json", "rechnungs-auftragsbezug.json", "einstellungen.json", "kunden.csv", "positionen.csv", "rechnungen.csv", "entwuerfe/#{draft.id}.json", "entwuerfe/#{second.id}.json", "xrechnung/#{number}.xml" ].sort, entries.keys.sort
     assert_includes entries["rechnungen.csv"], number
     assert_includes entries["rechnungen.csv"], "'=Evil"
     assert_not_includes entries["rechnungen.csv"], invoices(:one).invoice_number
+    assert_includes entries["entwuerfe/#{draft.id}.json"], "Entwurfskunde"
   end
 
   test "Spendenseite verlinkt GitHub Sponsors" do

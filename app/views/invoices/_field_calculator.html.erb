@@ -1,0 +1,25 @@
+<div class="field-calculator" data-controller="field-calculator" data-field-calculator-field-value="<%= form.field_id(field) %>">
+  <button type="button" class="hours-calculator-toggle" aria-label="Rechner öffnen" title="Rechner öffnen" aria-haspopup="dialog" aria-controls="<%= form.field_id("#{field}_calculator") %>" data-action="field-calculator#opened" data-field-calculator-target="trigger">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8v4H8zM8 14h1m3 0h1m3 0h.01M8 18h1m3 0h1m3 0h.01"/></svg>
+  </button>
+  <dialog id="<%= form.field_id("#{field}_calculator") %>" class="form-popover field-calculator__dialog" aria-label="Rechner" data-field-calculator-target="dialog">
+    <div class="form-popover__heading"><h3>Rechner</h3><button type="button" class="form-popover__close" aria-label="Rechner schließen" data-action="field-calculator#close">×</button></div>
+  <div class="hours-calculator field-calculator__body">
+    <label for="<%= form.field_id("#{field}_calculation") %>">Rechenweg</label>
+    <input type="text" id="<%= form.field_id("#{field}_calculation") %>" autocomplete="off" placeholder="z. B. (2 + 3) × 4" data-field-calculator-target="expression" data-action="input->field-calculator#calculate keydown.enter->field-calculator#apply">
+    <small data-field-calculator-target="help"></small>
+    <div class="field-calculator__rate" data-field-calculator-target="ratePanel" hidden>
+      <p data-field-calculator-target="time"></p>
+      <label for="<%= form.field_id("#{field}_calculator_rate") %>" data-field-calculator-target="rateLabel">Stundensatz</label>
+      <input id="<%= form.field_id("#{field}_calculator_rate") %>" type="number" min="0" step="0.01" inputmode="decimal" data-field-calculator-target="rate" data-action="input->field-calculator#calculate">
+    </div>
+    <p role="status" aria-live="polite" data-field-calculator-target="result"></p>
+    <div class="field-calculator__warning" data-field-calculator-target="warning" role="status" aria-live="polite" hidden>
+      <p>Ohne Klammern wird nur die letzte Zeit mit dem Stundensatz multipliziert. Möchtest du die gesamte Zeit verrechnen? Setze dafür die Zeiten in Klammern.</p>
+      <p class="field-calculator__expression" data-field-calculator-target="suggestion"></p>
+      <button type="button" class="button button--secondary" data-action="field-calculator#addTimeParentheses">Zeiten einklammern</button>
+    </div>
+    <button type="button" class="button button--secondary" data-field-calculator-target="apply" data-action="field-calculator#apply" disabled>Ergebnis übernehmen</button>
+  </div>
+  </dialog>
+</div>

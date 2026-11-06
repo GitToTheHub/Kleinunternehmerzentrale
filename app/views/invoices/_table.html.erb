@@ -1,0 +1,47 @@
+    <table class="invoice-table <%= "invoice-table--taxed" if @invoice.standard_taxed? %>">
+      <colgroup>
+        <col style="width: <%= @invoice.standard_taxed? ? 39 : 54 %>%">
+        <col style="width: <%= @invoice.standard_taxed? ? 18 : 14 %>%">
+        <col style="width: <%= @invoice.standard_taxed? ? 17 : 16 %>%">
+        <% if @invoice.standard_taxed? %><col style="width: 9%"><% end %>
+        <col style="width: <%= @invoice.standard_taxed? ? 17 : 16 %>%">
+      </colgroup>
+      <thead>
+        <tr><th>Positionen</th><th>Menge</th><th><%= @invoice.standard_taxed? ? "Einzelpreis (netto)" : "Einzelpreis" %></th><% if @invoice.standard_taxed? %><th>USt</th><% end %><th><%= @invoice.standard_taxed? ? "Betrag (netto)" : "Betrag" %></th></tr>
+      </thead>
+      <tbody>
+        <% invoice_display_lines(@invoice).each.with_index(1) do |line, index| %>
+          <tr class="invoice-position-row <%= "invoice-position-row--has-description" if line.details.present? %>">
+            <td><%= index %>. <%= line.description %></td>
+              <td><% unless line.flat_rate? %><%= number_with_precision(line.quantity, strip_insignificant_zeros: true, locale: :de) %> <% end %><%= line.unit_label %></td>
+              <td><%= invoice_money(line.unit_price, @invoice) %></td>
+              <% if @invoice.standard_taxed? %><td><%= line.tax_rate_percent %> %</td><% end %>
+              <td><%= invoice_money(line.line_total, @invoice) %></td>
+          </tr>
+          <% if line.details.present? %>
+            <tr class="invoice-description-row"><td colspan="<%= @invoice.standard_taxed? ? 5 : 4 %>"><div class="invoice-line-details"><%= line.details_html %></div></td></tr>
+          <% end %>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <% columns = @invoice.standard_taxed? ? 4 : 3 %>
+        <% if @invoice.standard_taxed? %>
+          <tr><td colspan="<%= columns %>">Nettobetrag</td><td><%= invoice_money(@invoice.net_total, @invoice) %></td></tr>
+          <% @invoice.tax_groups.each do |group| %>
+            <tr><td colspan="<%= columns %>">Umsatzsteuer <%= group[:rate] %> % auf <%= invoice_money(group[:net], @invoice) %></td><td><%= invoice_money(group[:tax], @invoice) %></td></tr>
+          <% end %>
+        <% end %>
+        <% if invoice_scope_positions?(@invoice) %>
+          <tr><td colspan="<%= columns %>">Gesamtpreis des Auftrags</td><td><%= invoice_money(@invoice.order_total, @invoice) %></td></tr>
+          <tr><th colspan="<%= columns %>"><%= @invoice.billing_kind == "advance" ? "Anzahlung" : "Abschlag" %><% if @invoice.allocation_mode == "percent" %> (<%= number_with_precision(@invoice.allocation_percent, precision: 2, strip_insignificant_zeros: true, locale: :de) %> %)<% end %></th><th><%= invoice_money(@invoice.total, @invoice) %></th></tr>
+        <% else %>
+        <tr><th colspan="<%= columns %>">Gesamtbetrag</th><th><%= invoice_money(@invoice.total, @invoice) %></th></tr>
+        <% end %>
+        <% if @invoice.deducted_payments.any? %>
+          <% @invoice.deducted_payments.each do |payment| %>
+            <tr><td colspan="<%= columns %>">Abzüglich Zahlung zu <%= payment.fetch("number") %> vom <%= Date.iso8601(payment.fetch("issued_on")).strftime("%d.%m.%Y") %>, erhalten am <%= Date.iso8601(payment.fetch("paid_on")).strftime("%d.%m.%Y") %></td><td><%= invoice_money(-payment.fetch("amount").to_d, @invoice) %></td></tr>
+          <% end %>
+          <tr><th colspan="<%= columns %>">Restbetrag</th><th><%= invoice_money(@invoice.payment_total, @invoice) %></th></tr>
+        <% end %>
+      </tfoot>
+    </table>

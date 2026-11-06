@@ -1,0 +1,23 @@
+<div class="booking-groups" aria-label="Buchungsart auswählen">
+  <% BookkeepingEntriesHelper::BOOKING_GROUPS.each do |key, group| %>
+    <fieldset class="booking-type-group">
+      <legend><span class="booking-category-heading"><%= bookkeeping_icon(key) %><span><%= group.fetch(:title) %></span></span></legend>
+      <p class="booking-group-description"><%= group.fetch(:hint) %></p>
+      <div class="booking-actions">
+        <% group.fetch(:kinds).each do |kind| %>
+          <% action = BookkeepingEntriesHelper::BOOKING_ACTIONS.fetch(kind) %>
+          <label class="booking-type-option" id="booking-<%= kind %>">
+            <%= form.radio_button :kind, kind, checked: !@choose_kind && @entry.kind == kind, required: true, aria: { labelledby: form.field_id(:kind, kind, :title), describedby: [form.field_id(:kind, kind, :hint), (form.field_id(:kind, kind, :example) if action[:example].present?)].compact.join(" ") }, data: { euer_entry_target: "kind", action: "click->euer-entry#kindChanged change->euer-entry#kindChanged", kind_hint: action.fetch(:hint), kind_example: action[:example], kind_detail: action.fetch(:detail), kind_label: bookkeeping_kind_label(kind), date_label: bookkeeping_date_label(kind), **bookkeeping_entry_copy(kind) } %>
+            <span><strong class="booking-category-heading" id="<%= form.field_id(:kind, kind, :title) %>"><%= bookkeeping_icon(kind) %><span><%= bookkeeping_kind_label(kind) %></span></strong><small id="<%= form.field_id(:kind, kind, :hint) %>"><%= action.fetch(:hint) %></small><% if action[:example].present? %><small id="<%= form.field_id(:kind, kind, :example) %>"><strong>Beispiel:</strong> <%= action[:example] %></small><% end %></span>
+          </label>
+        <% end %>
+        <% if key == "business" %>
+          <%= link_to new_business_asset_path, class: "booking-type-option booking-type-link" do %>
+            <%= bookkeeping_icon("noncash") %>
+            <span><strong>Anlagegut erfassen</strong><small>Ein Anlagegut ist ein Gegenstand, den du dauerhaft für deine betriebliche Arbeit verwendest, zum Beispiel ein Computer, Bürostuhl oder eine Maschine. Eine zusätzliche private Nutzung ist möglich und muss bei der steuerlichen Behandlung berücksichtigt werden. Verbrauchsmaterial wie Papier und Stifte erfasst du als Betriebsausgabe. Im Formular wählst du, ob du den Gegenstand betrieblich gekauft oder aus deinem Privatvermögen übernommen hast.</small></span>
+          <% end %>
+        <% end %>
+      </div>
+    </fieldset>
+  <% end %>
+</div>

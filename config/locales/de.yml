@@ -1,0 +1,86 @@
+de:
+  activerecord:
+    attributes:
+      bookkeeping_import:
+        year: "Steuerjahr"
+        covered_through: "Stichtag"
+        source: "Quelle"
+      bookkeeping_entry:
+        invoice: "Rechnung"
+        invoice_id: "Rechnung"
+        paid_on: "Datum"
+        kind: "Art"
+        description: "Beschreibung"
+        category: "Kategorie"
+        amount: "Betrag"
+        vat_amount: "Steueranteil"
+        deductible_percent: "Abziehbarer Anteil"
+        payment_account: "Zahlungsart"
+        cash_usage: "Bargeldverwendung"
+        cash_private_amount: "Privat übernommener Bargeldbetrag"
+        tax_year: "Steuerjahr"
+        reversal: "Rückzahlung"
+      business_asset:
+        name: "Bezeichnung"
+        acquired_on: "Zugangsdatum"
+        origin: "Herkunft"
+        category: "Anlagegruppe"
+        cost: "Kosten / Einlagewert"
+        depreciation_method: "Abschreibungsmethode"
+        useful_life: "Nutzungsdauer"
+        gwg_net_value: "GWG-Nettowert"
+        paid_on: "Zahlungsdatum"
+        input_vat: "Vorsteuer"
+        disposed_on: "Abgangsdatum"
+        disposal_kind: "Abgangsart"
+        withdrawal_value: "Entnahmewert"
+        withdrawal_vat: "Umsatzsteuer der Entnahme"
+        disposal_recognized_on: "Steuerliches Abgangsdatum"
+        asset_depreciations: "Jahresabschreibungen"
+      asset_depreciation:
+        year: "Jahr"
+        amount: "AfA"
+        special_amount: "Sonder-AfA"
+        reason: "Begründung"
+      euer_adjustment:
+        year: "Steuerjahr"
+        field_key: "EÜR-Position"
+        amount: "Betrag"
+        description: "Begründung"
+      invoice:
+        service_on: "Leistungsdatum"
+        service_until_on: "Leistung bis"
+        billing_kind: "Rechnungsart"
+        billing_root: "Auftrag"
+        received_on: "Datum des Zahlungseingangs"
+        received_account: "Empfangskonto"
+        received_amount: "Erhaltener Eurobetrag"
+        currency: "Währung"
+        exchange_rate: "Euro-Umrechnungskurs"
+        exchange_rate_on: "Kursdatum"
+        exchange_rate_source: "Kursquelle"
+        customer_id: "Kundenauswahl"
+        customer_update_mode: "Kundendaten"
+        invoice_number_format: "Nummernformat"
+        buyer_abbreviation: "Kundenkürzel"
+        invoice_number: "Rechnungsnummer"
+        payment_due_on: "Zahlungsfrist"
+
+  invoices:
+    issued_on_hints:
+      regular: "Trage den Tag ein, an dem du die Rechnung ausstellst. Das Leistungsdatum gibst du separat an."
+      advance: "Trage den Tag ein, an dem du die Anzahlungsrechnung ausstellst. Die Leistung kann später erfolgen."
+      progress: "Trage den Tag ein, an dem du die Abschlagsrechnung ausstellst. Der Auftrag muss noch nicht abgeschlossen sein."
+      final: "Trage den Tag ein, an dem du die Schlussrechnung ausstellst. Das kann ein anderer Tag als die Fertigstellung sein."
+
+    service_date_texts:
+      regular:
+        from: "Leistungsdatum / Leistung von"
+        to: "Leistung bis (optional)"
+        from_hint: "Tag der Leistung. Für einen Zeitraum trägst du hier den ersten Tag ein."
+        to_hint: "Für einen Zeitraum trägst du hier den letzten Tag ein. Bei einem einzelnen Termin bleibt das Feld leer."
+      advance:
+        from: "Voraussichtliche Leistung am / von"
+        to: "Voraussichtlich bis (optional)"
+        from_hint: "Geplanter Tag oder Beginn des geplanten Leistungszeitraums."
+        to_hint: "Für einen geplanten Zeitraum: voraussichtlicher letzter Tag der Leistung. Bei einem einzelnen Termin bleibt das Feld leer."

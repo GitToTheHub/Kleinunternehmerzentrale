@@ -1,0 +1,20 @@
+<% groups = @settlement_groups.reject { |group| group[:root].id == @invoice.billing_root_id } %>
+<% selected = Array(@invoice.settlement_invoice_ids).map(&:to_s) %>
+<section class="settlement-selection" data-controller="settlement-selection" data-action="change@document->settlement-selection#update input@document->settlement-selection#update" <%= "hidden" unless @invoice.final_invoice? %>>
+  <fieldset class="booking-type-group">
+    <legend>Bisherige Anzahlungen und Abschläge anrechnen</legend>
+    <% if @invoice.billing_root_id || @invoice.sales_document_id %><p class="form-note">Zahlungen zu diesem Auftrag werden automatisch angerechnet. Hier kannst du weitere direkte Anzahlungen desselben Kunden ergänzen.</p><% end %>
+    <p class="form-note" data-settlement-selection-target="hint">Wähle die bezahlten Teilrechnungen aus, die zu diesem Auftrag gehören. Zusammengehörige Teilrechnungen werden gemeinsam berücksichtigt.</p>
+    <div class="settlement-options">
+      <% groups.each do |group| %>
+        <label class="checkbox-label settlement-option" data-settlement-selection-target="row" data-customer-id="<%= group[:root].customer_id %>" data-amount="<%= group[:amount] %>">
+          <%= check_box_tag "invoice[settlement_invoice_ids][]", group[:root].id, selected.include?(group[:root].id.to_s), id: "settlement-#{group[:root].id}" %>
+          <span><strong><%= group[:root].title.presence || group[:invoices].first.invoice_lines.first&.description %></strong>
+            <% group[:invoices].each do |invoice| %><small><%= invoice.invoice_number %> · <%= l(invoice.issued_on) %> · <%= invoice_money(invoice.payment_entry.amount, invoice) %></small><% end %>
+          </span>
+        </label>
+      <% end %>
+    </div>
+    <p class="form-note" data-settlement-selection-target="sum" aria-live="polite"></p>
+  </fieldset>
+</section>

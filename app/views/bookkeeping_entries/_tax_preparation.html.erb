@@ -1,0 +1,19 @@
+  <section class="bookkeeping-tax-preparation" id="euer-vorbereitung">
+    <%= render "shared/euer_form_source", year: @year %>
+    <p>Du kannst deine Angaben jederzeit prüfen. Vor der Abgabe gleiche Einnahmen und Ausgaben mit deinen Zahlungen ab und prüfe Anlagegüter, Privatnutzung sowie steuerliche Ergänzungen.</p>
+    <p>Die folgenden Beträge helfen dir beim Übertragen in die Steuerformulare. Sie beruhen auf deinen erfassten Angaben und bestätigen keine steuerliche Vollständigkeit.</p>
+    <% if EuerFields.supported?(@year) %><p><%= link_to "Vollständige Anlage EÜR ansehen und ergänzen", edit_euer_statement_path(year: @year), class: "button button--secondary" %></p><% end %>
+    <section><h2>Zuordnung zur Anlage EÜR <%= @year %></h2>
+      <p>Die Beträge sind eine Übertragungshilfe für Einzelunternehmen mit kalendergleichem Wirtschaftsjahr. Prüfe, ob alle Geschäftsvorfälle und steuerlichen Besonderheiten erfasst sind.</p>
+      <% if EuerFields.supported?(@year) %><p><%= link_to "Amtlicher Vordruck und Anleitung #{@year}", EuerFields::SOURCES.fetch(@year), target: "_blank", rel: "noopener" %></p><% end %>
+      <div class="bookkeeping-table"><table><thead><tr><th scope="col">EÜR-Position</th><th scope="col">EÜR-Zeile</th><th scope="col">Betrag</th></tr></thead><tbody>
+        <% @report.display_fields.each do |field| %>
+          <% next if @report.field_totals.fetch(field.key).zero? %>
+          <tr><td><%= field.label %></td><td><%= euer_reference(field.key, @year) %></td><td><%= euro(@report.field_totals.fetch(field.key)) %></td></tr>
+        <% end %>
+      </tbody></table></div>
+    </section>
+    <p><%= link_to "EÜR als CSV", bookkeeping_entries_path(year: @year, format: :csv), class: "button button--secondary" %></p>
+    <p>Übertrage die geprüften Beträge und die Angaben zu deinem Betrieb in die Anlage EÜR und gegebenenfalls AVEÜR bei Mein ELSTER. Der CSV-Export ist eine Übertragungshilfe, keine ELSTER-Importdatei. Eine direkte Übermittlung aus der App ist noch nicht verfügbar.</p>
+    <%= link_to "Anlage EÜR bei ELSTER öffnen", "https://portal.elster.de/eportal/formulare-leistungen/alleformulare/euer", class: "button button--secondary", target: "_blank", rel: "noopener" %>
+  </section>

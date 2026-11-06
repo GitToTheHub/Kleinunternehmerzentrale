@@ -1,0 +1,6 @@
+<dl class="bookkeeping-totals bookkeeping-import-totals" aria-live="<%= local_assigns.fetch(:announce, false) ? "polite" : "off" %>" aria-atomic="true">
+  <% labels = { "income" => "Summe Betriebseinnahmen", "expenses" => "Summe abziehbare Betriebsausgaben", "surplus" => "Gewinn / Verlust einschließlich Korrekturen", "corrections" => "Gewinnkorrekturen insgesamt", "deposits" => "Summe Einlagen", "withdrawals" => "Summe Entnahmen", "reserveCreate" => "Summe Bildung / Übertragung", "reserveRelease" => "Summe Auflösung" } %>
+  <% keys.each do |key| %>
+    <div><dt><%= labels.fetch(key) %></dt><dd><strong data-bookkeeping-import-target="sum" data-key="<%= key %>">–</strong></dd></div>
+  <% end %>
+</dl>

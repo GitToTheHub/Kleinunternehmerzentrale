@@ -1,0 +1,13 @@
+<div class="date-picker" data-controller="date-picker" data-date-picker-min-date-field-value="<%= local_assigns[:min_date_field] %>" data-date-picker-min-exclusive-value="<%= local_assigns.fetch(:min_exclusive, false) %>" data-date-picker-min-error-value="<%= local_assigns[:min_error] %>" data-action="resize@window->date-picker#position scroll@window->date-picker#position pointerdown@document->date-picker#outside date-picker:opening@document->date-picker#outside keydown->date-picker#keydown input->date-picker#update change->date-picker#update input@document->date-picker#syncMinimum change@document->date-picker#syncMinimum">
+  <%= form.date_field attribute, required: local_assigns.fetch(:required, false), disabled: local_assigns.fetch(:disabled, false), data: { date_picker_target: "input", **local_assigns.fetch(:input_data, {}) } %>
+  <div id="<%= attribute %>-calendar" class="date-picker__calendar" role="dialog" aria-label="Datum auswählen" hidden data-date-picker-target="calendar">
+    <div class="date-picker__header">
+      <button type="button" aria-label="Vorheriger Monat" data-action="date-picker#previous">‹</button>
+      <strong aria-live="polite" data-date-picker-target="month"></strong>
+      <button type="button" aria-label="Nächster Monat" data-action="date-picker#next">›</button>
+    </div>
+    <div class="date-picker__weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+    <div class="date-picker__days" data-date-picker-target="days"></div>
+    <div class="date-picker__footer"><button type="button" data-action="date-picker#today" data-date-picker-target="todayButton">Heute</button><button type="button" data-action="date-picker#close">Schließen</button></div>
+  </div>
+</div>
