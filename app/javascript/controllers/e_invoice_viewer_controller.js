@@ -87,7 +87,7 @@ export default class extends Controller {
   }
 
   async readPdf(bytes) {
-    const { getDocument, GlobalWorkerOptions } = await import("pdfjs")
+    const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist")
     GlobalWorkerOptions.workerSrc = this.workerUrlValue
     const task = getDocument({ data: bytes, isEvalSupported: false, useWorkerFetch: false, disableFontFace: true, verbosity: 0 })
     this.tasks.add(task)

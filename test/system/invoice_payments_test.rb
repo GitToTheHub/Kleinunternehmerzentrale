@@ -85,6 +85,8 @@ class InvoicePaymentsSystemTest < ApplicationSystemTestCase
     fill_in "Privat übernommener Betrag in Euro", with: "33,34"
     page.save_screenshot(Rails.root.join("tmp/screenshots/cash-payment-mobile.png"))
     click_button "Rechnung als bezahlt markieren"
+    assert_current_path invoices_path
+    assert_selector "#invoice_#{@invoice.id}", text: "Bezahlt"
     assert_no_selector ".payment-dialog[open]"
     payment = @invoice.reload.payment_entry
     assert_equal "cash", payment.payment_account

@@ -14,9 +14,10 @@ Ohne Abo, ohne Werbung, ohne Tracking.
 - Datenexport als ZIP (CSV und XML) und Löschen aller Daten
 
 ## Entwicklung
-Voraussetzungen: Ruby (siehe `.tool-versions`), SQLite und libvips für die Bildverarbeitung.
+Voraussetzungen: Ruby (siehe `.tool-versions`), SQLite, Node.js (siehe `.nvmrc`) und libvips für die Bildverarbeitung.
 Unter macOS installierst du libvips mit `brew install vips`; im Docker-Image ist es bereits enthalten.
 
+    nvm install
     bundle install
     bin/rails db:setup
     bin/rails server
@@ -24,6 +25,9 @@ Unter macOS installierst du libvips mit `brew install vips`; im Docker-Image ist
     node --test test/javascript/*.mjs
     bin/rails test:system
     bin/rubocop
+
+Die lokal eingebundenen JavaScript-Pakete sind mit ihren Versionen in `config/importmap.rb`
+vermerkt und werden von `bin/importmap audit` mitgeprüft.
 
 Die Formular-Browsertests starten selbst einen Testserver und verwenden ausschließlich die
 Testdatenbank. Dafür muss Chrome installiert sein; für die JavaScript-Tests wird Node.js benötigt.
@@ -37,7 +41,7 @@ Der E-Rechnungsviewer ist unter `/e-rechnungsviewer` erreichbar. Der Browserchec
 auf Port 3000 und Chrome (optional `VIEWER_BASE_URL`). Er verwendet nur lokale Testdateien.
 
 Für die Extraktion eingebetteter XML-Dateien verwendet der Viewer lokal eingebundenes
-[Mozilla PDF.js](https://github.com/mozilla/pdf.js), Version 6.4.299, Legacy-Build.
+[Mozilla PDF.js](https://github.com/mozilla/pdf.js), Version 6.5.438, Legacy-Build.
 Bibliothek, Worker und Apache-2.0-Lizenz liegen in `vendor/javascript/pdfjs*`.
 Die Bibliothek wird erst beim Öffnen einer PDF geladen; es gibt keinen CDN-Zugriff.
 Der Viewer ist keine Prüfung gegen XML-Schema, EN 16931 oder die Geschäftsregeln von XRechnung.
