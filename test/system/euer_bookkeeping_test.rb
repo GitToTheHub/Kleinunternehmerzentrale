@@ -27,6 +27,9 @@ class EuerBookkeepingTest < ApplicationSystemTestCase
     click_link "Bearbeiten", href: edit_bookkeeping_entry_path(refund)
     assert_selector "h1", text: "Rückzahlung bearbeiten"
     assert_no_select "Art des Vorgangs"
+    assert_current_path edit_bookkeeping_entry_path(refund)
+    assert_selector ".date-picker--enhanced"
+    assert_field "Zurückgezahlter Betrag in Euro", with: "40,00"
     fill_in "Zurückgezahlter Betrag in Euro", with: "50"
     click_button "Rückzahlung speichern"
     assert_text "Vorgang aktualisiert."

@@ -1115,6 +1115,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_selector "#invoice-number-format-preview", text: "ANZ-#{Date.current.year}-0001"
     assert_no_horizontal_overflow
     find("[aria-label='Bearbeitung der Rechnungsnummer schließen']").click
+    assert_no_selector "#invoice-number-editor[open]"
     choose "Abschlagsrechnung"
     assert_field "invoice-number-preview", with: "ABS-#{Date.current.year}-0001"
     choose "invoice_billing_kind_regular"
@@ -2058,18 +2059,19 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_selector "dialog.invoice-preview-dialog[open]"
     within_frame("invoice-preview-frame") do
       assert_selector ".invoice-pages:not(.invoice-pages--rendering) .pagedjs_page"
-      # Stellt den Grenzfall nach, in dem alle Positionen passen, die Summe aber umbricht.
+      # Stellt eine Folgeseite mit ausschließlich der Summe nach.
       assert page.evaluate_async_script(<<~JS)
         const done = arguments[arguments.length - 1];
         const element = document.querySelector('[data-controller="invoice-pagination"]');
         const controller = window.Stimulus.getControllerForElementAndIdentifier(element, 'invoice-pagination');
         const row = controller.pagesTarget.querySelector('.invoice-position-row');
         const content = row.closest('.pagedjs_page_content');
-        // Die eingebettete Vorschau ist skaliert; Zeilenhöhen brauchen unskalierte CSS-Pixel.
         const zoom = parseFloat(getComputedStyle(controller.pagesTarget).zoom) || 1;
         const remainingHeight = (content.getBoundingClientRect().bottom - row.getBoundingClientRect().top) / zoom;
+        // Genug Platz für Rundung lassen, aber weniger als die Gesamtsumme benötigt.
+        const totalsHeight = controller.pagesTarget.querySelector('.invoice-table tfoot').getBoundingClientRect().height / zoom;
         controller.teardown();
-        controller.sourceTarget.querySelector('.invoice-position-row').style.height = `${remainingHeight - 4}px`;
+        controller.sourceTarget.querySelector('.invoice-position-row').style.height = `${remainingHeight - totalsHeight / 2}px`;
         controller.connect();
         controller.ready.then(done);
       JS

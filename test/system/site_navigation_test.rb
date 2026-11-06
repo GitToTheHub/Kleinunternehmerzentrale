@@ -8,7 +8,7 @@ class SiteNavigationTest < ApplicationSystemTestCase
     fill_in "Passwort", with: "Navigation12345!"
     click_button "Anmelden"
     assert_current_path invoices_path
-    [ 1440, 1280, 1156, 1024 ].each do |width|
+    [ 1440, 1400, 1399, 1280, 1156, 1024 ].each do |width|
       viewport(width)
       visit root_path
       assert_no_selector ".site-nav-toggle", visible: true
@@ -54,7 +54,8 @@ class SiteNavigationTest < ApplicationSystemTestCase
   end
 
   def assert_no_overflow
-    assert page.evaluate_script("document.documentElement.scrollWidth <= innerWidth")
+    assert page.evaluate_script("document.documentElement.scrollWidth <= innerWidth"),
+      page.evaluate_script("JSON.stringify({ viewport: innerWidth, width: document.documentElement.scrollWidth })")
   end
 
   teardown do

@@ -1246,7 +1246,7 @@ trix-toolbar.rich-text__toolbar .rich-text__link-dialog [data-trix-validate]:inv
 .order-billing-summary dd { margin: 0; font-weight: 650; }
 
 /* Keep navigation on one line; use a deliberate second row on smaller desktops. */
-.site-header__inner { width: min(1440px, calc(100% - 48px)); }
+.site-header__inner { width: min(1440px, calc(100% - 48px)); flex-wrap: wrap; gap: 12px; }
 .site-header .brand { flex-shrink: 0; }
 .site-nav a, .site-nav__button { white-space: nowrap; }
 .site-nav-toggle { display: none; }
