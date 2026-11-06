@@ -4,8 +4,31 @@ require "selenium-webdriver"
 Selenium::WebDriver.logger.level = :warn
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1100 ] do |options|
+  selenium_options = {}
+  if ENV["SELENIUM_REMOTE_URL"].present?
+    selenium_options[:browser] = :remote
+    selenium_options[:url] = ENV.fetch("SELENIUM_REMOTE_URL")
+    Capybara.server_host = "0.0.0.0"
+    Capybara.server_port = 31339
+    Capybara.app_host = "http://host.docker.internal:31339"
+  end
+
+  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1100 ], options: selenium_options do |options|
     options.add_option("goog:loggingPrefs", { browser: "ALL" })
+    if ENV["SELENIUM_REMOTE_URL"].present?
+      options.add_argument("--no-sandbox")
+      options.add_argument("--disable-dev-shm-usage")
+    end
+  end
+
+  setup do
+    if ENV["SELENIUM_REMOTE_URL"].present?
+      # Remote WebDriver must not treat text matching a local directory (e.g. TEST) as a file upload.
+      page.driver.browser.file_detector = ->((filename, *)) { filename if File.file?(filename) }
+    end
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
+    page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [])
+    page.current_window.resize_to(1400, 1100)
   end
 
   def expense_position(key, _year = nil)

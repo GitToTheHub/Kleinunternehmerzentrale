@@ -1246,8 +1246,8 @@ class InvoiceFormTest < ApplicationSystemTestCase
       assert_field "invoice-number-preview", with: "#{expected.delete_suffix("01")}#{suffix}"
       count = Invoice.count
       click_button "Festschreiben"
-      assert_equal count + 1, Invoice.count
       assert_selector ".print-invoice h1", text: "#{expected.delete_suffix("01")}#{suffix}"
+      assert_equal count + 1, Invoice.count
     end
   end
 
@@ -2070,8 +2070,11 @@ class InvoiceFormTest < ApplicationSystemTestCase
         const remainingHeight = (content.getBoundingClientRect().bottom - row.getBoundingClientRect().top) / zoom;
         // Genug Platz für Rundung lassen, aber weniger als die Gesamtsumme benötigt.
         const totalsHeight = controller.pagesTarget.querySelector('.invoice-table tfoot').getBoundingClientRect().height / zoom;
+        const rowHeight = row.getBoundingClientRect().height / zoom;
+        const header = controller.sourceTarget.querySelector('.print-invoice__header');
+        const margin = parseFloat(getComputedStyle(header).marginBottom) || 0;
         controller.teardown();
-        controller.sourceTarget.querySelector('.invoice-position-row').style.height = `${remainingHeight - totalsHeight / 2}px`;
+        header.style.marginBottom = `${margin + remainingHeight - rowHeight - totalsHeight / 2}px`;
         controller.connect();
         controller.ready.then(done);
       JS

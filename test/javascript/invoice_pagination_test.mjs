@@ -13,8 +13,8 @@ function setup({ fail = false, count = 2 } = {}) {
     document: { body: { classList: { contains: () => false } }, fonts: { ready: Promise.resolve() }, createDocumentFragment: () => ({ append() {} }), createElement: () => ({ style: {}, append() {} }) },
   })
   const controller = new Pagination()
-  controller.sourceTarget = { hidden: false, querySelectorAll: () => [], cloneNode: () => ({ removeAttribute() {}, querySelector: () => ({ style: {}, prepend() {} }) }) }
-  controller.pagesTarget = { querySelectorAll: () => pages, replaceChildren() { this.cleared = true }, classList: { add() {}, remove() {} } }
+  controller.sourceTarget = { hidden: false, querySelectorAll: () => [], cloneNode: () => ({ removeAttribute() {}, querySelectorAll: () => [], querySelector: () => ({ style: {}, prepend() {} }) }) }
+  controller.pagesTarget = { querySelectorAll: (selector) => selector === ".pagedjs_page" ? pages : [], replaceChildren() { this.cleared = true }, classList: { add() {}, remove() {} } }
   controller.statusTarget = { hidden: false }
   return { controller, pages }
 }

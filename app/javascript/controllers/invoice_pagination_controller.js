@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 const PAGE_STYLES = `
   @page { size: A4; margin: 20mm 20mm 20mm 25mm; }
   .pagedjs_page_content .print-invoice { width: auto; min-height: 0; margin: 0; padding: 0; outline: 0; }
-  .print-invoice__header, .invoice-payment, .invoice-position-row, .invoice-table thead, .invoice-table tfoot tr { break-inside: avoid; }
+  .print-invoice__header, .invoice-payment, .invoice-position-row, .invoice-table thead, .invoice-table tfoot tr, .invoice-table tbody[data-invoice-totals] tr { break-inside: avoid; }
   .invoice-table tfoot { display: table-row-group; }
 `
 
@@ -80,12 +80,25 @@ export default class extends Controller {
       const content = document.createDocumentFragment()
       const source = this.sourceTarget.cloneNode(true)
       source.removeAttribute("data-invoice-pagination-target")
+      // Paged.js treats native table footers as repeating content and can drop them at a page boundary.
+      // Lay totals out as ordinary rows, then restore their table-footer semantics after pagination.
+      source.querySelectorAll("tfoot").forEach((footer) => {
+        const body = document.createElement("tbody")
+        body.dataset.invoiceTotals = "true"
+        body.append(...footer.childNodes)
+        footer.replaceWith(body)
+      })
       content.append(source)
       await this.previewer.preview(content, [{ [window.location.href]: PAGE_STYLES }], this.pagesTarget)
       if (this.cancelled) return false
 
       const pages = this.pagesTarget.querySelectorAll(".pagedjs_page")
       if (!pages.length) throw new Error("No invoice pages rendered")
+      this.pagesTarget.querySelectorAll("tbody[data-invoice-totals]").forEach((body) => {
+        const footer = document.createElement("tfoot")
+        footer.append(...body.childNodes)
+        body.replaceWith(footer)
+      })
       pages.forEach((page, index) => {
         const footer = document.createElement("div")
         footer.className = "invoice-page-number"

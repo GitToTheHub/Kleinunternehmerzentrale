@@ -114,7 +114,7 @@ a:focus-visible {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
 }
 
 .site-nav a {
@@ -875,7 +875,7 @@ input[type="checkbox"]:disabled { opacity: .55; cursor: not-allowed; }
 .form-popover { width: min(640px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); margin: auto; padding: 20px; overflow-y: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .form-popover__heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .form-popover__heading > h3 { margin: 0; }
-.form-popover__close { display: grid; flex: 0 0 36px; width: 36px; height: 36px; place-items: center; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font: inherit; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.form-popover__close { display: grid; flex: 0 0 44px; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font: inherit; font-size: 1.5rem; line-height: 1; cursor: pointer; }
 .form-popover__close:hover { background: var(--mint); }
 .form-popover__close:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 @media screen and (max-width: 760px) { .imprint-lookup__controls { flex-direction: column; } }
@@ -947,10 +947,10 @@ input[type="checkbox"]:disabled { opacity: .55; cursor: not-allowed; }
 /* Invoice number formatter */
 .invoice-number-editor { width: min(900px, calc(100vw - 32px)); background: var(--panel); }
 .invoice-number-editor::backdrop { background: rgba(0, 0, 0, .4); }
-.invoice-number-editor h3 { margin: 0; font-size: 1.3rem; }
-.invoice-number-editor .form-popover__heading { padding-right: 40px; }
+.invoice-number-editor h3 { margin: 0; font-size: 1.3rem; overflow-wrap: anywhere; }
+.invoice-number-editor .form-popover__heading { padding-right: 0; }
 .invoice-number-editor .form-popover__heading > div { min-width: 0; }
-.invoice-number-editor .form-popover__close { position: absolute; top: 20px; right: 20px; }
+.invoice-number-editor .form-popover__close { position: static; }
 .invoice-number-templates-title { margin: 12px 0 8px; font-size: 1rem; }
 .invoice-number-templates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .invoice-number-template { user-select: text; -webkit-user-select: text; display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
@@ -989,7 +989,6 @@ input[type="checkbox"]:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 600px) {
   .invoice-number-editor { padding: 18px; }
   .invoice-number-templates { grid-template-columns: minmax(0, 1fr); }
-  .invoice-number-editor .form-popover__close { top: 18px; right: 18px; }
 }
 
 .imprint-lookup__results { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }

@@ -36,6 +36,11 @@ Tabs, Speicherfehler, Kundenwechsel, Positionen, Steuerberechnung und das mobile
 Die Tests laufen auch in GitHub Actions und über `bin/ci`. Bei Browserfehlern liegen Screenshots
 unter `tmp/screenshots`.
 
+Für eine lokale Linux-Reproduktion kann ChromeDriver in einem Docker-Container verwendet werden:
+`SELENIUM_REMOTE_URL=http://127.0.0.1:9515 PARALLEL_WORKERS=1 bin/rails test test/system/site_navigation_test.rb`.
+Der Container muss den Testserver über `host.docker.internal:31339` erreichen können.
+Ohne diese Umgebungsvariable bleiben die Tests beim lokal installierten Chrome.
+
 Der E-Rechnungsviewer ist unter `/e-rechnungsviewer` erreichbar. Der Browsercheck
 `ruby test/browser/e_invoice_viewer_check.rb` benötigt einen laufenden lokalen Server
 auf Port 3000 und Chrome (optional `VIEWER_BASE_URL`). Er verwendet nur lokale Testdateien.
