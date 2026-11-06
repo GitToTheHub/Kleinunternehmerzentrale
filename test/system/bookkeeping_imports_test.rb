@@ -83,6 +83,11 @@ class BookkeepingImportsSystemTest < ApplicationSystemTestCase
     visit bookkeeping_entries_path(year: 2026)
     click_link "Übernahme ansehen"
     assert_selector "h1", text: "Übernommene EÜR-Summen"
+    # Die Überschrift ist schon vor dem Start der JavaScript-Module sichtbar.
+    # Der Löschdialog gehört zu Turbo und muss vor dem Klick bereit sein.
+    assert_selector "html" do
+      page.evaluate_script("Boolean(window.Turbo?.session?.started)")
+    end
     accept_confirm do
       click_button "Übernahme entfernen"
     end
