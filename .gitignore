@@ -32,6 +32,7 @@
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
+/.kamal/smtp_password
 
 
 # macOS
