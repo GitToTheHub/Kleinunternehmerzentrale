@@ -85,7 +85,6 @@ class InvoiceFormTest < ApplicationSystemTestCase
   end
 
   test "Auswahlkarten zeigen Hover und Tastaturfokus ohne sichtbare Radiokreise" do
-    page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [ { name: "hover", value: "hover" } ])
     card = find("#billing-kind-cards label", text: "Anzahlungsrechnung")
     radio = card.find("input[type=radio]")
     assert_equal "inset(50%)", radio.evaluate_script("getComputedStyle(this).clipPath")
@@ -106,7 +105,6 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_no_horizontal_overflow
     page.save_screenshot(Rails.root.join("tmp/screenshots/invoice-kind-cards-mobile.png"))
   ensure
-    page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [])
     page.current_window.resize_to(1400, 1100)
   end
 
