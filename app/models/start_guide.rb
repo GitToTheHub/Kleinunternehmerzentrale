@@ -13,8 +13,8 @@ class StartGuide
       "Mit deiner Steuernummer kannst du die erste Rechnung schreiben. Die App fragt dich Schritt für Schritt nach allem, was draufstehen muss.",
       "Rechnung erstellen", :new_invoice_path),
     Step.new("aufschreiben", "Einnahmen und Ausgaben aufschreiben",
-      "Halte jede Zahlung fest, die du bekommst oder für dein Geschäft ausgibst, und hebe die Belege auf. Am Jahresende stellst du beides in einer Tabelle gegenüber (EÜR). Mehr brauchst du nicht.",
-      nil, nil),
+      "Halte jede Zahlung fest, die du bekommst oder für dein Geschäft ausgibst, und hebe die Belege auf. Die Jahresübersicht hilft dir bei der Vorbereitung deiner EÜR.",
+      "Zahlungen erfassen", :bookkeeping_entries_path),
     Step.new("aufbewahren", "Rechnungen sicher aufbewahren",
       "Speichere jede Rechnung als PDF auf deinem Gerät. Rechnungen musst du 8 Jahre lang unverändert aufbewahren.",
       nil, nil)

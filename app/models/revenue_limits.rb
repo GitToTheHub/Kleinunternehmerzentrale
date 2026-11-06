@@ -15,7 +15,7 @@ class RevenueLimits
     return 0 unless @workspace
 
     @workspace.invoices.where(issued_on: Date.new(year, 1, 1)..Date.new(year, 12, 31), tax_mode: "small_business")
-              .includes(:invoice_lines).sum(&:total)
+              .includes(:invoice_lines).sum(&:payment_total_in_euros)
   end
 
   def current_revenue = revenue(@today.year)

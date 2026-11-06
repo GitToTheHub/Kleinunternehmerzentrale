@@ -4,7 +4,7 @@ class RevenueLimitsTest < ActiveSupport::TestCase
   def workspace_with(amount, on:, mode: "small_business")
     workspace = Workspace.create!
     invoice = workspace.invoices.new(
-      issued_on: on, service_on: on, tax_mode: mode, seller_name: "A", seller_street: "B 1", seller_postal_code: "20095",
+      issued_on: on, service_on: on, tax_mode: mode, seller_name: "A", seller_email: "a@example.test", seller_street: "B 1", seller_postal_code: "20095",
       seller_city: "Hamburg", seller_country: "DE", seller_tax_identifier: "12/345/67890", buyer_name: "K", buyer_street: "S 2",
       buyer_postal_code: "10115", buyer_city: "Berlin", buyer_country: "DE"
     )

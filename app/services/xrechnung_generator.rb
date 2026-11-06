@@ -11,6 +11,7 @@ class XrechnungGenerator
 
   def call
     xml = Zugpferd::CII::Writer.new.write(build_invoice)
+    xml = add_staged_billing(xml) if @invoice.staged_invoice?
     xml = add_seller_tax_number(xml) if @invoice.seller_tax_id_kind == "tax_number"
     xml = add_buyer_order_number(xml) if @invoice.buyer_order_number.present?
     xml = add_billing_period(xml) if @invoice.service_until_on?
@@ -26,21 +27,27 @@ class XrechnungGenerator
       number: @invoice.invoice_number,
       issue_date: @invoice.issued_on,
       delivery_date: (@invoice.service_on unless @invoice.service_until_on?),
-      currency_code: "EUR"
+      currency_code: @invoice.currency,
+      note: [ @invoice.title.presence, @invoice.correction_notice ].compact.join("\n").presence
     )
     invoice.customization_id = CUSTOMIZATION_ID
+    invoice.profile_id = "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"
     # XRechnung verlangt eine Käuferreferenz (BT-10). Ohne Leitweg-ID dient die Bestellnummer, sonst die Rechnungsnummer.
     invoice.buyer_reference = @invoice.buyer_leitweg_id.presence || @invoice.buyer_order_number.presence || @invoice.invoice_number
     invoice.seller = trade_party(
       @invoice.seller_name, @invoice.seller_email, @invoice.seller_street,
       @invoice.seller_postal_code, @invoice.seller_city, @invoice.seller_country
     )
+    if @invoice.seller_phone.present?
+      invoice.seller.contact = Zugpferd::Model::Contact.new(name: @invoice.seller_name, telephone: @invoice.seller_phone, email: @invoice.seller_email)
+    end
     invoice.seller.vat_identifier = @invoice.seller_tax_identifier if @invoice.seller_tax_id_kind == "vat_id"
     invoice.buyer = trade_party(
       @invoice.buyer_name, @invoice.buyer_email, @invoice.buyer_street,
       @invoice.buyer_postal_code, @invoice.buyer_city, @invoice.buyer_country
     )
-    invoice.due_date = @invoice.payment_due_on
+    invoice.buyer.contact = Zugpferd::Model::Contact.new(name: @invoice.buyer_contact_name) if @invoice.buyer_contact_name.present?
+    invoice.due_date = @invoice.payment_due_on unless @invoice.paid?
     invoice.payment_instructions = payment_instructions
     invoice.line_items = @invoice.invoice_lines.map.with_index(1) { |line, index| build_line(line, index) }
 
@@ -51,38 +58,38 @@ class XrechnungGenerator
   def add_totals(invoice)
     net = @invoice.net_total
     tax = @invoice.tax_total
-    invoice.tax_breakdown = Zugpferd::Model::TaxBreakdown.new(tax_amount: decimal(tax), currency_code: "EUR")
+    invoice.tax_breakdown = Zugpferd::Model::TaxBreakdown.new(tax_amount: decimal(tax), currency_code: @invoice.currency)
     tax_subtotals.each { |subtotal| invoice.tax_breakdown.subtotals << subtotal }
     invoice.monetary_totals = Zugpferd::Model::MonetaryTotals.new(
       line_extension_amount: decimal(net), tax_exclusive_amount: decimal(net),
-      tax_inclusive_amount: decimal(net + tax), payable_amount: decimal(net + tax)
+      tax_inclusive_amount: decimal(net + tax), payable_amount: decimal(@invoice.amount_due),
+      prepaid_amount: (@invoice.paid? && !@invoice.cancellation? ? decimal(net + tax) : (@invoice.deducted_total.zero? ? nil : decimal(@invoice.deducted_total)))
     )
   end
 
   def tax_subtotals
     unless @invoice.standard_taxed?
       return [ Zugpferd::Model::TaxSubtotal.new(
-        taxable_amount: decimal(@invoice.net_total), tax_amount: "0.00", category_code: "E",
-        currency_code: "EUR", exemption_reason: EXEMPTION_REASON
+        taxable_amount: decimal(@invoice.net_total), tax_amount: "0.00", category_code: "E", percent: "0.00",
+        currency_code: @invoice.currency, exemption_reason: EXEMPTION_REASON
       ) ]
     end
 
     @invoice.tax_groups.map do |group|
       Zugpferd::Model::TaxSubtotal.new(
         taxable_amount: decimal(group[:net]), tax_amount: decimal(group[:tax]), category_code: "S",
-        percent: decimal(group[:rate]), currency_code: "EUR"
+        percent: decimal(group[:rate]), currency_code: @invoice.currency
       )
     end
   end
 
-  # Überweisung (Code 58 = SEPA-Überweisung) mit IBAN, sonst nur der Hinweis zur Zahlung.
   def payment_instructions
-    iban = @invoice.iban.presence
-    return unless iban || @invoice.payment_terms.present?
-
+    method = @invoice.effective_payment_method
+    note = [ (@invoice.paid? ? "Bereits vollständig bezahlt." : nil), @invoice.payment_terms.presence ].compact.join(" ")
     Zugpferd::Model::PaymentInstructions.new(
-      payment_means_code: iban ? "58" : "30", account_id: iban, payment_id: @invoice.invoice_number,
-      note: @invoice.payment_terms.presence
+      payment_means_code: { "cash" => "10", "transfer" => "58", "other" => "1" }.fetch(method),
+      account_id: (method == "transfer" ? @invoice.iban.presence : nil), payment_id: @invoice.invoice_number,
+      note: note.presence || "Zahlung nach Vereinbarung."
     )
   end
 
@@ -102,7 +109,7 @@ class XrechnungGenerator
   def build_line(line, index)
     item = Zugpferd::Model::Item.new(name: line.description, description: line.details_text)
     item.tax_category = @invoice.standard_taxed? ? "S" : "E"
-    item.tax_percent = decimal(line.tax_rate_percent) if @invoice.standard_taxed?
+    item.tax_percent = @invoice.standard_taxed? ? decimal(line.tax_rate_percent) : "0.00"
     price = Zugpferd::Model::Price.new(amount: decimal(line.unit_price))
     Zugpferd::Model::LineItem.new(
       id: index.to_s,
@@ -189,6 +196,25 @@ class XrechnungGenerator
       period.add_child(wrapper)
     end
     tax.add_next_sibling(period)
+    document.to_xml
+  end
+
+  def add_staged_billing(xml)
+    document = Nokogiri::XML(xml) { |config| config.strict.nonet }
+    unless @invoice.cancellation?
+      document.at_xpath("//*[local-name()='ExchangedDocument']/*[local-name()='TypeCode']").content = @invoice.partial_invoice? ? "386" : "380"
+    end
+    # Die Zahlungsaufstellung bleibt auch im strukturierten Dokument nachvollziehbar.
+    header = document.at_xpath("//*[local-name()='ExchangedDocument']")
+    note = Nokogiri::XML::Node.new("IncludedNote", document)
+    note.namespace = header.element_children.first.namespace
+    content = Nokogiri::XML::Node.new("Content", document)
+    content.namespace = note.namespace
+    content.content = ([ @invoice.billing_label ] + @invoice.deducted_payments.map do |payment|
+      "Angerechnete Zahlung zu Rechnung #{payment.fetch('number')} vom #{payment.fetch('issued_on')}: #{payment.fetch('amount')} EUR, erhalten am #{payment.fetch('paid_on')}."
+    end).join("\n")
+    note.add_child(content)
+    header.add_child(note)
     document.to_xml
   end
 

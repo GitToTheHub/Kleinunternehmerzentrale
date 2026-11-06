@@ -1,0 +1,28 @@
+Musterbetrieb                                         Stand: 29.09.2026
+Einnahmenüberschussrechnung                   Zeitraum: 01.01.2026 - 31.12.2026
+Beschreibung                                      Zeile    Position    Betrag
+1. Betriebseinnahmen
+Betriebseinnahmen als Kleinunternehmer                12         111    1.000,00 €
+davon nicht steuerbare Umsätze                        13         119      100,00 €
+Summe Betriebseinnahmen                               23         159    1.000,00 €
+2. Betriebsausgaben
+Waren, Rohstoffe und Hilfsstoffe                      27         100        9,99 €
+Seite: 1 / 4
+Musterbetrieb                                         Stand: 29.09.2026
+Einnahmenüberschussrechnung                   Zeitraum: 01.01.2026 - 31.12.2026
+Übrige Betriebsausgaben                               60         183      110,01 €
+Seite: 2 / 4
+Musterbetrieb                                         Stand: 29.09.2026
+Einnahmenüberschussrechnung                   Zeitraum: 01.01.2026 - 31.12.2026
+Summe Betriebsausgaben                               75         199      120,00 €
+Seite: 3 / 4
+Musterbetrieb                                         Stand: 29.09.2026
+Einnahmenüberschussrechnung                   Zeitraum: 01.01.2026 - 31.12.2026
+3. Ermittlung des Gewinns
+Betriebseinnahmen                                     76         159    1.000,00 €
+abzüglich Summe der Betriebsausgaben                  77         199      120,00 €
+Steuerpflichtiger Gewinn/Verlust                      97         219      880,00 €
+4. Zusätzliche Angaben bei Einzelunternehmen
+Entnahmen                                           106         122       20,00 €
+Einlagen                                            107         123       30,00 €
+Seite: 4 / 4

@@ -2,10 +2,32 @@
 # der nur über ein Cookie im Browser erreichbar ist und bei Nichtnutzung gelöscht wird.
 class Workspace < ApplicationRecord
   INACTIVITY_LIMIT = 3.months
+  WORKFLOW_DEFAULTS = { "units" => ([ "HUR" ] + (InvoiceLine::UNIT_CODES.keys - [ "HUR" ])).freeze }.freeze
+
+  def workflow
+    WORKFLOW_DEFAULTS.merge((workflow_settings || {}).slice("units"))
+  end
+
+  def invoice_units
+    InvoiceLine::UNIT_CODES.slice(*workflow.fetch("units"))
+  end
+
+  def default_invoice_unit
+    invoice_units.keys.first || "HUR"
+  end
+
 
   has_secure_password validations: false
   serialize :completed_steps, type: Array, coder: JSON
+  has_many :bookkeeping_entries
+  has_many :business_assets
+  has_many :euer_statements
+  has_many :euer_expense_policies
+  has_many :euer_adjustments
+  has_many :bookkeeping_imports
+  has_many :sales_documents
   has_many :invoices
+  has_many :invoice_drafts
   has_many :customers
   has_one :business_profile
 
@@ -78,9 +100,20 @@ class Workspace < ApplicationRecord
   # Löscht den ganzen Bereich mit allen Rechnungen und Kundendaten.
   def erase!
     transaction do
+      BookkeepingEntry.where(workspace_id: id).delete_all
       InvoiceLine.where(invoice_id: Invoice.where(workspace_id: id).select(:id)).delete_all
       Invoice.where(workspace_id: id).delete_all
+      SalesDocument.where(workspace_id: id, kind: "order").delete_all
+      SalesDocument.where(workspace_id: id).delete_all
       Customer.where(workspace_id: id).delete_all
+      InvoiceDraft.where(workspace_id: id).delete_all
+      AssetPrivateUse.where(business_asset_id: BusinessAsset.where(workspace_id: id).select(:id)).delete_all
+      AssetDepreciation.where(business_asset_id: BusinessAsset.where(workspace_id: id).select(:id)).delete_all
+      BusinessAsset.where(workspace_id: id).delete_all
+      EuerStatement.where(workspace_id: id).delete_all
+      EuerExpensePolicy.where(workspace_id: id).delete_all
+      EuerAdjustment.where(workspace_id: id).delete_all
+      BookkeepingImport.where(workspace_id: id).delete_all
       BusinessProfile.where(workspace_id: id).delete_all
       delete
     end
