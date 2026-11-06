@@ -9,6 +9,7 @@
     <%= link_to "Angebot erstellen", new_sales_document_path, class: "button button--secondary" %>
     <%= link_to "Auftrag erstellen", new_sales_document_path(kind: "order"), class: "button button--secondary" %>
     <%= link_to "Schlussrechnung erstellen", new_invoice_path(billing_kind: "final"), class: "button button--secondary" if @settlement_groups.any? %>
+    <%= link_to "E-Rechnung ansehen", e_invoice_viewer_path, class: "button button--secondary" %>
   </div>
 
   <div class="invoice-list">

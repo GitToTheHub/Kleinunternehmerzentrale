@@ -19,4 +19,7 @@ class PagesController < ApplicationController
 
   def spenden
   end
+
+  def e_invoice_viewer
+  end
 end

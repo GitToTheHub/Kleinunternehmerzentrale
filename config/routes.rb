@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get "datenschutz", to: "pages#datenschutz"
   get "hilfe", to: "pages#hilfe"
   get "spenden", to: "pages#spenden"
+  get "e-rechnungsviewer", to: "pages#e_invoice_viewer", as: :e_invoice_viewer
   patch "start_steps/:key", to: "start_steps#update", as: :start_step
   get "buchhaltung/jahresabschluss", to: "bookkeeping_entries#annual", as: :annual_bookkeeping
   get "buchhaltung/geraete", to: redirect("/anlagegueter/new")

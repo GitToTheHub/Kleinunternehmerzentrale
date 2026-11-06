@@ -1,0 +1,28 @@
+<% content_for :title, "E-Rechnungsviewer – Kleinunternehmerzentrale" %>
+
+<main class="e-invoice-viewer" data-controller="e-invoice-viewer" data-e-invoice-viewer-worker-url-value="<%= asset_path('pdfjs.worker.js') %>" data-action="turbo:before-cache@document->e-invoice-viewer#clear pagehide@window->e-invoice-viewer#clear">
+  <h1 class="no-print">E-Rechnung ansehen</h1>
+  <p class="no-print">Öffne eine empfangene E-Rechnung und sieh dir Rechnungsbetrag, Positionen und Zahlungsdaten an.</p>
+
+  <section class="no-print" aria-labelledby="viewer-file-title">
+    <h2 id="viewer-file-title">Welche Rechnung möchtest du ansehen?</h2>
+    <div class="field">
+      <label for="e-invoice-file">Rechnungsdatei auswählen</label>
+      <input id="e-invoice-file" type="file" accept=".xml,.pdf,application/xml,text/xml,application/pdf" aria-describedby="viewer-file-help" data-e-invoice-viewer-target="file" data-action="change->e-invoice-viewer#open">
+      <small id="viewer-file-help">XRechnung als XML oder ZUGFeRD 2 / Factur-X als PDF mit eingebetteter XML-Datei. Bis zu 20 MB (XML bis zu 5 MB).</small>
+    </div>
+    <p>Die Datei bleibt auf deinem Gerät. Sie wird ausschließlich in deinem Browser gelesen und nicht hochgeladen oder gespeichert.</p>
+    <p>Der Viewer stellt die Rechnungsdaten dar. Er prüft nicht, ob die Rechnung alle gesetzlichen oder technischen Anforderungen erfüllt. Bewahre die Originaldatei unverändert auf.</p>
+    <p>Alternativ gibt es den <%= link_to "E-Rechnungsviewer der Finanzverwaltung in ELSTER", "https://www.elster.de/eportal/e-rechnung", target: "_blank", rel: "noopener" %>.</p>
+    <p role="status" aria-live="polite" data-e-invoice-viewer-target="status"></p>
+    <p role="alert" class="e-invoice-viewer__error" hidden data-e-invoice-viewer-target="error"></p>
+    <div class="invoice-actions">
+      <button type="button" class="button button--secondary" hidden data-e-invoice-viewer-target="reset" data-action="e-invoice-viewer#clear">Datei schließen</button>
+      <button type="button" class="button button--secondary" hidden data-e-invoice-viewer-target="print" data-action="e-invoice-viewer#print">Drucken oder als PDF speichern</button>
+      <%= link_to "Alle Rechnungen", invoices_path, class: "button button--secondary" %>
+    </div>
+    <noscript>Bitte aktiviere JavaScript, damit die Rechnungsdatei auf deinem Gerät gelesen werden kann.</noscript>
+  </section>
+
+  <article class="e-invoice-viewer__document" hidden data-e-invoice-viewer-target="result" aria-label="Inhalt der E-Rechnung" aria-busy="false"></article>
+</main>
