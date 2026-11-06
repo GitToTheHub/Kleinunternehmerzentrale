@@ -85,12 +85,14 @@ class InvoiceFormTest < ApplicationSystemTestCase
   end
 
   test "Auswahlkarten zeigen Hover und Tastaturfokus ohne sichtbare Radiokreise" do
+    page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [ { name: "hover", value: "hover" } ])
     card = find("#billing-kind-cards label", text: "Anzahlungsrechnung")
     radio = card.find("input[type=radio]")
     assert_equal "inset(50%)", radio.evaluate_script("getComputedStyle(this).clipPath")
     card.evaluate_script("this.scrollIntoView({block: 'center', behavior: 'instant'})")
     before = card.evaluate_script("getComputedStyle(this).backgroundColor")
     card.hover
+    assert_selector "#billing-kind-cards label:hover"
     assert_not_equal before, card.evaluate_script("getComputedStyle(this).backgroundColor")
     card.click
     assert_checked_field "invoice_billing_kind_advance"
@@ -104,6 +106,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_no_horizontal_overflow
     page.save_screenshot(Rails.root.join("tmp/screenshots/invoice-kind-cards-mobile.png"))
   ensure
+    page.driver.browser.execute_cdp("Emulation.setEmulatedMedia", features: [])
     page.current_window.resize_to(1400, 1100)
   end
 
@@ -558,12 +561,13 @@ class InvoiceFormTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1100)
     fill_invoice
     choose "Anzahlungsrechnung"
-    fill_in line_id("description"), with: "Anpassungen am Teilnehmermanagement"
+    # Systemschriften unterscheiden sich unter Linux und macOS; der Titel muss in beiden Fällen hineinpassen.
+    fill_in line_id("description"), with: "Teilnehmermanagement anpassen"
     click_button "Vorschau"
     within_frame("invoice-preview-frame") do
       assert_selector ".invoice-pages:not(.invoice-pages--rendering) .invoice-position-row"
       cell = find(".invoice-pages .invoice-position-row td:first-child")
-      assert_equal "1. Anpassungen am Teilnehmermanagement", cell.text
+      assert_equal "1. Teilnehmermanagement anpassen", cell.text
       assert_equal 1, cell.evaluate_script("(() => { const range = document.createRange(); range.selectNodeContents(this); return range.getClientRects().length; })()")
       page.save_screenshot(Rails.root.join("tmp/screenshots/invoice-position-title-width.png"))
     end

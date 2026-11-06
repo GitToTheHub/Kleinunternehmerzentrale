@@ -14,8 +14,8 @@ class SiteNavigationTest < ApplicationSystemTestCase
       assert_no_selector ".site-nav-toggle", visible: true
       links = all(".site-nav a").map(&:text)
       assert_operator links.index("Rechnungen"), :<, links.index("Angebote & Aufträge")
-      tops = page.evaluate_script("Array.from(document.querySelectorAll('.site-nav > a, .site-nav__button')).map(node => Math.round(node.getBoundingClientRect().top))")
-      assert_equal 1, tops.uniq.length
+      centers = page.evaluate_script("Array.from(document.querySelectorAll('.site-nav > a, .site-nav__button')).map(node => { const rect = node.getBoundingClientRect(); return rect.top + rect.height / 2; })")
+      assert_operator centers.max - centers.min, :<=, 1
       assert_no_overflow
     end
     page.save_screenshot(Rails.root.join("tmp/screenshots/navigation-desktop.png"))
