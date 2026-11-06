@@ -13,21 +13,19 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get root_url
     assert_response :success
     assert_select "h1", /Einnahmen und Ausgaben/
-    assert_select "p", /Rechnungen schreiben, Belege und Zahlungen erfassen und deine EÜR vorbereiten/
+    assert_select "p", /Rechnungen schreiben, Zahlungen erfassen und deine EÜR vorbereiten/
     assert_select "p", /Für Selbstständige, die die Kleinunternehmerregelung nutzen/
-    assert_select "h2", "Der Papierkram, der zu deinem Geschäft gehört"
+    assert_select "h2", "Was du mit der App machen kannst"
     assert_select ".guide-card__title", "Rechnungen schreiben"
-    assert_select ".guide-card__title", "Belege und Zahlungen erfassen"
+    assert_select ".guide-card__title", "Zahlungen erfassen"
     assert_select ".guide-card__title", "EÜR vorbereiten"
-    assert_select "h2", "Musst du jeden Tag komplizierte Buchhaltung machen?"
-    assert_select "main", /Im Alltag wird das oft „Buchhaltung“ genannt/
-    assert_select "main", /nicht jeden Vorgang doppelt auf Konten buchen/
-    assert_select "main", /Kontenrahmen wie SKR03/
-    assert_select "main", /Das allein bedeutet nicht, dass du eine doppelte Buchführung machen musst/
-    assert_select "main", /Für die meisten kleinen Einzelunternehmen und Freiberufler ist das der übliche Weg/
-    assert_select "main", /Einzelunternehmen kann zum Beispiel zu groß werden/
-    assert_select "main", /eine GmbH muss grundsätzlich eine Bilanz erstellen/
-    assert_select "main", /Sie kann trotzdem die Kleinunternehmerregelung nutzen/
+    assert_select "h2", "Buchhaltung braucht Einarbeitung"
+    assert_select "h2", "Zahlungen erfassen, Belege getrennt aufbewahren"
+    assert_select "main", /Belege kannst du derzeit nicht hochladen, auslesen oder als Belegdatei buchen und archivieren/
+    assert_select "main", /Eine direkte Übermittlung gibt es nicht/
+    assert_select "main", /Die App ersetzt keine individuelle Steuerberatung/
+    assert_select "a[href=?]", e_invoice_viewer_path
+    assert_select "a[href=?]", hilfe_path(anchor: "buchhaltung-im-alltag")
     assert_select "h2", "Was ist ein Einzelunternehmen?"
     assert_select "main", /Die Kleinunternehmerregelung betrifft die Umsatzsteuer; „Einzelunternehmen“ bedeutet/
     assert_select "main", /grundsätzlich auch mit deinem Privatvermögen/

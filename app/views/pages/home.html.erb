@@ -1,12 +1,12 @@
-<% content_for :title, "Einfache EÜR und Rechnungen für Selbstständige" %>
+<% content_for :title, "Rechnungen und Buchhaltung für Kleinunternehmer" %>
 
 <main>
   <section class="hero" aria-labelledby="home-title">
     <div class="hero__content">
-      <p class="eyebrow">Weniger Papierkram. Mehr Zeit für dein Geschäft.</p>
-      <h1 id="home-title">Einnahmen und Ausgaben.<br><span>Einfach im Blick.</span></h1>
+      <p class="eyebrow">Buchhaltung gehört zur Selbstständigkeit.</p>
+      <h1 id="home-title">Einnahmen und Ausgaben.<br><span>Verstehen und festhalten.</span></h1>
       <p class="hero__intro">
-        Rechnungen schreiben, Belege und Zahlungen erfassen und deine EÜR vorbereiten.
+        Rechnungen schreiben, Zahlungen erfassen und deine EÜR vorbereiten.
         Für Selbstständige, die die Kleinunternehmerregelung nutzen – egal, ob du gerade startest
         oder schon länger selbstständig bist.
       </p>
@@ -16,7 +16,7 @@
     <div class="hero__art" aria-hidden="true">
       <div class="hero-card">
         <span class="hero-card__icon">✓</span>
-        <span>Einfach den Überblick behalten</span>
+        <span>Zahlungen nachvollziehen</span>
         <div class="hero-card__line"></div>
         <div class="hero-card__line hero-card__line--short"></div>
       </div>
@@ -29,58 +29,65 @@
 
   <section class="guides" id="buchhaltung" aria-labelledby="guides-title">
     <p class="eyebrow">Für deinen Alltag</p>
-    <h2 id="guides-title">Der Papierkram, der zu deinem Geschäft gehört</h2>
+    <h2 id="guides-title">Was du mit der App machen kannst</h2>
     <div class="guide-grid">
       <article class="guide-card">
         <span class="guide-card__number">01</span>
         <span class="guide-card__title">Rechnungen schreiben</span>
-        <span class="guide-card__text">Erstelle Rechnungen passend zu deiner Tätigkeit und deiner Umsatzsteuer-Regelung.</span>
+        <span class="guide-card__text">Erstelle Rechnungen, Anzahlungen, Abschläge und Schlussrechnungen. Angebote und Aufträge sind optional.</span>
       </article>
       <article class="guide-card">
         <span class="guide-card__number">02</span>
-        <span class="guide-card__title">Belege und Zahlungen erfassen</span>
-        <span class="guide-card__text">Halte fest, was du einnimmst und für dein Geschäft ausgibst.</span>
+        <span class="guide-card__title">Zahlungen erfassen</span>
+        <span class="guide-card__text">Erfasse erhaltene Einnahmen und bezahlte Ausgaben manuell. Zahlungen zu deinen Rechnungen kannst du direkt zuordnen.</span>
       </article>
       <article class="guide-card">
         <span class="guide-card__number">03</span>
         <span class="guide-card__title">EÜR vorbereiten</span>
-        <span class="guide-card__text">Stelle Einnahmen und Ausgaben übersichtlich zusammen und bereite deine EÜR vor.</span>
+        <span class="guide-card__text">Prüfe deine Jahressummen und bereite die Werte für ELSTER vor. Eine direkte Übermittlung gibt es nicht.</span>
       </article>
     </div>
-    <p class="limits__note">Einfach gehalten, damit du weniger Zeit mit dem Papierkram und mehr Zeit mit deinem Geschäft verbringst.</p>
+    <p class="limits__note">Die App ist in Entwicklung. Sie unterstützt deine Aufzeichnungen, prüft aber nicht, ob deine Buchhaltung steuerlich vollständig und richtig ist.</p>
   </section>
 
-  <section aria-labelledby="einfache-buchfuehrung">
-    <p class="eyebrow">Einfach erklärt</p>
-    <h2 id="einfache-buchfuehrung">Musst du jeden Tag komplizierte Buchhaltung machen?</h2>
+  <section aria-labelledby="buchhaltung-lernen">
+    <p class="eyebrow">Wissen gehört dazu</p>
+    <h2 id="buchhaltung-lernen">Buchhaltung braucht Einarbeitung</h2>
     <p>
-      Nein. Du musst deine geschäftlichen Einnahmen und Ausgaben festhalten und die Belege aufbewahren.
-      Wenn du deinen Gewinn mit einer EÜR ermitteln darfst, stellst du dafür am Jahresende deine Einnahmen
-      und Ausgaben gegenüber. Das ist viel einfacher als eine doppelte Buchführung mit Bilanz.
+      Wenn du deine Buchhaltung selbst führst, musst du die Grundlagen lernen und dir regelmäßig Zeit
+      dafür nehmen. Dazu gehört, betriebliche und private Zahlungen zu unterscheiden, Ausgaben richtig
+      zuzuordnen und deine Aufzeichnungen mit den Belegen abzugleichen. Die App hilft beim Erfassen und
+      Rechnen; die fachliche Einordnung nimmt sie dir nicht ab.
     </p>
     <p>
-      Im Alltag wird das oft „Buchhaltung“ genannt. Gemeint ist hier aber vor allem: Rechnungen und Belege
-      sammeln und Einnahmen und Ausgaben übersichtlich erfassen. Wenn du eine EÜR machen darfst, musst du
-      normalerweise nicht jeden Vorgang doppelt auf Konten buchen und eine Bilanz erstellen.
+      Auch eine Einnahmen-Überschuss-Rechnung (EÜR) ist mehr als eine Liste aller Ein- und Auszahlungen.
+      Zum Beispiel können gemischte Ausgaben oder länger genutzte Geräte zusätzliche Entscheidungen
+      erfordern. Die <%= link_to "Hilfe zur Buchhaltung", hilfe_path(anchor: "buchhaltung-im-alltag") %>
+      erklärt solche Vorgänge und die vorhandenen Funktionen. Die
+      <%= link_to "amtliche Anleitung zur EÜR", "https://www.elster.de/elsterweb/helpGlobal?themaGlobal=help_euer_ufa_77_2025", target: "_blank", rel: "noopener" %>
+      beschreibt die Angaben für das Steuerjahr 2025.
+    </p>
+    <h3>Selbst führen oder Unterstützung nutzen?</h3>
+    <p>
+      Du kannst dich selbst einarbeiten oder Aufgaben mit einer Steuerberaterin oder einem Steuerberater
+      besprechen und übernehmen lassen. Kläre dabei, welche Aufgaben bei dir bleiben und welche Kosten
+      entstehen. Die App ersetzt keine individuelle Steuerberatung; ein eigener Ablauf für die
+      Zusammenarbeit mit einer Steuerkanzlei ist bisher nicht erprobt.
+    </p>
+  </section>
+
+  <section aria-labelledby="belege-und-grenzen">
+    <p class="eyebrow">Aktueller Funktionsumfang</p>
+    <h2 id="belege-und-grenzen">Zahlungen erfassen, Belege getrennt aufbewahren</h2>
+    <p>
+      Belege kannst du derzeit nicht hochladen, auslesen oder als Belegdatei buchen und archivieren.
+      Du trägst die Zahlung selbst ein und kannst eine Belegnummer als Verweis angeben.
+      Die Originalbelege bewahrst du außerhalb der App auf.
     </p>
     <p>
-      Manche Buchhaltungsprogramme zeigen trotzdem Konten oder Kontonummern an, zum Beispiel aus einem
-      Kontenrahmen wie SKR03. Das Programm nutzt diese oft, um Einnahmen und Ausgaben einzuordnen.
-      Das allein bedeutet nicht, dass du eine doppelte Buchführung machen musst.
-    </p>
-    <p>
-      Wenn du allein ein kleines Geschäft führst oder freiberuflich arbeitest, kannst du deinen Gewinn
-      meistens mit einer EÜR berechnen: Du ziehst deine geschäftlichen Ausgaben von deinen Einnahmen ab.
-      Für die meisten kleinen Einzelunternehmen und Freiberufler ist das der übliche Weg – auch, wenn sie
-      die Kleinunternehmerregelung nutzen.
-    </p>
-    <p>
-      Es gibt aber Ausnahmen. Ein Einzelunternehmen kann zum Beispiel zu groß werden, sodass das Finanzamt
-      eine aufwendigere Buchführung mit Bilanz verlangt. Und eine GmbH muss grundsätzlich eine Bilanz
-      erstellen. Sie kann trotzdem die Kleinunternehmerregelung nutzen, wenn sie deren Voraussetzungen
-      erfüllt: Die Regelung betrifft nur die Umsatzsteuer und entscheidet nicht darüber, ob du eine EÜR
-      machen darfst. Die EÜR wird normalerweise zusammen mit der Einkommensteuererklärung ans Finanzamt
-      geschickt.
+      Mit dem <%= link_to "E-Rechnungsviewer", e_invoice_viewer_path %> kannst du XML-Rechnungen und
+      ZUGFeRD-PDFs lokal im Browser ansehen. Dabei entsteht weder eine Buchung noch ein gespeicherter Beleg.
+      Die App deckt außerdem nicht jeden steuerlichen Sonderfall ab.
     </p>
   </section>
 

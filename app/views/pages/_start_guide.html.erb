@@ -1,8 +1,8 @@
 <% guide = StartGuide.new(current_workspace) %>
 <section class="start-guide" aria-labelledby="start-guide-title">
   <% if guide.finished? %>
-    <h2 id="start-guide-title">Geschafft – du bist gestartet 🎉</h2>
-    <p>Du hast alle Schritte erledigt. Wenn du etwas nachlesen möchtest, helfen dir die Seiten oben.</p>
+    <h2 id="start-guide-title">Deine ersten Schritte sind erledigt</h2>
+    <p>Diese Checkliste ist eine Orientierung für den Einstieg. Buchhaltung, Aufbewahrung und die Prüfung deiner Pflichten bleiben laufende Aufgaben.</p>
   <% else %>
     <% step = guide.current %>
     <p class="eyebrow">Schritt <%= guide.position(step) %> von <%= guide.steps.size %></p>

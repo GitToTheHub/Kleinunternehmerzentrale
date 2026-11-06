@@ -4,20 +4,20 @@ class StartGuide
 
   STEPS = [
     Step.new("anmelden", "Tätigkeit anmelden",
-      "Du meldest deine Tätigkeit bei der Gemeinde (Gewerbe) oder beim Finanzamt (freier Beruf) an. Das geht oft online und dauert nicht lange.",
+      "Du meldest deine Tätigkeit bei der Gemeinde (Gewerbe) oder beim Finanzamt (freier Beruf) an. Informiere dich vorab, welche Anmeldung und Unterlagen deine Tätigkeit erfordert.",
       "So geht die Anmeldung", :gewerbeanmeldung_path),
     Step.new("finanzamt", "Fragebogen vom Finanzamt ausfüllen",
       "Nach der Anmeldung bekommst du vom Finanzamt den „Fragebogen zur steuerlichen Erfassung“. Dort sagst du, dass du Kleinunternehmer sein möchtest. Danach erhältst du deine Steuernummer.",
       nil, nil),
     Step.new("rechnung", "Erste Rechnung schreiben",
-      "Mit deiner Steuernummer kannst du die erste Rechnung schreiben. Die App fragt dich Schritt für Schritt nach allem, was draufstehen muss.",
+      "Mit deiner Steuernummer kannst du die erste Rechnung schreiben. Die App führt dich durch die Rechnungsangaben. Prüfe, ob sie zu deinem Auftrag passen.",
       "Rechnung erstellen", :new_invoice_path),
     Step.new("aufschreiben", "Einnahmen und Ausgaben aufschreiben",
-      "Halte jede Zahlung fest, die du bekommst oder für dein Geschäft ausgibst, und hebe die Belege auf. Die Jahresübersicht hilft dir bei der Vorbereitung deiner EÜR.",
+      "Halte jede Zahlung fest, die du bekommst oder für dein Geschäft ausgibst, und hebe die Belege auf. Lerne die Zuordnung deiner Geschäftsvorfälle. Die Jahresübersicht unterstützt die Vorbereitung deiner EÜR.",
       "Zahlungen erfassen", :bookkeeping_entries_path),
     Step.new("aufbewahren", "Rechnungen sicher aufbewahren",
-      "Speichere jede Rechnung als PDF auf deinem Gerät. Rechnungen musst du 8 Jahre lang unverändert aufbewahren.",
-      nil, nil)
+      "Lade deine ausgestellten Rechnungen herunter und organisiere die Aufbewahrung deiner Originalbelege außerhalb der App. Der E-Rechnungsviewer speichert keine Dateien für dich.",
+      "Hinweise zur Aufbewahrung", :hilfe_path)
   ].freeze
 
   def self.keys = STEPS.map(&:key)
