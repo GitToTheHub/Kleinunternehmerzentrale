@@ -1,6 +1,6 @@
 <main>
   <h1>Angebote und Aufträge</h1>
-  <div class="invoice-actions"><%= link_to "Angebot erstellen", new_sales_document_path, class: "button button--primary" %><%= link_to "Auftrag erstellen", new_sales_document_path(kind: "order"), class: "button button--secondary" %><%= link_to "Rechnung erstellen", new_invoice_path, class: "button button--secondary" %></div>
+  <div class="invoice-actions"><%= link_to button_label("Angebot erstellen", icon: :add), new_sales_document_path, class: "button button--primary" %><%= link_to button_label("Auftrag erstellen", icon: :add), new_sales_document_path(kind: "order"), class: "button button--secondary" %><%= link_to button_label("Rechnung erstellen", icon: :add), new_invoice_path, class: "button button--secondary" %></div>
   <div class="invoice-list">
     <% @documents.each do |document| %>
       <div class="invoice-list__item" data-controller="record-link" data-action="click->record-link#open">

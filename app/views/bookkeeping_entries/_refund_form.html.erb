@@ -15,5 +15,5 @@
     <div class="field field--wide"><%= form.label :description, "Beschreibung der Rückzahlung" %><%= form.text_area :description, required: true %></div>
     <div class="field"><%= form.label :tax_year, "Abweichendes Steuerjahr (optional)" %><%= form.number_field :tax_year, min: 1900, max: 9999 %><small>Meistens leer lassen: Es zählt das Jahr der Rückzahlung. <%= link_to "Zehn-Tage-Regel einfach erklärt", hilfe_path(anchor: "zehn-tage-regel"), target: "_blank", rel: "noopener" %></small></div>
   </div>
-  <div class="invoice-actions"><%= form.submit "Rückzahlung speichern", class: "button button--primary" %><%= link_to "Zur Übersicht", bookkeeping_entries_path(year: original.effective_year), class: "button button--secondary" %></div>
+  <div class="invoice-actions"><%= form.button button_label("Rückzahlung speichern", icon: :save), type: "submit", name: "commit", value: "Rückzahlung speichern", class: "button button--primary" %><%= link_to button_label("Zur Übersicht", icon: :back), bookkeeping_entries_path(year: original.effective_year), class: "button button--secondary" %></div>
 <% end %>

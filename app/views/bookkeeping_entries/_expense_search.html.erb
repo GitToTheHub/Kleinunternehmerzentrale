@@ -7,12 +7,12 @@
   <p data-expense-search-target="status" role="status" aria-live="polite"></p>
   <p data-expense-search-target="note" hidden></p>
   <div class="expense-search-results" data-expense-search-target="results"></div>
-  <button type="button" class="button button--secondary" data-expense-search-target="more" data-action="expense-search#showAll" hidden>Weitere Treffer anzeigen</button>
+  <button type="button" class="button button--secondary" data-expense-search-target="more" data-action="expense-search#showAll" hidden><%= button_label("Weitere Treffer anzeigen", icon: :forward) %></button>
   <div class="expense-search-question" data-expense-search-target="question" hidden>
-    <button type="button" class="button button--secondary" data-action="expense-search#ownEquipment">Für meinen Betrieb nutzen</button>
-    <button type="button" class="button button--secondary" data-action="expense-search#resaleEquipment">Zum Weiterverkauf</button>
+    <button type="button" class="button button--secondary" data-action="expense-search#ownEquipment"><%= button_label("Für meinen Betrieb nutzen", icon: :asset) %></button>
+    <button type="button" class="button button--secondary" data-action="expense-search#resaleEquipment"><%= button_label("Zum Weiterverkauf", icon: :asset) %></button>
   </div>
   <p data-expense-search-target="own" hidden><%= link_to "Anlagegut erfassen", new_business_asset_path %></p>
-  <p data-expense-search-target="resale" hidden><button type="button" class="button button--secondary" data-action="expense-search#chooseGoods">Waren und Material auswählen</button></p>
+  <p data-expense-search-target="resale" hidden><button type="button" class="button button--secondary" data-action="expense-search#chooseGoods"><%= button_label("Waren und Material auswählen", icon: :asset) %></button></p>
   <p class="expense-search-all">Über den Ausgabenbereich und die Ausgabenart kannst du auch selbst auswählen.</p>
 </details>

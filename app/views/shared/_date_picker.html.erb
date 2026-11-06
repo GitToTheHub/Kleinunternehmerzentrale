@@ -8,6 +8,6 @@
     </div>
     <div class="date-picker__weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
     <div class="date-picker__days" data-date-picker-target="days"></div>
-    <div class="date-picker__footer"><button type="button" data-action="date-picker#today" data-date-picker-target="todayButton">Heute</button><button type="button" data-action="date-picker#close">Schließen</button></div>
+    <div class="date-picker__footer"><button type="button" data-action="date-picker#today" data-date-picker-target="todayButton"><%= button_label("Heute", icon: :calendar) %></button><button type="button" data-action="date-picker#close"><%= button_label("Schließen", icon: :cancel) %></button></div>
   </div>
 </div>

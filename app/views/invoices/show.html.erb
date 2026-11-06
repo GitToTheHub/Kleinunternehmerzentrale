@@ -3,7 +3,7 @@
   <% if @preview %>
     <div class="invoice-preview-banner no-print" role="status">
       <strong>Vorschau</strong> Diese Rechnung ist noch nicht erstellt. Die Rechnungsnummer ist vorläufig.
-      <% unless @embedded_preview %><button type="button" class="button button--secondary" onclick="window.close()">Vorschau schließen</button><% end %>
+      <% unless @embedded_preview %><button type="button" class="button button--secondary" onclick="window.close()"><%= button_label("Vorschau schließen", icon: :cancel) %></button><% end %>
     </div>
     <% free_positions = @invoice.invoice_lines.each_with_index.filter_map { |line, index| index + 1 if line.unit_price.zero? } %>
     <% if free_positions.any? %>
@@ -38,10 +38,10 @@
     <h2><%= @invoice.payment_status %></h2>
     <% if @invoice.payment_entry %>
       <p>Zahlungseingang am <%= @invoice.payment_entry.paid_on.strftime("%d.%m.%Y") %>: <%= number_to_currency(@invoice.payment_entry.amount, locale: :de) %>.</p>
-      <%= link_to "Zahlung in der EÜR bearbeiten", edit_bookkeeping_entry_path(@invoice.payment_entry), class: "button button--secondary" %>
+      <%= link_to button_label("Zahlung in der EÜR bearbeiten", icon: :edit), edit_bookkeeping_entry_path(@invoice.payment_entry), class: "button button--secondary" %>
     <% elsif @invoice.payment_recordable? %>
       <p><%= @invoice.paid? ? "Die Rechnung wurde bereits als bezahlt ausgestellt. Erfasse den Zahlungseingang für die EÜR." : "Diese Rechnung ist noch nicht als bezahlt erfasst. Der Zahlungseingang wird beim Speichern in die EÜR übernommen." %></p>
-      <%= link_to @invoice.paid? ? "Zahlung in EÜR erfassen" : "Als bezahlt markieren", new_bookkeeping_entry_path(invoice_id: @invoice.id), data: { action: "payment-dialog#open" }, aria: { haspopup: "dialog" }, class: "button button--primary" %>
+      <%= link_to button_label(@invoice.paid? ? "Zahlung in EÜR erfassen" : "Als bezahlt markieren", icon: :check), new_bookkeeping_entry_path(invoice_id: @invoice.id), data: { action: "payment-dialog#open" }, aria: { haspopup: "dialog" }, class: "button button--primary" %>
     <% end %>
   </section>
   <% if @invoice.sales_document_id %><p class="no-print">Auftrag: <%= link_to @invoice.sales_document.document_number, @invoice.sales_document %></p><% end %>
@@ -55,17 +55,17 @@
         <p>Angerechnet in <%= link_to "Schlussrechnung #{settled_final.invoice_number}", invoice_path(settled_final) %>.</p>
       <% end %>
       <% unless @invoice.active_final_invoice %>
-        <%= link_to "Weitere Anzahlung erstellen", new_invoice_path(**(@invoice.sales_document_id ? { sales_document_id: @invoice.sales_document_id } : { billing_root_id: @invoice.billing_root_id_for_order }), billing_kind: "advance"), class: "button button--secondary" %>
-        <%= link_to "Abschlagsrechnung erstellen", new_invoice_path(**(@invoice.sales_document_id ? { sales_document_id: @invoice.sales_document_id } : { billing_root_id: @invoice.billing_root_id_for_order }), billing_kind: "progress"), class: "button button--secondary" %>
-        <%= link_to "Schlussrechnung erstellen", new_invoice_path(**(@invoice.sales_document_id ? { sales_document_id: @invoice.sales_document_id } : { billing_root_id: @invoice.billing_root_id_for_order }), billing_kind: "final"), class: "button button--primary" %>
+        <%= link_to button_label("Weitere Anzahlung erstellen", icon: :add), new_invoice_path(**(@invoice.sales_document_id ? { sales_document_id: @invoice.sales_document_id } : { billing_root_id: @invoice.billing_root_id_for_order }), billing_kind: "advance"), class: "button button--secondary" %>
+        <%= link_to button_label("Abschlagsrechnung erstellen", icon: :add), new_invoice_path(**(@invoice.sales_document_id ? { sales_document_id: @invoice.sales_document_id } : { billing_root_id: @invoice.billing_root_id_for_order }), billing_kind: "progress"), class: "button button--secondary" %>
+        <%= link_to button_label("Schlussrechnung erstellen", icon: :add), new_invoice_path(**(@invoice.sales_document_id ? { sales_document_id: @invoice.sales_document_id } : { billing_root_id: @invoice.billing_root_id_for_order }), billing_kind: "final"), class: "button button--primary" %>
       <% end %>
     </section>
   <% end %>
   <div class="invoice-actions no-print">
-    <%= link_to "Alle Rechnungen", invoices_path, class: "button button--secondary" %>
-    <button type="button" class="button button--primary" data-controller="print" data-action="print#print">Drucken oder als PDF speichern</button>
+    <%= link_to button_label("Alle Rechnungen", icon: :back), invoices_path, class: "button button--secondary" %>
+    <button type="button" class="button button--primary" data-controller="print" data-action="print#print"><%= button_label("Drucken oder als PDF speichern", icon: :print) %></button>
     <% if @invoice.seller_email.present? && @invoice.buyer_email.present? %>
-      <%= link_to "XRechnung herunterladen (XML)", xrechnung_invoice_path(@invoice), class: "button button--secondary", download: "#{@invoice.invoice_number}.xml", data: { turbo: false } %>
+      <%= link_to button_label("XRechnung herunterladen (XML)", icon: :download), xrechnung_invoice_path(@invoice), class: "button button--secondary", download: "#{@invoice.invoice_number}.xml", data: { turbo: false } %>
     <% else %>
       <span class="invoice-email-requirement">Für eine XRechnung müssen E-Mail-Adressen für beide Seiten eingetragen sein.</span>
     <% end %>
@@ -80,7 +80,7 @@
       <li><strong>E-Rechnung:</strong> Als Kleinunternehmer musst du nach den umsatzsteuerlichen Regeln keine E-Rechnung ausstellen. Papier oder mit Zustimmung des Empfängers eine PDF sind weiterhin möglich. Wenn du freiwillig eine E-Rechnung senden möchtest, lade die XML-Datei herunter und sende sie an deinen Kunden. Entscheidend ist das Format, das du als Rechnung versendest: Versendest du nur die PDF, ist sie die maßgebliche Rechnung. Versendest du XML und eine inhaltsgleiche PDF zusammen als E-Rechnung, ist die XML-Datei maßgeblich und unverändert aufzubewahren; die PDF dient als zusätzliche Ansicht. Das bloße Erstellen oder Herunterladen einer XML-Datei ändert eine versendete PDF-Rechnung nicht. <%= link_to "Quelle: Bundesfinanzministerium", "https://www.bundesfinanzministerium.de/Content/DE/FAQ/e-rechnung.html", target: "_blank", rel: "noopener" %></li>
       <% unless @invoice.cancellation? || @invoice.cancellation %>
         <li class="invoice-correction-hint"><strong>Fehler auf der Rechnung?</strong> Falls eine Korrektur nötig ist, kannst du die Rechnung mit dem folgenden Button stornieren und korrigieren. Dabei wird die Rechnung aufgehoben und eine Vorlage für die korrigierte Rechnung geöffnet. Schicke anschließend die Stornorechnung und die neue Rechnung an deinen Kunden.
-          <%= button_to "Rechnung stornieren und korrigieren", cancel_invoice_path(@invoice), class: "button button--secondary", form: { class: "invoice-correction-hint__action", data: { turbo_confirm: "Wirklich stornieren? Es wird eine Stornorechnung erstellt. Das lässt sich nicht rückgängig machen." } } %>
+          <%= button_to button_label("Rechnung stornieren und korrigieren", icon: :undo), cancel_invoice_path(@invoice), class: "button button--secondary", form: { class: "invoice-correction-hint__action", data: { turbo_confirm: "Wirklich stornieren? Es wird eine Stornorechnung erstellt. Das lässt sich nicht rückgängig machen." } } %>
         </li>
       <% end %>
       </ul>

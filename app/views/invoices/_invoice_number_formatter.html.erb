@@ -31,7 +31,7 @@
     <% else %>
       <%= render "invoices/format_flag", document: nil, popup: true %>
     <% end %>
-    <%= tag.button "Änderungen rückgängig machen", type: "button", class: "button button--secondary", hidden: @invoice.invoice_number_format == global_format, data: { invoice_number_target: "resetFormat", action: "invoice-number#resetFormat" } %>
+    <%= tag.button button_label("Änderungen rückgängig machen", icon: :undo), type: "button", class: "button button--secondary", hidden: @invoice.invoice_number_format == global_format, data: { invoice_number_target: "resetFormat", action: "invoice-number#resetFormat" } %>
     <div class="invoice-number-feedback">
       <small class="field-error" data-invoice-number-target="editorStatus" role="status" hidden></small>
     </div>

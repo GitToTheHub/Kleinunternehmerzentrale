@@ -19,6 +19,6 @@
     <ul><% check.relevant_fields.each do |key| %><li><%= link_to "#{EuerFormLabels.reference(key, @year)} · #{EuerFormLabels.label(key, @year)}", new_euer_adjustment_path(year: @year, field_key: key) %></li><% end %></ul>
   <% end %>
   <% if local_assigns.fetch(:link_to_details, true) && EuerFields.supported?(@year) %>
-    <%= link_to "Betriebsangaben ergänzen und prüfen", edit_euer_statement_path(year: @year, anchor: "betriebsangaben"), class: "button button--secondary" %>
+    <%= link_to button_label("Betriebsangaben ergänzen und prüfen", icon: :edit), edit_euer_statement_path(year: @year, anchor: "betriebsangaben"), class: "button button--secondary" %>
   <% end %>
 </section>

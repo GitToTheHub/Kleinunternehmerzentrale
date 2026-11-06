@@ -49,7 +49,7 @@
           <%= link_to "Gewerbeanmeldung", gewerbeanmeldung_path %>
           <%= link_to "Vorteile", vorteile_path %>
           <% if current_workspace&.account? %>
-            <%= button_to "Abmelden", session_path, method: :delete, class: "site-nav__button" %>
+            <%= button_to button_label("Abmelden", icon: :logout), session_path, method: :delete, class: "site-nav__button" %>
           <% else %>
             <%= link_to "Anmelden", new_session_path %>
           <% end %>
@@ -79,7 +79,7 @@
           <strong>Bitte bestätige deine E-Mail-Adresse.</strong> Wir haben dir einen Link geschickt. Ohne Bestätigung
           werden deine Daten nach 3 Monaten ohne Aktivität gelöscht.
         </p>
-        <%= button_to "Link erneut senden", confirmation_path, class: "button button--secondary" %>
+        <%= button_to button_label("Link erneut senden", icon: :email), confirmation_path, class: "button button--secondary" %>
       </aside>
     <% end %>
 
@@ -87,7 +87,7 @@
     <dialog class="form-popover customer-update-dialog payment-dialog" aria-labelledby="payment-dialog-title" data-payment-dialog-target="dialog">
       <h2 id="payment-dialog-title" data-payment-dialog-target="title">Rechnung als bezahlt markieren</h2>
       <div data-payment-dialog-target="content" data-action="submit->payment-dialog#submit"></div>
-      <button type="button" class="button button--secondary" data-action="payment-dialog#close">Abbrechen</button>
+      <button type="button" class="button button--secondary" data-action="payment-dialog#close"><%= button_label("Abbrechen", icon: :cancel) %></button>
     </dialog>
 
     <footer class="site-footer">

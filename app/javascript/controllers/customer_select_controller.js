@@ -71,7 +71,8 @@ export default class extends Controller {
     if (!this.hasChanges) return
     event.preventDefault()
     this.pendingSubmitter = event.submitter
-    this.continueButtonTarget.textContent = event.submitter?.dataset.invoicePreview === "true" ? "Weiter zur Vorschau" : "Festschreiben"
+    const continueLabel = this.continueButtonTarget.querySelector?.("[data-button-label]") || this.continueButtonTarget
+    continueLabel.textContent = event.submitter?.dataset.invoicePreview === "true" ? "Weiter zur Vorschau" : "Festschreiben"
     this.dialogTarget.showModal()
   }
 

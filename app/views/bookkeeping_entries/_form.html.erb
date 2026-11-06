@@ -8,7 +8,7 @@
 <%= form_with model: @entry, data: { controller: "euer-entry", action: "expense-search:choose->euer-entry#chooseExpenseCategory" } do |form| %>
   <div class="booking-kind-summary" data-euer-entry-target="kindSummary" <%= "hidden" if @choose_kind %>>
     <p class="booking-category-heading"><span data-euer-entry-target="kindIcon" aria-hidden="true"><%= bookkeeping_icon(@entry.kind) %></span>Buchungsart: <strong data-euer-entry-target="kindLabel"><%= bookkeeping_kind_label(@entry.kind) %></strong></p>
-    <button type="button" class="button button--secondary" data-euer-entry-target="kindChange" data-action="euer-entry#editKind" aria-expanded="false" aria-controls="<%= form.field_id(:kind_choices) %>">Buchungsart ändern</button>
+    <button type="button" class="button button--secondary" data-euer-entry-target="kindChange" data-action="euer-entry#editKind" aria-expanded="false" aria-controls="<%= form.field_id(:kind_choices) %>"><%= button_label("Buchungsart ändern", icon: :edit) %></button>
     <% kind_copy = BookkeepingEntriesHelper::BOOKING_ACTIONS.fetch(@entry.kind) %>
     <div class="booking-kind-description">
       <p data-euer-entry-target="kindDescription"><%= kind_copy.fetch(:hint) %></p>
@@ -18,7 +18,7 @@
   </div>
   <div id="<%= form.field_id(:kind_choices) %>" data-euer-entry-target="kindChoices" <%= "hidden" unless @choose_kind %>>
     <%= render "kind_choices", form: form %>
-    <button type="button" class="button button--secondary" data-euer-entry-target="kindCancel" data-action="euer-entry#closeKinds" <%= "hidden" if @choose_kind %>>Auswahl schließen</button>
+    <button type="button" class="button button--secondary" data-euer-entry-target="kindCancel" data-action="euer-entry#closeKinds" <%= "hidden" if @choose_kind %>><%= button_label("Auswahl schließen", icon: :cancel) %></button>
   </div>
   <fieldset class="booking-entry-fields" data-euer-entry-target="fields" <%= "disabled hidden" if @choose_kind %>>
   <% copy = bookkeeping_entry_copy(@entry.kind) %>
@@ -32,7 +32,7 @@
     </div>
     <div class="field field--wide" data-euer-entry-target="categoryField">
       <div class="expense-area-field" data-euer-entry-target="expenseGroupField" <%= "hidden" unless @entry.kind == "expense" %>>
-        <div class="booking-kind-summary" data-euer-entry-target="areaSummary" hidden><p>Ausgabenbereich: <strong data-euer-entry-target="areaName"></strong></p><button type="button" class="button button--secondary" data-euer-entry-target="areaEdit" data-action="euer-entry#editExpenseGroup" aria-controls="expense-area-cards" aria-expanded="false">Ausgabenbereich ändern</button></div>
+        <div class="booking-kind-summary" data-euer-entry-target="areaSummary" hidden><p>Ausgabenbereich: <strong data-euer-entry-target="areaName"></strong></p><button type="button" class="button button--secondary" data-euer-entry-target="areaEdit" data-action="euer-entry#editExpenseGroup" aria-controls="expense-area-cards" aria-expanded="false"><%= button_label("Ausgabenbereich ändern", icon: :edit) %></button></div>
         <fieldset tabindex="-1" id="expense-area-cards" data-euer-entry-target="areaCards" class="booking-type-group">
           <legend>Ausgabenbereich auswählen</legend>
           <div class="booking-actions">
@@ -49,7 +49,7 @@
         </select>
       </div>
       <div data-euer-entry-target="typePicker" hidden>
-        <div class="booking-kind-summary" data-euer-entry-target="typeSummary" hidden><p>Ausgabenart: <strong data-euer-entry-target="typeName"></strong></p><button type="button" class="button button--secondary" data-euer-entry-target="typeEdit" data-action="euer-entry#editExpenseType" aria-controls="expense-type-cards" aria-expanded="false">Ausgabenart ändern</button><p class="booking-kind-description" data-euer-entry-target="typeDescription"></p></div>
+        <div class="booking-kind-summary" data-euer-entry-target="typeSummary" hidden><p>Ausgabenart: <strong data-euer-entry-target="typeName"></strong></p><button type="button" class="button button--secondary" data-euer-entry-target="typeEdit" data-action="euer-entry#editExpenseType" aria-controls="expense-type-cards" aria-expanded="false"><%= button_label("Ausgabenart ändern", icon: :edit) %></button><p class="booking-kind-description" data-euer-entry-target="typeDescription"></p></div>
         <fieldset tabindex="-1" id="expense-type-cards" class="booking-type-group" data-euer-entry-target="typeCards"><legend>Ausgabenart auswählen</legend><div class="booking-actions" data-euer-entry-target="typeOptions"></div></fieldset>
       </div>
       <div data-euer-entry-target="categoryChoice">
@@ -109,6 +109,6 @@
 
   </div>
 
-  <div class="invoice-actions"><%= form.button "Speichern", type: "submit", data: { euer_entry_target: "submit" }, class: "button button--primary" %><%= link_to "Zur Übersicht", bookkeeping_entries_path, class: "button button--secondary" %></div>
+  <div class="invoice-actions"><%= form.button button_label("Speichern", icon: :save), type: "submit", data: { euer_entry_target: "submit" }, class: "button button--primary" %><%= link_to button_label("Zur Übersicht", icon: :back), bookkeeping_entries_path, class: "button button--secondary" %></div>
   </fieldset>
 <% end %>

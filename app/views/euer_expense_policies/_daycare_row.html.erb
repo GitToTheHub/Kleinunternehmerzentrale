@@ -11,5 +11,5 @@
     <div class="field" data-childcare-reserved hidden><%= label_tag "#{id}_days", "Belegte Tage je Monat" %><%= number_field_tag "#{prefix}[occupied_days]", row["occupied_days"] || 0, id: "#{id}_days", min: 0, max: 20, step: 1 %><small>Die Formel verwendet pauschal 20 Arbeitstage. Bei mehr belegten Tagen ist eine gesonderte Berechnung nötig.</small></div>
     <div class="field" data-childcare-reserved hidden><%= label_tag "#{id}_daily", "Betreuungsstunden je belegtem Tag" %><%= text_field_tag "#{prefix}[daily_hours]", row["daily_hours"] || "0", id: "#{id}_daily", inputmode: "decimal" %><small>Bei null belegten Tagen null eingeben; sonst höchstens 8 Stunden für die Berechnung.</small></div>
   </div>
-  <p><button type="button" class="button button--secondary" data-action="euer-expense-policy#removeChildcare">Zeitraum entfernen</button></p>
+  <p><button type="button" class="button button--secondary" data-action="euer-expense-policy#removeChildcare"><%= button_label("Zeitraum entfernen", icon: :delete) %></button></p>
 </section>

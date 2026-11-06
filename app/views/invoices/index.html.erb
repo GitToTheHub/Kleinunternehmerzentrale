@@ -5,11 +5,11 @@
   <%= render "invoices/revenue_notice" %>
 
   <div class="invoice-actions">
-    <%= link_to "Neue Rechnung erstellen", new_invoice_path, class: "button button--primary" %>
-    <%= link_to "Angebot erstellen", new_sales_document_path, class: "button button--secondary" %>
-    <%= link_to "Auftrag erstellen", new_sales_document_path(kind: "order"), class: "button button--secondary" %>
-    <%= link_to "Schlussrechnung erstellen", new_invoice_path(billing_kind: "final"), class: "button button--secondary" if @settlement_groups.any? %>
-    <%= link_to "E-Rechnung ansehen", e_invoice_viewer_path, class: "button button--secondary" %>
+    <%= link_to button_label("Rechnung erstellen", icon: :add), new_invoice_path, class: "button button--primary" %>
+    <%= link_to button_label("Angebot erstellen", icon: :add), new_sales_document_path, class: "button button--secondary" %>
+    <%= link_to button_label("Auftrag erstellen", icon: :add), new_sales_document_path(kind: "order"), class: "button button--secondary" %>
+    <%= link_to button_label("Schlussrechnung erstellen", icon: :add), new_invoice_path(billing_kind: "final"), class: "button button--secondary" if @settlement_groups.any? %>
+    <%= link_to button_label("E-Rechnung ansehen", icon: :document), e_invoice_viewer_path, class: "button button--secondary" %>
   </div>
 
   <div class="invoice-list">
@@ -59,7 +59,7 @@
               <% end %>
             <% end %>
             <% if !invoice.payment_received? && invoice.payment_recordable? %>
-              <span class="invoice-list__relation"><%= link_to "Als bezahlt markieren", new_bookkeeping_entry_path(invoice_id: invoice.id), data: { action: "payment-dialog#open" }, aria: { haspopup: "dialog" }, class: "button button--secondary invoice-list__payment-button" %></span>
+              <span class="invoice-list__relation"><%= link_to button_label("Als bezahlt markieren", icon: :check), new_bookkeeping_entry_path(invoice_id: invoice.id), data: { action: "payment-dialog#open" }, aria: { haspopup: "dialog" }, class: "button button--secondary invoice-list__payment-button" %></span>
             <% end %>
           </div>
           <span class="invoice-list__identity">
@@ -102,8 +102,8 @@
         Mit dem Datenexport lädst du alles als ZIP herunter: Rechnungen, Positionen, Kundenliste (als Tabelle für Excel) und alle E-Rechnungen als XML.
         Das ist ein guter Zeitpunkt, bevor du etwas löschst.
       </p>
-      <p><%= link_to "Meine Daten herunterladen (ZIP)", export_path, class: "button button--secondary" %></p>
-      <%= button_to "Alle meine Daten löschen", account_path, method: :delete, class: "button button--secondary",
+      <p><%= link_to button_label("Meine Daten herunterladen (ZIP)", icon: :download), export_path, class: "button button--secondary" %></p>
+      <%= button_to button_label("Alle meine Daten löschen", icon: :delete), account_path, method: :delete, class: "button button--secondary",
             form: { data: { turbo_confirm: "Wirklich alle Rechnungen, Kundendaten und dein Konto löschen? Das kannst du nicht rückgängig machen." } } %>
     </section>
   <% end %>

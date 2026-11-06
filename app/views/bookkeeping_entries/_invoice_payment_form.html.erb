@@ -26,9 +26,9 @@
     <% end %>
   </div>
   <div class="invoice-actions">
-    <%= form.button invoice_payment_action(invoice), type: "submit", class: "button button--primary" %>
+    <%= form.button button_label(invoice_payment_action(invoice), icon: :check), type: "submit", class: "button button--primary" %>
     <% unless params[:payment_popup] == "1" %>
-      <%= link_to "Abbrechen", invoice_path(invoice), class: "button button--secondary" %>
+      <%= link_to button_label("Abbrechen", icon: :cancel), invoice_path(invoice), class: "button button--secondary" %>
     <% end %>
   </div>
 <% end %>

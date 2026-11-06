@@ -146,8 +146,8 @@
         <label><%= form.radio_button :customer_update_mode, "invoice_only" %><span><strong>Nur für diese Rechnung verwenden</strong><small>Für künftige Rechnungen bleiben die bisherigen Vorgaben des Kunden erhalten.</small></span></label>
       </fieldset>
       <div class="customer-update-dialog__actions">
-        <button type="button" class="button button--secondary" data-action="customer-select#cancelReview">Abbrechen</button>
-        <button type="button" class="button button--primary" data-customer-select-target="continueButton" data-action="customer-select#confirmReview">Weiter</button>
+        <button type="button" class="button button--secondary" data-action="customer-select#cancelReview"><%= button_label("Abbrechen", icon: :cancel) %></button>
+        <button type="button" class="button button--primary" data-customer-select-target="continueButton" data-action="customer-select#confirmReview"><%= button_label("Weiter", icon: :forward) %></button>
       </div>
       </dialog>
       <p class="form-note">Neue Kunden werden beim Erstellen der Rechnung gespeichert. Bei Änderungen an einem ausgewählten Kunden entscheidest du, ob sie gespeichert werden oder nur für diese Rechnung gelten.</p>
@@ -155,7 +155,7 @@
         <p class="form-note">Neue Kunden werden beim Speichern angelegt. Gespeicherte Kundenvorgaben bleiben unverändert.</p>
       <% end %>
       <div class="imprint-lookup" data-controller="imprint-lookup" data-imprint-lookup-url-value="<%= lookup_customer_imprint_invoices_path %>">
-        <button type="button" class="button button--secondary" popovertarget="customer-imprint-lookup">Kundendaten aus Impressum</button>
+        <button type="button" class="button button--secondary" popovertarget="customer-imprint-lookup"><%= button_label("Kundendaten aus Impressum", icon: :search) %></button>
         <small class="imprint-lookup__hint">Ermittle Kundendaten aus dem Impressum der Kundenwebseite.</small>
         <div id="customer-imprint-lookup" class="form-popover" popover role="dialog" aria-labelledby="imprint-lookup-title" data-imprint-lookup-target="popover">
           <div class="form-popover__heading">
@@ -166,7 +166,7 @@
             <%= label_tag :customer_imprint_domain, class: "field-label" do %><%= invoice_field_icon(:domain) %><span>Webadresse</span><% end %>
             <div class="imprint-lookup__controls">
               <%= text_field_tag :customer_imprint_domain, nil, placeholder: "beispiel.de oder https://beispiel.de/impressum", autocomplete: "url", autofocus: true, data: { imprint_lookup_target: "domain", action: "keydown->imprint-lookup#submitOnEnter input->imprint-lookup#resetResult" } %>
-              <button type="button" class="button button--secondary imprint-lookup__button" data-imprint-lookup-target="button" data-action="imprint-lookup#lookup"><span class="imprint-lookup__spinner" aria-hidden="true" hidden data-imprint-lookup-target="spinner"></span><span data-imprint-lookup-target="buttonLabel">Daten ermitteln</span></button>
+              <button type="button" class="button button--secondary imprint-lookup__button" data-imprint-lookup-target="button" data-action="imprint-lookup#lookup"><%= button_icon(:search) %><span class="imprint-lookup__spinner" aria-hidden="true" hidden data-imprint-lookup-target="spinner"></span><span data-imprint-lookup-target="buttonLabel">Daten ermitteln</span></button>
             </div>
             <small>Gebe eine Webadresse ein aus der die Kundendaten ermittelt werden sollen. Es wird versucht ein Impressum zu finden, aus der die Daten gelesen werden können. Du kannst auch direkt den Link zum Impressum hier einfügen.</small>
             <small class="address-status" role="status" aria-live="polite" data-imprint-lookup-target="status"></small>
@@ -176,8 +176,8 @@
             <dl class="imprint-lookup__data" data-imprint-lookup-target="resultFields"></dl>
             <p class="form-note">Prüfe die Angaben. Beim Übernehmen werden nur die angezeigten Kundenfelder ersetzt.</p>
             <div class="imprint-lookup__actions">
-              <button type="button" class="button button--secondary" popovertarget="customer-imprint-lookup" popovertargetaction="hide">Abbrechen</button>
-              <button type="button" class="button button--primary" data-action="imprint-lookup#accept">Daten übernehmen</button>
+              <button type="button" class="button button--secondary" popovertarget="customer-imprint-lookup" popovertargetaction="hide"><%= button_label("Abbrechen", icon: :cancel) %></button>
+              <button type="button" class="button button--primary" data-action="imprint-lookup#accept"><%= button_label("Daten übernehmen", icon: :check) %></button>
             </div>
           </section>
         </div>
@@ -333,7 +333,7 @@
           <legend>Euro-Umrechnung für deine Umsatzübersicht</legend>
           <small>Die Umrechnung zeigt dir den rechnerischen Euro-Gegenwert der Rechnung für deine Umsatzübersicht. Der tatsächliche Zahlungseingang kann durch einen anderen Wechselkurs am Zahlungstag und Bankgebühren abweichen. Beispiel: Bei einer Rechnung über 120 US-Dollar muss der Kunde 120 US-Dollar bezahlen – unabhängig davon, wie viel Euro diese am Zahlungstag wert sind. Die Euro-Umrechnung ändert den Rechnungsbetrag nicht.</small>
           <small data-currency-target="status" role="status" aria-live="polite"></small>
-          <button type="button" class="button button--secondary" data-action="currency#reload">EZB-Kurs laden</button>
+          <button type="button" class="button button--secondary" data-action="currency#reload"><%= button_label("EZB-Kurs laden", icon: :refresh) %></button>
           <div class="form-grid">
             <div class="field">
               <%= invoice_field_label(form, :exchange_rate, "Wechselkurs") %>
@@ -385,7 +385,7 @@
           <%= render "invoices/invoice_line_fields", form: line_form %>
         <% end %>
       </template>
-      <button type="button" class="button button--secondary" data-action="invoice-lines#add">Position hinzufügen</button>
+      <button type="button" class="button button--secondary" data-action="invoice-lines#add"><%= button_label("Position hinzufügen", icon: :add) %></button>
       <p class="invoice-total"><span data-order-billing-target="scopeTotalLabel">Gesamtsumme:</span> <strong data-invoice-lines-target="total" data-order-billing-target="total"><%= invoice_money(0, @invoice) %></strong><small>Keine Umsatzsteuer nach § 19 UStG</small></p>
       <%= render "invoices/order_billing_calculation", form: form if invoice_mode %>
 

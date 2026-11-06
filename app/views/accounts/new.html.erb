@@ -25,7 +25,7 @@
       <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
     </div>
     <p><small>Wir nutzen deine E-Mail-Adresse nur für die Anmeldung. Mehr dazu in der <%= link_to "Datenschutzerklärung", datenschutz_path %>.</small></p>
-    <p><%= submit_tag "Konto anlegen", class: "button button--primary", data: { disable_with: false } %></p>
+    <p><%= button_tag button_label("Konto anlegen", icon: :user_add), type: "submit", name: "commit", value: "Konto anlegen", class: "button button--primary", data: { disable_with: false } %></p>
   <% end %>
 
   <p>Du hast schon ein Konto? <%= link_to "Anmelden", new_session_path %></p>

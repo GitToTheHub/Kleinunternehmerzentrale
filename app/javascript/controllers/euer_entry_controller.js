@@ -244,7 +244,8 @@ export default class extends Controller {
     this.show(this.invoiceFieldTarget, canLinkInvoice && this.invoiceTarget.options.length > 1)
     const linked = canLinkInvoice && !!this.invoiceTarget.value
     this.foreignPaymentHintTarget.hidden = !linked || this.invoiceTarget.selectedOptions[0].dataset.foreign !== "true"
-    this.submitTarget.textContent = linked ? this.invoiceTarget.selectedOptions[0].dataset.paymentAction : "Speichern"
+    const submitLabel = this.submitTarget.querySelector?.("[data-button-label]") || this.submitTarget
+    submitLabel.textContent = linked ? this.invoiceTarget.selectedOptions[0].dataset.paymentAction : "Speichern"
     this.dateLabelTarget.textContent = copy.dateLabel
     for (const name of ["amountLabel", "amountHint", "descriptionLabel", "descriptionHint"]) {
       this[`${name}Target`].textContent = copy[name]

@@ -7,10 +7,10 @@
   <%= render "overview" %>
   <p><%= link_to "Buchhaltung im Alltag: Belege, private Zahlungen und gemischte Kosten", hilfe_path(anchor: "buchhaltung-im-alltag") %></p>
   <div class="invoice-actions">
-    <%= link_to "Neue Buchung", new_bookkeeping_entry_path, class: "button button--primary" %>
-    <%= link_to "Anlageverzeichnis", business_assets_path, class: "button button--secondary" %>
-    <%= link_to "Bisherige Buchhaltung übernehmen", new_bookkeeping_import_path, class: "button button--secondary" %>
-    <%= link_to "EÜR für ELSTER vorbereiten", prepare_euer_bookkeeping_entries_path(year: @year), class: "button button--secondary" %>
+    <%= link_to button_label("Neue Buchung", icon: :add), new_bookkeeping_entry_path, class: "button button--primary" %>
+    <%= link_to button_label("Anlageverzeichnis", icon: :asset), business_assets_path, class: "button button--secondary" %>
+    <%= link_to button_label("Bisherige Buchhaltung übernehmen", icon: :upload), new_bookkeeping_import_path, class: "button button--secondary" %>
+    <%= link_to button_label("EÜR für ELSTER vorbereiten", icon: :external), prepare_euer_bookkeeping_entries_path(year: @year), class: "button button--secondary" %>
   </div>
   <% @report.warnings.each do |message| %><div class="flash-message flash-message--alert" role="status"><%= message %></div><% end %>
   <%= render "imports" %>
@@ -25,7 +25,7 @@
       <% if movements.any? %>
         <p>Aus deinen Zahlungen automatisch berücksichtigt. Bearbeite bei Bedarf die ursprüngliche Zahlung; lege hierfür keinen weiteren Vorgang an.</p>
         <div class="bookkeeping-table bookkeeping-movements-table"><table><thead><tr><th>Datum</th><th>Beschreibung</th><th>Betrag</th><th>Herkunft</th></tr></thead><tbody>
-          <% movements.each do |movement| %><tr><td data-label="Datum"><%= movement[:date].strftime("%d.%m.%Y") %></td><td data-label="Beschreibung"><%= movement[:description] %></td><td data-label="Betrag"><%= euro(movement[:amount]) %></td><td data-label="Herkunft"><%= link_to "Ursprung bearbeiten", movement[:source].is_a?(BusinessAsset) ? edit_business_asset_path(movement[:source]) : edit_bookkeeping_entry_path(movement[:source]) %></td></tr><% end %>
+          <% movements.each do |movement| %><tr><td data-label="Datum"><%= movement[:date].strftime("%d.%m.%Y") %></td><td data-label="Beschreibung"><%= movement[:description] %></td><td data-label="Betrag"><%= euro(movement[:amount]) %></td><td data-label="Herkunft"><%= link_to button_label("Ursprung bearbeiten", icon: :edit), movement[:source].is_a?(BusinessAsset) ? edit_business_asset_path(movement[:source]) : edit_bookkeeping_entry_path(movement[:source]), class: "action-link" %></td></tr><% end %>
         </tbody></table></div>
       <% end %>
     </section>

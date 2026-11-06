@@ -1,7 +1,7 @@
 <% content_for :title, "EÜR für ELSTER vorbereiten" %>
 <main>
   <h1>EÜR für ELSTER vorbereiten</h1>
-  <p><%= link_to "Zur Buchhaltung", bookkeeping_entries_path(year: @year), class: "button button--secondary" %></p>
+  <p><%= link_to button_label("Zur Buchhaltung", icon: :back), bookkeeping_entries_path(year: @year), class: "button button--secondary" %></p>
   <%= form_with url: prepare_euer_bookkeeping_entries_path, method: :get, class: "bookkeeping-year-filter", data: { controller: "auto-submit", action: "change->auto-submit#submit" } do |form| %>
     <div class="field"><%= form.label :year, "Kalenderjahr" %><%= form.select :year, @available_years, { selected: @year, include_blank: false } %></div>
   <% end %>

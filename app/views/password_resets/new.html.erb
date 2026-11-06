@@ -9,6 +9,6 @@
       <label for="email">E-Mail-Adresse</label>
       <input type="email" id="email" name="email" autocomplete="email" required>
     </div>
-    <p><%= submit_tag "Link senden", class: "button button--primary", data: { disable_with: false } %></p>
+    <p><%= button_tag button_label("Link senden", icon: :email), type: "submit", name: "commit", value: "Link senden", class: "button button--primary", data: { disable_with: false } %></p>
   <% end %>
 </main>

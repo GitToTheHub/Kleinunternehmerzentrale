@@ -37,7 +37,7 @@
     </details>
     <div data-euer-asset-target="usageRows"><%= form.fields_for :asset_private_uses do |row| %><%= render "private_use_row", form: row %><% end %></div>
     <template data-euer-asset-target="usageTemplate"><%= form.fields_for :asset_private_uses, AssetPrivateUse.new, child_index: "NEW_USAGE" do |row| %><%= render "private_use_row", form: row %><% end %></template>
-    <button type="button" class="button button--secondary" data-action="euer-asset#addUsageYear">Weiteres Nutzungsjahr hinzufügen</button>
+    <button type="button" class="button button--secondary" data-action="euer-asset#addUsageYear"><%= button_label("Weiteres Nutzungsjahr hinzufügen", icon: :add) %></button>
   </details>
   <details class="invoice-panel" data-euer-asset-target="scheduleField" <%= "open" if @asset.depreciation_method == "manual" || @asset.asset_depreciations.any?(&:persisted?) %>>
     <summary>Abschreibung für einzelne Jahre anpassen (bei Bedarf)</summary>
@@ -46,7 +46,7 @@
       <%= form.fields_for :asset_depreciations do |row| %><%= render "depreciation_row", form: row %><% end %>
     </div>
     <template data-euer-asset-target="template"><%= form.fields_for :asset_depreciations, AssetDepreciation.new, child_index: "NEW_ROW" do |row| %><%= render "depreciation_row", form: row %><% end %></template>
-    <button type="button" class="button button--secondary" data-action="euer-asset#addYear">Weiteres Jahr hinzufügen</button>
+    <button type="button" class="button button--secondary" data-action="euer-asset#addYear"><%= button_label("Weiteres Jahr hinzufügen", icon: :add) %></button>
   </details>
   <details class="invoice-panel" <%= "open" if @asset.disposal_kind.present? %>>
     <summary>Anlagegut verkauft, dauerhaft privat übernommen oder entsorgt?</summary>
@@ -58,5 +58,5 @@
     </div>
     <p>Bei Verkauf erfasse den tatsächlichen Zahlungseingang separat als „Erlöse / Entnahmen aus Anlagevermögen“. Der Restbuchwert wird hier automatisch abgezogen. Bei Privatentnahme keinen zusätzlichen Entnahmevorgang buchen. Abgangsmonat und Restbuchwert fließen in die Jahresrechnung ein.</p>
   </details>
-  <div class="invoice-actions"><%= form.submit "Anlagegut speichern", class: "button button--primary" %><%= link_to "Zum Anlageverzeichnis", business_assets_path, class: "button button--secondary" %></div>
+  <div class="invoice-actions"><%= form.button button_label("Anlagegut speichern", icon: :save), type: "submit", name: "commit", value: "Anlagegut speichern", class: "button button--primary" %><%= link_to button_label("Zum Anlageverzeichnis", icon: :back), business_assets_path, class: "button button--secondary" %></div>
 <% end %>

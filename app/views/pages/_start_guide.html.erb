@@ -10,10 +10,10 @@
     <p><%= step.text %></p>
     <div class="start-guide__actions">
       <% if step.link_path %>
-        <%= link_to step.link_text, public_send(step.link_path), class: "button button--primary" %>
+        <%= link_to button_label(step.link_text, icon: :forward), public_send(step.link_path), class: "button button--primary" %>
       <% end %>
       <% unless step.key == "rechnung" %>
-        <%= button_to "Das habe ich erledigt", start_step_path(step.key), method: :patch, class: "button #{step.link_path ? 'button--secondary' : 'button--primary'}", form: { class: "start-guide__form" } %>
+        <%= button_to button_label("Das habe ich erledigt", icon: :check), start_step_path(step.key), method: :patch, class: "button #{step.link_path ? 'button--secondary' : 'button--primary'}", form: { class: "start-guide__form" } %>
       <% end %>
     </div>
   <% end %>
@@ -24,7 +24,7 @@
         <li class="<%= "is-done" if guide.done?(step) %>">
           <%= guide.done?(step) ? "✓" : "○" %> <%= step.title %>
           <% if step.key != "rechnung" && guide.done?(step) %>
-            <%= button_to "zurücknehmen", start_step_path(step.key), method: :patch, class: "start-guide__undo", form: { class: "start-guide__form" } %>
+            <%= button_to button_label("zurücknehmen", icon: :undo), start_step_path(step.key), method: :patch, class: "start-guide__undo", form: { class: "start-guide__form" } %>
           <% end %>
         </li>
       <% end %>

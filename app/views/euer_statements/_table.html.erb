@@ -9,7 +9,7 @@
           <td><%= report.detail_value(row.key).presence || "–" %></td><td>Betriebsangabe</td>
         <% else %>
           <td><%= euro(EuerForm.amount(row.key, report)) %></td>
-          <td><% if row.kind == :computed %>Automatisch berechnet<% elsif local_assigns.fetch(:allow_adjustments, true) %><%= link_to "Ergänzen", new_euer_adjustment_path(year: report.year, field_key: row.key), aria: { label: "Zeile #{row.line}: #{row.label} ergänzen" } %><% if EuerFields::DEFINITIONS.fetch(row.key).effect == :info %><br><small>Zusatzangabe; erhöht den Gewinn nicht erneut.</small><% end %><% end %></td>
+          <td><% if row.kind == :computed %>Automatisch berechnet<% elsif local_assigns.fetch(:allow_adjustments, true) %><%= link_to button_label("Ergänzen", icon: :edit), new_euer_adjustment_path(year: report.year, field_key: row.key), aria: { label: "Zeile #{row.line}: #{row.label} ergänzen" }, class: "action-link" %><% if EuerFields::DEFINITIONS.fetch(row.key).effect == :info %><br><small>Zusatzangabe; erhöht den Gewinn nicht erneut.</small><% end %><% end %></td>
         <% end %>
       </tr>
     <% end %>

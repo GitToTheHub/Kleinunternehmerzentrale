@@ -13,5 +13,5 @@
     <div class="field field--wide"><%= form.label :description, "Begründung / Berechnung / Rechtsgrundlage" %><%= form.text_area :description, required: true %></div>
   </div>
   <p>Hier lassen sich fachlich bestimmte Pauschalen und Korrekturen erfassen. Automatisch gebuchte Beträge nicht erneut eintragen. AfA für erfasste Anlagegüter pflegst du direkt im <%= link_to "Anlageverzeichnis", business_assets_path %>, damit auch die Buchwerte und AVEÜR-Summen aktualisiert werden. Eine direkte Korrektur hier verändert nur die EÜR-Position.</p>
-  <div class="invoice-actions"><%= form.submit "Ergänzung speichern", class: "button button--primary" %><%= link_to "Zur Buchhaltung", bookkeeping_entries_path(year: @adjustment.year), class: "button button--secondary" %></div>
+  <div class="invoice-actions"><%= form.button button_label("Ergänzung speichern", icon: :save), type: "submit", name: "commit", value: "Ergänzung speichern", class: "button button--primary" %><%= link_to button_label("Zur Buchhaltung", icon: :back), bookkeeping_entries_path(year: @adjustment.year), class: "button button--secondary" %></div>
 <% end %>

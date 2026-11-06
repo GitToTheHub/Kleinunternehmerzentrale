@@ -661,7 +661,7 @@ class InvoicesControllerTest < ActionDispatch::IntegrationTest
     second = response.parsed_body.fetch("draft_id")
     get invoices_url
     assert_select ".invoice-draft-card", count: 2
-    assert_select "a[href=?]", new_invoice_path, text: "Neue Rechnung erstellen"
+    assert_select "a[href=?]", new_invoice_path, text: "Rechnung erstellen"
     get edit_draft_invoices_url(draft_id: first)
     assert_select "#invoice_buyer_name[value='Erster Kunde']"
     assert_select ".invoice-form__actions a[data-action='invoice-draft#back']:not([hidden])", text: "Später"

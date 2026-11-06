@@ -17,9 +17,9 @@
     <div class="field-calculator__warning" data-field-calculator-target="warning" role="status" aria-live="polite" hidden>
       <p>Ohne Klammern wird nur die letzte Zeit mit dem Stundensatz multipliziert. Möchtest du die gesamte Zeit verrechnen? Setze dafür die Zeiten in Klammern.</p>
       <p class="field-calculator__expression" data-field-calculator-target="suggestion"></p>
-      <button type="button" class="button button--secondary" data-action="field-calculator#addTimeParentheses">Zeiten einklammern</button>
+      <button type="button" class="button button--secondary" data-action="field-calculator#addTimeParentheses"><%= button_label("Zeiten einklammern", icon: :calculator) %></button>
     </div>
-    <button type="button" class="button button--secondary" data-field-calculator-target="apply" data-action="field-calculator#apply" disabled>Ergebnis übernehmen</button>
+    <button type="button" class="button button--secondary" data-field-calculator-target="apply" data-action="field-calculator#apply" disabled><%= button_label("Ergebnis übernehmen", icon: :check) %></button>
   </div>
   </dialog>
 </div>

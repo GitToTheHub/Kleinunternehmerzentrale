@@ -1,14 +1,14 @@
 <main>
   <h1 class="no-print"><%= @document.label %> <%= @document.document_number %></h1>
   <div class="invoice-actions no-print">
-    <%= link_to "Übersicht", sales_documents_path, class: "button button--secondary" %>
-    <button type="button" class="button button--secondary" data-controller="print" data-action="print#print">Drucken oder als PDF speichern</button>
-    <% if @document.editable? %><%= link_to "Bearbeiten", edit_sales_document_path(@document), class: "button button--secondary" %><% end %>
+    <%= link_to button_label("Übersicht", icon: :back), sales_documents_path, class: "button button--secondary" %>
+    <button type="button" class="button button--secondary" data-controller="print" data-action="print#print"><%= button_label("Drucken oder als PDF speichern", icon: :print) %></button>
+    <% if @document.editable? %><%= link_to button_label("Bearbeiten", icon: :edit), edit_sales_document_path(@document), class: "button button--secondary" %><% end %>
     <% if @document.offer? %>
-      <% if @document.accepted_order %><%= link_to "Zum Auftrag", @document.accepted_order, class: "button button--primary" %><% else %><%= button_to "Als Auftrag übernehmen", accept_sales_document_path(@document), class: "button button--primary" %><% end %>
+      <% if @document.accepted_order %><%= link_to button_label("Zum Auftrag", icon: :forward), @document.accepted_order, class: "button button--primary" %><% else %><%= button_to button_label("Als Auftrag übernehmen", icon: :check), accept_sales_document_path(@document), class: "button button--primary" %><% end %>
     <% elsif !@document.closed? %>
-      <% if @document.active_invoices.any? %><%= link_to "Schlussrechnung erstellen", new_invoice_path(sales_document_id: @document.id, billing_kind: "final"), class: "button button--primary" %><%= link_to "Weitere Anzahlung erstellen", new_invoice_path(sales_document_id: @document.id, billing_kind: "advance"), class: "button button--secondary" %><%= link_to "Abschlagsrechnung erstellen", new_invoice_path(sales_document_id: @document.id, billing_kind: "progress"), class: "button button--secondary" %>
-      <% else %><%= link_to "Rechnung erstellen", new_invoice_path(sales_document_id: @document.id), class: "button button--primary" %><%= link_to "Anzahlung berechnen", new_invoice_path(sales_document_id: @document.id, billing_kind: "advance"), class: "button button--secondary" %><% end %>
+      <% if @document.active_invoices.any? %><%= link_to button_label("Schlussrechnung erstellen", icon: :add), new_invoice_path(sales_document_id: @document.id, billing_kind: "final"), class: "button button--primary" %><%= link_to button_label("Weitere Anzahlung erstellen", icon: :add), new_invoice_path(sales_document_id: @document.id, billing_kind: "advance"), class: "button button--secondary" %><%= link_to button_label("Abschlagsrechnung erstellen", icon: :add), new_invoice_path(sales_document_id: @document.id, billing_kind: "progress"), class: "button button--secondary" %>
+      <% else %><%= link_to button_label("Rechnung erstellen", icon: :add), new_invoice_path(sales_document_id: @document.id), class: "button button--primary" %><%= link_to button_label("Anzahlung berechnen", icon: :calculator), new_invoice_path(sales_document_id: @document.id, billing_kind: "advance"), class: "button button--secondary" %><% end %>
     <% end %>
   </div>
   <% if @document.order? %>

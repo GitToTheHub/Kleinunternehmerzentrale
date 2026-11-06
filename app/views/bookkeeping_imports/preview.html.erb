@@ -6,6 +6,6 @@
   <%= form_with url: bookkeeping_imports_path do %>
     <%= hidden_field_tag :token, @token %>
     <label class="checkbox-label"><%= check_box_tag :confirmed, "1", false, required: true %><span>Ich habe die Summen mit meiner bisherigen EÜR abgeglichen. Der Zeitraum ist vollständig berücksichtigt und wird hier nicht zusätzlich einzeln erfasst.</span></label>
-    <div class="invoice-actions"><%= submit_tag "EÜR-Summen übernehmen", class: "button button--primary" %><%= link_to "Neu beginnen", new_bookkeeping_import_path, class: "button button--secondary" %></div>
+    <div class="invoice-actions"><%= button_tag button_label("EÜR-Summen übernehmen", icon: :check), type: "submit", name: "commit", value: "EÜR-Summen übernehmen", class: "button button--primary" %><%= link_to button_label("Neu beginnen", icon: :back), new_bookkeeping_import_path, class: "button button--secondary" %></div>
   <% end %>
 </main>

@@ -36,7 +36,7 @@
         <% rows.each_with_index do |row, index| %><%= render "daycare_row", row: row, index: index %><% end %>
       </div>
       <template data-euer-expense-policy-target="childcareTemplate"><%= render "daycare_row", row: {}, index: "NEW_ROW" %></template>
-      <p><button type="button" class="button button--secondary" data-action="euer-expense-policy#addChildcare">Betreuungszeitraum hinzufügen</button></p>
+      <p><button type="button" class="button button--secondary" data-action="euer-expense-policy#addChildcare"><%= button_label("Betreuungszeitraum hinzufügen", icon: :add) %></button></p>
       <%= form.label :daycare_eligibility_confirmed, class: "checkbox-label" do %><%= form.check_box :daycare_eligibility_confirmed %><span>Die Betreuung erfolgt nicht im Haushalt der Eltern und nicht in kostenlos bereitgestellten Räumen. Die angegebenen Monate sind berücksichtigungsfähig; bei Ausfallzeiten wurden die Voraussetzungen für den Pauschalabzug geprüft. Für Freihalteplätze werden die erforderlichen laufenden Geldleistungen gezahlt. Alle zugehörigen Einnahmen sind erfasst.</span><% end %>
       <p>Steuerfreie Versicherungsbeitragserstattungen nach § 3 Nr. 9 EStG, die in deinen Einnahmen enthalten sind, ergänze unter <%= link_to "Steuerfreie Einnahmen nach § 3 EStG", new_euer_adjustment_path(year: @year, field_key: "tax_exempt_other"), target: "_blank", rel: "noopener" %>. Sie werden bei dieser Methode von der Einnahmengrenze abgezogen.</p>
       <% if @policy.deduction_method == "daycare" %><% candidate = EuerProfessionAllowance.new(@report, @policy) %><% if candidate.applicable? %><p>Berechnete Pauschale: <strong><%= euro(candidate.amount) %></strong></p><% end %><% end %>
@@ -60,7 +60,7 @@
       </div>
       <p>Die automatische Berechnung verwendet pro Jahr eine der beiden Methoden. Bei wechselnden Methoden oder einer Aufteilung auf mehrere Betriebe beziehungsweise eine Anstellung ergänze die gesondert ermittelten Beträge manuell.</p>
     </section>
-    <div class="invoice-actions"><%= form.submit "Ausgabenmethode speichern", class: "button button--primary" %><%= link_to "Zur EÜR-Vorbereitung", prepare_euer_bookkeeping_entries_path(year: @year), class: "button button--secondary" %></div>
+    <div class="invoice-actions"><%= form.button button_label("Ausgabenmethode speichern", icon: :save), type: "submit", name: "commit", value: "Ausgabenmethode speichern", class: "button button--primary" %><%= link_to button_label("Zur EÜR-Vorbereitung", icon: :back), prepare_euer_bookkeeping_entries_path(year: @year), class: "button button--secondary" %></div>
   <% end %>
   <p><%= link_to "Amtlicher Vordruck mit Anleitung: Betriebsausgabenpauschalen", EuerFields::SOURCES.fetch(@year), target: "_blank", rel: "noopener" %> · <%= link_to "§ 4 Abs. 5 EStG: Arbeitszimmer und Tagespauschale", "https://www.gesetze-im-internet.de/estg/__4.html", target: "_blank", rel: "noopener" %></p>
 </main>

@@ -9,6 +9,6 @@
     <% end %>
     <% if @report.home_office_allowance.applicable? %><p><%= EuerHomeOfficeAllowance::METHODS.fetch(@report.expense_policy.home_office_method) %>: <strong><%= euro(@report.home_office_allowance.amount) %></strong>. Der Betrag ist bereits in deiner EÜR berücksichtigt.</p><% end %>
     <p>Eine andere Ausgabenmethode oder zusätzliche Pauschalen brauchst du nur, wenn deren Voraussetzungen bei dir tatsächlich erfüllt sind. Die App wählt sie nicht automatisch für dich aus.</p>
-    <%= link_to "Ausgabenmethode vergleichen und wählen", edit_euer_expense_policy_path(year: @year), class: "button button--secondary" %>
+    <%= link_to button_label("Ausgabenmethode vergleichen und wählen", icon: :search), edit_euer_expense_policy_path(year: @year), class: "button button--secondary" %>
   </section>
 <% end %>

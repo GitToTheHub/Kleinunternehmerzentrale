@@ -248,6 +248,7 @@ main small { color: var(--muted); font-size: .84rem; }
 
 .button {
   display: inline-flex;
+  gap: 8px;
   min-height: 48px;
   align-items: center;
   justify-content: center;
@@ -1309,3 +1310,20 @@ trix-toolbar.rich-text__toolbar .rich-text__link-dialog [data-trix-validate]:inv
 .cash-payment-choices > small { display: block; margin-top: 6px; }
 .cash-payment-choices .booking-actions { margin-block: 12px 0; }
 .payment-dialog h2 { overflow-wrap: anywhere; }
+
+/* Aktionssymbole ergänzen den Text und bleiben für Screenreader unsichtbar. */
+.button-icon { flex: 0 0 18px; width: 18px; height: 18px; vertical-align: middle; }
+.button-label { min-width: 0; }
+button:has(> .button-icon) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.start-guide__undo:has(> .button-icon) { display: inline-flex; align-items: center; gap: 6px; }
+
+.site-nav__button:has(> .button-icon) { justify-content: flex-start; }
+
+.action-link { display: inline-flex; align-items: center; gap: 6px; }
+
+.site-nav > form { display: flex; align-items: center; margin: 0; }
+.invoice-list__labels .invoice-list__payment-button { gap: 6px; padding-inline: 8px; }
+.invoice-list__payment-button .button-icon { flex-basis: 14px; width: 14px; height: 14px; }
+@media (max-width: 600px) {
+  .invoice-actions > .button { gap: 6px; padding-inline: 10px; }
+}

@@ -1,7 +1,7 @@
   <section>
     <h2>Anlageverzeichnis und Abschreibungen <%= @year %></h2>
     <p>Erfasse Anschaffungen und Änderungen während des Jahres. Die hier berechneten Abschreibungen sind bereits in den Ausgaben und im Gewinn oben berücksichtigt.</p>
-    <%= link_to "Anlagegut erfassen", new_business_asset_path, class: "button button--secondary" %>
+    <%= link_to button_label("Anlagegut erfassen", icon: :add), new_business_asset_path, class: "button button--secondary" %>
     <% if @report.asset_rows.any? %>
       <div class="bookkeeping-table"><table><thead><tr><th scope="col">Anlagegut</th><th scope="col">Buchwert Jahresbeginn</th><th scope="col">Zugang</th><th scope="col">AfA / GWG</th><th scope="col">Sonder-AfA</th><th scope="col">Restbuchwert Abgang</th><th scope="col">Buchwert Jahresende</th><th scope="col">Private Nutzung</th></tr></thead><tbody>
         <% @report.asset_rows.each do |asset, schedule| %><tr><td><%= link_to asset.name, edit_business_asset_path(asset) %><br><small><%= BusinessAsset::METHODS.fetch(asset.depreciation_method) %></small></td><% %i[opening additions ordinary special residual closing].each do |metric| %><td><%= euro(schedule.fetch(metric)) %></td><% end %><td><% if (usage = asset.private_use_for(@year)) %><%= euro(usage.amount) %><br><small><%= usage.business_percent %> % betrieblich</small><% else %>–<% end %></td></tr><% end %>

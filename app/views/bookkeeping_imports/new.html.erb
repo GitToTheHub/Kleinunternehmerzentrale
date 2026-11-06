@@ -67,6 +67,6 @@
       <%= form.label :assets_managed_separately, class: "checkbox-label" do %><%= form.check_box :assets_managed_separately %><span>Ich verwalte meine bisherigen Anlagegüter separat im Anlageverzeichnis.</span><% end %>
       <small>Aktiviere dies nur, wenn du deren Abschreibungen und Restbuchwerte sowie zugehörige Einlagen und Entnahmen aus diesen Summen herausgenommen hast. Die App berücksichtigt diese Beträge dann über die Anlagegüter. Ohne bisherige Anlagegüter lässt du die Option aus.</small>
     </div>
-    <div class="invoice-actions"><%= form.submit "Übernahme prüfen", class: "button button--primary" %><%= link_to "Zur Buchhaltung", bookkeeping_entries_path, class: "button button--secondary" %></div>
+    <div class="invoice-actions"><%= form.button button_label("Übernahme prüfen", icon: :search), type: "submit", name: "commit", value: "Übernahme prüfen", class: "button button--primary" %><%= link_to button_label("Zur Buchhaltung", icon: :back), bookkeeping_entries_path, class: "button button--secondary" %></div>
   <% end %>
 </main>

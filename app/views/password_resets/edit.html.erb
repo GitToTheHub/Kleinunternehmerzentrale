@@ -19,6 +19,6 @@
       <label for="password_confirmation">Passwort wiederholen</label>
       <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
     </div>
-    <p><%= submit_tag "Passwort speichern", class: "button button--primary", data: { disable_with: false } %></p>
+    <p><%= button_tag button_label("Passwort speichern", icon: :save), type: "submit", name: "commit", value: "Passwort speichern", class: "button button--primary", data: { disable_with: false } %></p>
   <% end %>
 </main>

@@ -955,6 +955,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     fill_in line_id("unit_price"), with: "50"
     click_button "Festschreiben"
     assert_selector "dialog[open].customer-update-dialog"
+    assert_selector "dialog[open].customer-update-dialog [data-customer-select-target=continueButton] > svg.button-icon[aria-hidden=true]"
     choose "Nur für diese Rechnung verwenden"
     assert_selector "[data-invoice-draft-target=status]", text: "Entwurf gespeichert"
     page.refresh

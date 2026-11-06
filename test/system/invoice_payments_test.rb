@@ -76,6 +76,7 @@ class InvoicePaymentsSystemTest < ApplicationSystemTestCase
     select "Bargeld / Betriebskasse", from: "Zahlungsart"
     assert_text "Zur Betriebskasse gehört Bargeld, das du für betriebliche Zahlungen bereithältst."
     assert_text "Wie möchtest du das Bargeld erfassen?"
+    assert_selector ".payment-dialog button[type=submit] > svg.button-icon[aria-hidden=true]"
     assert_no_selector "[name='bookkeeping_entry[cash_usage]']:checked"
     choose "Bleibt in der Betriebskasse"
     assert_selector "[data-cash-payment-target=panel] .booking-type-option", count: 3
@@ -96,6 +97,8 @@ class InvoicePaymentsSystemTest < ApplicationSystemTestCase
     visit edit_bookkeeping_entry_path(payment)
     assert_select "Zahlungsart", selected: "Bargeld / Betriebskasse"
     assert_field "Privat übernommener Betrag in Euro", with: "33,34"
+    assert_button "Rechnung als bezahlt markieren"
+    assert_selector "[data-euer-entry-target=submit] > svg.button-icon[aria-hidden=true]"
     assert_text "Teilweise privat übernommen"
     assert page.evaluate_script("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     choose "Vollständig privat übernommen"

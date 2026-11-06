@@ -3,7 +3,7 @@
   <%= render "summary" %>
   <p>Neue Vorgänge erfasst du ab <%= (@import.covered_through + 1).strftime("%d.%m.%Y") %>. Alte Rechnungen und Belege bleiben in deiner bisherigen Ablage. Die Übernahme erstellt keine einzelnen Zahlungen oder Rechnungen.</p>
   <div class="invoice-actions">
-    <%= link_to "Zur Buchhaltung #{@import.year}", bookkeeping_entries_path(year: @import.year), class: "button button--secondary" %>
-    <%= button_to "Übernahme entfernen", bookkeeping_import_path(@import), method: :delete, class: "button button--danger", data: { turbo_confirm: "Alle Summen dieser Übernahme aus der EÜR entfernen? Später erfasste Vorgänge bleiben erhalten. Danach kannst du die korrigierten Summen erneut übernehmen." } %>
+    <%= link_to button_label("Zur Buchhaltung #{@import.year}", icon: :back), bookkeeping_entries_path(year: @import.year), class: "button button--secondary" %>
+    <%= button_to button_label("Übernahme entfernen", icon: :delete), bookkeeping_import_path(@import), method: :delete, class: "button button--danger", data: { turbo_confirm: "Alle Summen dieser Übernahme aus der EÜR entfernen? Später erfasste Vorgänge bleiben erhalten. Danach kannst du die korrigierten Summen erneut übernehmen." } %>
   </div>
 </main>

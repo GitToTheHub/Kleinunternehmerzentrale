@@ -12,6 +12,7 @@
 - Bevorzuge nachvollziehbare Auswahlmöglichkeiten und passende Folgefelder statt langer Formulare. Eine bewusste Auswahl darf nicht durch eine automatisch vorgewählte Ausgabenart ersetzt werden. Auswahl nach Bestätigung ausblenden, Zusammenfassung und Änderungsmöglichkeit erhalten; auch erneute Wahl desselben Wertes muss die Auswahl schließen.
 - Formulare ruhig und übersichtlich halten: kurze Erklärungen direkt am passenden Feld, keine doppelten Hinweise oder vorsorglich reservierten Hinweisflächen. Bedienung und nötige Erklärungen müssen auch auf dem iPhone ohne Hover zugänglich sein.
 - Auswahlkarten zeigen keine sichtbaren Radiokreise; Auswahl, Hover und Tastaturfokus werden an der ganzen Karte dargestellt. Native Radio-Semantik für Tastatur und Screenreader erhalten.
+- Beschriftete Aktionsbuttons nutzen `button_label` mit passendem dekorativem Icon; sichtbare Texte und zugängliche Namen erhalten. Reine Symboltasten und Auswahlwerte brauchen kein zusätzliches Icon.
 - Nutze vorhandene CSS-Komponenten, Icons und Stimulus-Muster für ein einheitliches, responsives und tastaturbedienbares Layout, einschließlich Checkboxen, Radios, Fokuszuständen und Dialogen.
 
 ## Technik und Architektur

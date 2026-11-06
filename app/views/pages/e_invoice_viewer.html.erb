@@ -17,9 +17,9 @@
     <p role="status" aria-live="polite" data-e-invoice-viewer-target="status"></p>
     <p role="alert" class="e-invoice-viewer__error" hidden data-e-invoice-viewer-target="error"></p>
     <div class="invoice-actions">
-      <button type="button" class="button button--secondary" hidden data-e-invoice-viewer-target="reset" data-action="e-invoice-viewer#clear">Datei schließen</button>
-      <button type="button" class="button button--secondary" hidden data-e-invoice-viewer-target="print" data-action="e-invoice-viewer#print">Drucken oder als PDF speichern</button>
-      <%= link_to "Alle Rechnungen", invoices_path, class: "button button--secondary" %>
+      <button type="button" class="button button--secondary" hidden data-e-invoice-viewer-target="reset" data-action="e-invoice-viewer#clear"><%= button_label("Datei schließen", icon: :cancel) %></button>
+      <button type="button" class="button button--secondary" hidden data-e-invoice-viewer-target="print" data-action="e-invoice-viewer#print"><%= button_label("Drucken oder als PDF speichern", icon: :print) %></button>
+      <%= link_to button_label("Alle Rechnungen", icon: :back), invoices_path, class: "button button--secondary" %>
     </div>
     <noscript>Bitte aktiviere JavaScript, damit die Rechnungsdatei auf deinem Gerät gelesen werden kann.</noscript>
   </section>

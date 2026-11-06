@@ -15,7 +15,7 @@
       <div class="field"><%= form.label :covered_through, "Stichtag der Übernahme prüfen" %><%= render "shared/date_picker", form: form, attribute: :covered_through, required: true %><small>Die Beträge bleiben unverändert. Der Stichtag muss zu dem Zeitraum passen, den diese Beträge vollständig abdecken.</small></div>
       <div class="field"><%= form.label :source, "Quelle / Bezeichnung prüfen" %><%= form.text_field :source, required: true, maxlength: 200 %></div>
     </div>
-    <%= form.submit "Änderungen prüfen", class: "button button--secondary" %>
+    <%= form.button button_label("Änderungen prüfen", icon: :search), type: "submit", name: "commit", value: "Änderungen prüfen", class: "button button--secondary" %>
   <% end %>
 <% end %>
 <div class="bookkeeping-table euer-form-table"><table><thead><tr><th>EÜR-Zeile</th><th>EÜR-Bezeichnung</th><th>Betrag</th></tr></thead><tbody>
