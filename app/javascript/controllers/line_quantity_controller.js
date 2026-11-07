@@ -1,21 +1,66 @@
 import { Controller } from "@hotwired/stimulus"
 import { parsePrice, formatPrice } from "price_input"
 
+const lineCents = (quantity, price) => {
+  const amount = quantity * price
+  return Math.round((amount + Number.EPSILON * amount) * 100)
+}
+
+export function convertHourlyPrice(quantity, price, toFlat, hourlyRate = price) {
+  if (!Number.isFinite(price) || price < 0) throw new Error("Bitte gib zuerst einen gültigen Preis ein.")
+  if (toFlat) {
+    if (!Number.isFinite(quantity) || quantity < 0.01 || quantity > 999999999.999) throw new Error("Bitte gib zuerst gültige Stunden ein.")
+    const total = lineCents(quantity, price) / 100
+    if (total > 9999999999.99) throw new Error("Der Gesamtpreis ist zu groß für einen Pauschalpreis.")
+    return { quantity: 1, price: total, difference: 0 }
+  }
+  if (!Number.isFinite(hourlyRate) || hourlyRate <= 0) throw new Error("Bitte trage zuerst einen individuellen oder allgemeinen Stundensatz größer als 0 ein.")
+  const hours = Number((price / hourlyRate).toFixed(3))
+  if (hours < 0.01 || hours > 999999999.999) throw new Error("Der Pauschalpreis ergibt keine gültige Stundenzahl zwischen 0,01 und 999.999.999,999.")
+  return { quantity: hours, price: hourlyRate, difference: (lineCents(hours, hourlyRate) - lineCents(1, price)) / 100 }
+}
+
 // Menge ändern und Preise passend zur Einheit vorbelegen.
 export default class extends Controller {
-  static targets = ["field", "quantity", "unit", "price", "quantityLabel", "priceLabel", "hourIcon", "quantityIcon", "packagesIcon", "calendarIcon"]
+  static targets = ["field", "quantity", "unit", "price", "quantityLabel", "priceLabel", "priceHelp", "conversionHint", "hourIcon", "quantityIcon", "packagesIcon", "calendarIcon"]
 
   connect() {
+    this.previousUnit = this.unitTarget.value
     this.updateUnit()
   }
 
-  // Stundenpositionen übernehmen die gespeicherte Vorgabe, solange noch kein Preis eingetragen ist.
   unitChanged() {
+    this.unitTarget.setCustomValidity("")
+    this.conversionHintTarget.hidden = true
+    const unit = this.unitTarget.value
     const price = parsePrice(this.priceTarget.value)
-    if (this.unitTarget.value === "HUR" && !(price > 0)) {
-      const rate = this.formHourlyRate() || this.rateFromOtherLines()
-      if (rate) this.setValue(this.priceTarget, rate)
+    try {
+      if (this.previousUnit === "HUR" && unit === "LS") {
+        const text = this.quantityTarget.value.trim().replace(",", ".")
+        const quantity = /^\d+(?:\.\d{1,3})?$/.test(text) && this.quantityTarget.checkValidity() ? Number(text) : NaN
+        const converted = convertHourlyPrice(quantity, price, true)
+        this.lastHourlyRate = price
+        this.setValue(this.priceTarget, converted.price)
+        this.setValue(this.quantityTarget, "1")
+      } else if (this.previousUnit === "LS" && unit === "HUR") {
+        const rate = this.lastHourlyRate > 0 ? this.lastHourlyRate : parsePrice(this.formHourlyRate() || this.rateFromOtherLines())
+        const converted = convertHourlyPrice(1, price, false, rate)
+        this.setValue(this.priceTarget, converted.price)
+        this.setValue(this.quantityTarget, String(converted.quantity).replace(".", ","))
+        if (converted.difference !== 0) {
+          this.conversionHintTarget.textContent = `Die Stunden sind auf drei Nachkommastellen gerundet. Dadurch ändert sich der Gesamtpreis von ${formatPrice(price)} auf ${formatPrice(price + converted.difference)}.`
+          this.conversionHintTarget.hidden = false
+        }
+      } else if (unit === "HUR" && !(price > 0)) {
+        const rate = this.formHourlyRate() || this.rateFromOtherLines()
+        if (rate) this.setValue(this.priceTarget, rate)
+      }
+    } catch (error) {
+      this.unitTarget.value = this.previousUnit
+      this.conversionHintTarget.textContent = error.message
+      this.conversionHintTarget.hidden = false
     }
+    this.previousUnit = this.unitTarget.value
     this.updateUnit()
   }
 
@@ -25,6 +70,9 @@ export default class extends Controller {
     this.quantityIconTarget.hidden = ["HUR", "C62", "DAY", "MON"].includes(this.unitTarget.value)
     this.packagesIconTarget.hidden = this.unitTarget.value !== "C62"
     this.calendarIconTarget.hidden = !["DAY", "MON"].includes(this.unitTarget.value)
+    this.priceHelpTarget.hidden = !flat
+    if (flat) this.priceTarget.setAttribute("aria-describedby", this.priceHelpTarget.id)
+    else this.priceTarget.removeAttribute("aria-describedby")
     this.fieldTarget.hidden = flat
     this.quantityTarget.disabled = flat
     this.quantityTarget.required = !flat

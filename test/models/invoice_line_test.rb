@@ -1,6 +1,18 @@
 require "test_helper"
 
 class InvoiceLineTest < ActiveSupport::TestCase
+  test "German quantities retain three decimal places and reject malformed comma inputs" do
+    line = InvoiceLine.new(quantity: "0,125")
+    assert_equal BigDecimal("0.125"), line.quantity
+    line.valid?
+    assert_empty line.errors[:quantity]
+    [ "0,1234", "0,5abc", "1.000,5", "1,2,3" ].each do |value|
+      line.quantity = value
+      line.valid?
+      assert line.errors[:quantity].any?, value
+    end
+  end
+
   test "German price inputs retain cents and reject malformed amounts" do
     line = InvoiceLine.new(unit_price: "1.234,56")
     assert_equal BigDecimal("1234.56"), line.unit_price

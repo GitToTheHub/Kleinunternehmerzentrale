@@ -538,6 +538,7 @@ input.button--secondary, button.button--secondary {
 .invoice-line-details p, .invoice-line-details div { margin: 0 0 .3em; }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green, #2f6f4f); outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .field small { color: var(--muted); font-size: .8rem; }
+.field .inline-calculation-result { color: var(--ink); font-size: 1rem; font-weight: 700; }
 .bookkeeping-category-help { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding: 14px 16px; border-radius: 10px; background: var(--mint); }
 .form-errors { margin: 24px 0; padding: 18px 22px; border: 1px solid var(--error-border); border-radius: 12px; background: var(--error-bg); }
 .form-errors p { font-weight: 700; }

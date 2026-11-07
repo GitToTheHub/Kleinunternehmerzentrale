@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { formatPrice } from "price_input"
 
 // Parse arithmetic explicitly; never execute the user's input as JavaScript.
-export function calculateExpression(expression, { withUnit = false, price = false } = {}) {
+export function calculateExpression(expression, { withUnit = false, price = false, hourlyRate } = {}) {
   const source = expression.toLowerCase().replaceAll(",", ".").replaceAll("×", "*").replaceAll("÷", "/").replaceAll("−", "-")
   const tokens = []
   let offset = 0
@@ -26,7 +26,15 @@ export function calculateExpression(expression, { withUnit = false, price = fals
         offset += unit[0].length
       } else {
         const currency = source.slice(offset).match(/^\s*(?:euros?\b|eur\b|€)/)
-        if (currency) { offset += currency[0].length; valueUnit = "money" }
+        if (currency) {
+          offset += currency[0].length
+          valueUnit = "money"
+          if (hourlyRate !== undefined && !price) {
+            if (!Number.isFinite(hourlyRate) || hourlyRate <= 0) throw new Error("Bitte gib einen gültigen Preis pro Stunde größer als 0 ein, um Eurobeträge in Stunden umzurechnen.")
+            value /= hourlyRate
+            valueUnit = "time"
+          }
+        }
       }
       tokens.push({ value, unit: valueUnit })
     } else if ("+-*/()".includes(source[offset])) {
@@ -162,7 +170,7 @@ export default class extends Controller {
     this.calculate()
     if (this.applyTarget.disabled) return
     const field = document.getElementById(this.fieldValue)
-    field.value = this.fieldValue.endsWith("unit_price") ? formatPrice(this.value) : String(this.value)
+    field.value = this.fieldValue.endsWith("unit_price") ? formatPrice(this.value) : String(this.value).replace(".", ",")
     field.dispatchEvent(new Event("input", { bubbles: true }))
     field.dispatchEvent(new Event("change", { bubbles: true }))
     this.close()

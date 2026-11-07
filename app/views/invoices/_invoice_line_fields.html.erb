@@ -63,7 +63,7 @@
         <div class="quantity-input">
           <button type="button" class="quantity-input__step" aria-label="Menge um 1 verringern" data-action="mousedown->line-quantity#keepFocus line-quantity#decrease">−</button>
           <div class="calculator-input">
-          <%= form.text_field :quantity, value: (form.object.flat_rate? ? 1 : form.object.quantity), min: "0.01", step: "any", required: !form.object.flat_rate?, disabled: form.object.flat_rate?, inputmode: "text", aria: { describedby: form.field_id(:quantity_help) }, data: { controller: "inline-calculation", line_quantity_target: "quantity" } %>
+          <%= form.text_field :quantity, value: (form.object.flat_rate? ? 1 : form.object.quantity.to_s.tr(".", ",")), min: "0.01", step: "any", required: !form.object.flat_rate?, disabled: form.object.flat_rate?, inputmode: "text", aria: { describedby: form.field_id(:quantity_help) }, data: { controller: "inline-calculation", line_quantity_target: "quantity" } %>
           </div>
           <button type="button" class="quantity-input__step" aria-label="Menge um 1 erhöhen" data-action="mousedown->line-quantity#keepFocus line-quantity#increase">+</button>
         </div>
@@ -72,11 +72,12 @@
       </div>
       <div class="field invoice-line__price">
         <%= form.label :unit_price, class: "field-label" do %><%= invoice_field_icon(:unit_price) %><span data-line-quantity-target="priceLabel"><%= form.object.flat_rate? ? "Pauschalpreis" : "Preis pro #{InvoiceLine::UNIT_CODES.fetch(form.object.unit_code, "Stück")}" %></span><% end %>
-        <div class="money-input calculator-input"><%= form.text_field :unit_price, value: (form.object.unit_price.nil? ? nil : number_with_precision(form.object.unit_price, precision: 2, separator: ",", delimiter: "")), inputmode: "text", required: true, aria: { describedby: form.field_id(:unit_price_help) }, data: { controller: "price-input inline-calculation", inline_calculation_price_value: true, action: "input->price-input#validate change->price-input#format blur->price-input#format", line_quantity_target: "price" } %>
+        <div class="money-input calculator-input"><%= form.text_field :unit_price, value: (form.object.unit_price.nil? ? nil : number_with_precision(form.object.unit_price, precision: 2, separator: ",", delimiter: "")), inputmode: "text", required: true, aria: { describedby: (form.field_id(:unit_price_help) if form.object.flat_rate?) }, data: { controller: "price-input inline-calculation", inline_calculation_price_value: true, action: "input->price-input#validate change->price-input#format blur->price-input#format", line_quantity_target: "price" } %>
         </div>
         <small id="<%= form.field_id(:unit_price) %>_calculation_result" class="inline-calculation-result" role="status" aria-live="polite" hidden></small>
-        <small id="<%= form.field_id(:unit_price_help) %>">Rechenwege sind möglich, z. B. 800 / 2. Zeiten kannst du mit einem Stundensatz verrechnen, z. B. (30 min + 1 Std) * 60. Setze die gesamte Zeit in Klammern, damit sie vollständig mit dem Stundensatz multipliziert wird. Das Ergebnis siehst du sofort; mit Enter oder beim Verlassen übernimmst du es.</small>
+        <small id="<%= form.field_id(:unit_price_help) %>" data-line-quantity-target="priceHelp" <%= "hidden" unless form.object.flat_rate? %>>Rechenwege sind möglich, z. B. 800 / 2. Zeiten kannst du mit einem Stundensatz verrechnen, z. B. (30 min + 1 Std) * 60. Setze die gesamte Zeit in Klammern, damit sie vollständig mit dem Stundensatz multipliziert wird. Das Ergebnis siehst du sofort; mit Enter oder beim Verlassen übernimmst du es.</small>
       </div>
+      <small data-line-quantity-target="conversionHint" role="status" hidden></small>
       <p class="invoice-line__total">Summe der Position: <strong data-summary="total"><%= invoice_money(0, @invoice) %></strong></p>
 
     </div>

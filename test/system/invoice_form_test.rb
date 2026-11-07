@@ -912,13 +912,98 @@ class InvoiceFormTest < ApplicationSystemTestCase
       assert_text "Summe der Position: 2.000,00"
       fill_in line_id("quantity"), with: "1,5"
       find_field(line_id("unit_price")).click
-      assert_field line_id("quantity"), with: "1.5"
+      assert_field line_id("quantity"), with: "1,5"
       fill_in line_id("unit_price"), with: "10 / 0"
       find_field(line_id("unit_price")).send_keys(:enter)
       assert_field line_id("unit_price"), with: "10 / 0"
       assert_match "gültigen Wert", find_field(line_id("unit_price")).evaluate_script("this.validationMessage")
       assert_no_selector "dialog[open]"
     end
+  end
+
+  test "Berechnung zeigt Dezimalkomma und Rueckgaengig stellt den Rechenweg wieder her" do
+    fill_invoice
+    fill_in "Rechnungstitel (optional)", with: "Titel bleibt erhalten"
+    select "Stunde", from: line_id("unit_code")
+    [ :control, :meta ].each do |modifier|
+      field = find_field(line_id("quantity"))
+      field.fill_in with: "30 min"
+      field.send_keys(:enter)
+      assert_field line_id("quantity"), with: "0,5"
+      modifiers = modifier == :control ? 2 : 4
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyDown", key: "z", code: "KeyZ", modifiers: modifiers)
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyUp", key: "z", code: "KeyZ", modifiers: modifiers)
+      assert_field line_id("quantity"), with: "30 min"
+      assert_selector ".inline-calculation-result", text: "Ergebnis: 0,5"
+      assert_field "Rechnungstitel (optional)", with: "Titel bleibt erhalten"
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyDown", key: "Z", code: "KeyZ", modifiers: modifiers | 8)
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyUp", key: "Z", code: "KeyZ", modifiers: modifiers | 8)
+      assert_field line_id("quantity"), with: "0,5"
+    end
+    click_link "Später"
+    click_link "Entwurf", match: :first
+    assert_field line_id("quantity"), with: "0,5"
+    click_button "Festschreiben"
+    assert_current_path %r{\A/rechnungen/\d+\z}
+    assert_equal BigDecimal("0.5"), Invoice.last.invoice_lines.sole.quantity
+  end
+
+  test "Euroabzug bei Stunden verwendet den Positionspreis und bleibt rueckgaengig machbar" do
+    fill_invoice
+    select "Stunde", from: line_id("unit_code")
+    fill_in line_id("unit_price"), with: "50"
+    field = find_field(line_id("quantity"))
+    field.fill_in with: "4,2 - 55 €"
+    assert_selector ".inline-calculation-result", text: "Ergebnis: 3,1"
+    field.send_keys(:enter)
+    assert_field line_id("quantity"), with: "3,1"
+    assert_selector "[data-summary=total]", text: "155,00"
+    page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyDown", key: "z", code: "KeyZ", modifiers: 2)
+    page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyUp", key: "z", code: "KeyZ", modifiers: 2)
+    assert_field line_id("quantity"), with: "4,2 - 55 €"
+    field.send_keys(:enter)
+    fill_in line_id("unit_price"), with: "0"
+    field.fill_in with: "4,2 - 55 €"
+    field.send_keys(:enter)
+    assert_includes field.evaluate_script("this.validationMessage"), "Preis pro Stunde"
+    assert_field line_id("quantity"), with: "4,2 - 55 €"
+    fill_in line_id("unit_price"), with: "100"
+    field.send_keys(:enter)
+    assert_field line_id("quantity"), with: "3,65"
+    click_link "Später"
+    click_link "Entwurf", match: :first
+    assert_field line_id("quantity"), with: "3,65"
+    assert_field line_id("unit_price"), with: "100,00"
+  end
+
+  test "Pauschalpreis stellt den Rechenweg wieder her und Stundenpreise brauchen keinen Hinweis" do
+    resize_browser(390, 900)
+    fill_invoice
+    fill_in "Rechnungstitel (optional)", with: "Titel bleibt erhalten"
+    select "Stunde", from: line_id("unit_code")
+    assert_no_selector "[data-line-quantity-target=priceHelp]"
+    assert_nil find_field(line_id("unit_price"))["aria-describedby"]
+    select "Pauschal", from: line_id("unit_code")
+    assert_selector "[data-line-quantity-target=priceHelp]", text: "Rechenwege sind möglich"
+    [ 2, 4 ].each do |modifier|
+      field = find_field(line_id("unit_price"))
+      field.fill_in with: "(30 min + 1 Std) * 60"
+      field.send_keys(:enter)
+      assert_field line_id("unit_price"), with: "90,00"
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyDown", key: "z", code: "KeyZ", modifiers: modifier)
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyUp", key: "z", code: "KeyZ", modifiers: modifier)
+      assert_field line_id("unit_price"), with: "(30 min + 1 Std) * 60"
+      assert_selector ".inline-calculation-result", text: "Ergebnis: 90,00"
+      assert_field "Rechnungstitel (optional)", with: "Titel bleibt erhalten"
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyDown", key: "Z", code: "KeyZ", modifiers: modifier | 8)
+      page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyUp", key: "Z", code: "KeyZ", modifiers: modifier | 8)
+      assert_field line_id("unit_price"), with: "90,00"
+    end
+    select "Stunde", from: line_id("unit_code")
+    assert_no_selector "[data-line-quantity-target=priceHelp]"
+    fill_in line_id("unit_price"), with: "100 / 2"
+    find_field(line_id("unit_price")).send_keys(:enter)
+    assert_field line_id("unit_price"), with: "50,00"
   end
 
   test "Direkte Berechnung funktioniert fuer alle Einheiten ohne Rechnerbutton" do
@@ -1874,7 +1959,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     select "Stunde", from: line_id("unit_code")
     fill_in line_id("quantity"), with: "20 min + 40 min + 0,5 Std"
     find_field(line_id("quantity")).send_keys(:enter)
-    assert_field line_id("quantity"), with: "1.5"
+    assert_field line_id("quantity"), with: "1,5"
     assert_selector ".rich-text__editor", visible: true
     editor = find(".rich-text__editor")
     editor.set("Projektarbeit")
@@ -1887,7 +1972,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_selector "[data-invoice-lines-target=total]", text: "75,00"
     click_link "Später"
     find(".invoice-draft-card__link").click
-    assert_field line_id("quantity"), with: "1.5"
+    assert_field line_id("quantity"), with: "1,5"
     assert_selector ".rich-text__editor", text: "Projektarbeit"
     assert_selector "[data-invoice-lines-target=total]", text: "75,00"
   end
@@ -2055,6 +2140,33 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_no_selector "[data-line-quantity-target=packagesIcon]"
   end
 
+  test "Wechsel zwischen Stunden und Pauschalpreis rechnet den Gesamtpreis um" do
+    fill_invoice
+    fill_in "Allgemeiner Stundensatz", with: "50"
+    select "Stunde", from: line_id("unit_code")
+    fill_in line_id("quantity"), with: "3,1"
+    fill_in line_id("unit_price"), with: "50"
+    select "Pauschal", from: line_id("unit_code")
+    assert_field line_id("unit_price"), with: "155,00"
+    assert_selector "[data-invoice-lines-target=total]", text: "155,00"
+    select "Stunde", from: line_id("unit_code")
+    assert_field line_id("quantity"), with: "3,1"
+    assert_field line_id("unit_price"), with: "50,00"
+    select "Pauschal", from: line_id("unit_code")
+    fill_in line_id("unit_price"), with: "200"
+    select "Stunde", from: line_id("unit_code")
+    assert_field line_id("quantity"), with: "4"
+    assert_field line_id("unit_price"), with: "50,00"
+    select "Pauschal", from: line_id("unit_code")
+    click_link "Später"
+    click_link "Entwurf", match: :first
+    resize_browser(390, 900)
+    select "Stunde", from: line_id("unit_code")
+    assert_field line_id("quantity"), with: "4"
+    assert_field line_id("unit_price"), with: "50,00"
+    assert_selector "[data-invoice-lines-target=total]", text: "200,00"
+  end
+
   test "Einheiten aendern Beschriftungen und Pauschalen bleiben beim Fortsetzen erhalten" do
     fill_invoice
     select "Stunde", from: line_id("unit_code")
@@ -2064,7 +2176,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     select "Pauschal", from: line_id("unit_code")
     assert_no_field line_id("quantity")
     assert_selector "label", text: "Pauschalpreis"
-    assert_selector "[data-invoice-lines-target=total]", text: "50,00"
+    assert_selector "[data-invoice-lines-target=total]", text: "200,00"
     click_link "Später"
     find(".invoice-draft-card__link").click
     assert_select line_id("unit_code"), selected: "Pauschal"

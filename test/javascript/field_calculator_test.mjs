@@ -49,3 +49,17 @@ test("invalid expressions cannot become field values or executable code", () => 
     assert.throws(() => calculate(text), undefined, text)
   }
 })
+
+
+test("Euro amounts reduce hours using the current position rate", () => {
+  assert.ok(Math.abs(calculate("4,2 - 55 €", { hourlyRate: 50 }) - 3.1) < 1e-10)
+  assert.ok(Math.abs(calculate("4,2 Std - 55 EUR", { hourlyRate: 100 }) - 3.65) < 1e-10)
+  assert.equal(calculate("2 Std - 25 Euro - 30 min", { hourlyRate: 50 }), 1)
+  assert.equal(calculate("(4 Std - 50 €) / 2", { hourlyRate: 50 }), 1.5)
+  assert.ok(Math.abs(calculate("1 Std - 55 €", { hourlyRate: 50 }) + 0.1) < 1e-10)
+  assert.equal(calculate("4,2 - 55 €", { price: true, hourlyRate: 50 }), -50.8)
+  for (const hourlyRate of [0, -1, NaN, Infinity]) {
+    assert.throws(() => calculate("4,2 - 55 €", { hourlyRate }), /Preis pro Stunde/)
+  }
+  assert.equal(calculate("30 min + 1 Std", { hourlyRate: NaN }), 1.5)
+})

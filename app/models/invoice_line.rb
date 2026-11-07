@@ -3,6 +3,13 @@ class InvoiceLine < ApplicationRecord
   euro_amounts :unit_price
   belongs_to :invoice, inverse_of: :invoice_lines
 
+  def quantity=(value)
+    if value.is_a?(String) && value.include?(",")
+      value = value.strip.match?(/\A-?\d+,\d{1,3}\z/) ? value.strip.tr(",", ".") : "invalid"
+    end
+    super(value)
+  end
+
   UNIT_CODES = {
     "C62" => "Stück",
     "HUR" => "Stunde",
