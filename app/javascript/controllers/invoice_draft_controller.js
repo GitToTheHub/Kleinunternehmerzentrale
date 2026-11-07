@@ -3,10 +3,11 @@ import { Controller } from "@hotwired/stimulus"
 const AUTOSAVE_HINT = "Entwurf wird automatisch gespeichert"
 
 export default class extends Controller {
-  static targets = ["status", "draftId", "leave", "discardButton", "discardLabel", "discardIcon", "cancelIcon"]
+  static targets = ["status", "draftId", "leave", "discardButton", "discardLabel", "discardIcon", "cancelIcon", "resumeSection"]
   static values = { url: String, deleteUrl: String, persisted: Boolean, content: Boolean }
 
   connect() {
+    this.restoreScroll()
     this.statusTarget.textContent = AUTOSAVE_HINT
     this.hasContent = this.persistedValue || this.contentValue
     this.updateActions()
@@ -18,9 +19,32 @@ export default class extends Controller {
   }
 
   disconnect() {
+    cancelAnimationFrame(this.scrollFrame)
     window.removeEventListener("pagehide", this.saveBeforeLeaving)
     if (this.pending && !this.skipSaveOnLeave) this.save(true)
     else this.stopPendingSave()
+  }
+
+  rememberSection(event) {
+    if (!this.hasResumeSectionTarget || this.restoringScroll || this.leaving) return
+    const section = event.target.closest("[data-invoice-wizard-target='step']")?.getAttribute("aria-labelledby")
+    if (!section || section === this.resumeSectionTarget.value) return
+    this.resumeSectionTarget.value = section
+    if (this.hasContent) this.schedule()
+  }
+
+  restoreScroll() {
+    if (!this.hasResumeSectionTarget || this.element.querySelector(".field_with_errors")) return
+    const heading = this.element.querySelector(`[id="${this.resumeSectionTarget.value}"]`)
+    if (!heading) return
+    this.restoringScroll = true
+    // Wait for the other form controllers to finish setting up their fields.
+    this.scrollFrame = requestAnimationFrame(() => {
+      this.scrollFrame = requestAnimationFrame(() => {
+        heading.scrollIntoView({ block: "start", behavior: "instant" })
+        this.restoringScroll = false
+      })
+    })
   }
 
   schedule(event) {

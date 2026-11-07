@@ -250,7 +250,11 @@ class InvoicesController < ApplicationController
   def persist_draft!
     workspace = workspace!
     workspace.with_lock do
-      draft_for_write(workspace).tap { |draft| draft.update!(data: draft_attributes) }
+      draft_for_write(workspace).tap do |draft|
+        attributes = { data: draft_attributes }
+        attributes[:resume_section] = params[:resume_section] if InvoiceDraft::RESUME_SECTIONS.include?(params[:resume_section])
+        draft.update!(attributes)
+      end
     end
   end
 

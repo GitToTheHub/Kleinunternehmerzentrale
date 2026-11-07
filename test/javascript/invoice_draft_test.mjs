@@ -10,6 +10,8 @@ let saveSucceeds = true
 let fetchWait
 const source = readFileSync(new URL("../../app/javascript/controllers/invoice_draft_controller.js", import.meta.url), "utf8")
 const InvoiceDraft = runInNewContext(source.replace(/^import .*\n/, "").replace("export default class", "globalThis.InvoiceDraft = class") + "\nInvoiceDraft", {
+  cancelAnimationFrame() {},
+  requestAnimationFrame(callback) { callback(); return 1 },
   Controller: class {}, AbortController, FormData: class { constructor(element) { this.element = element } },
   document: { documentElement: {} },
   clearTimeout(id) { if (id) delete listeners.timer },
@@ -396,4 +398,34 @@ test("save shortcut keeps failed edits available and does not intercept other ke
   const other = { key: "s", preventDefault() { this.prevented = true } }
   await controller.saveShortcut(other)
   assert.equal(other.prevented, undefined)
+})
+
+
+test("restoration uses the saved section and gives validation errors priority", () => {
+  const controller = setup()
+  controller.hasResumeSectionTarget = true
+  controller.resumeSectionTarget = { value: "invoice-step-dates" }
+  const heading = { scrollIntoView(options) { listeners.restoredSection = options.block } }
+  controller.element.querySelector = selector => selector === ".field_with_errors" ? null : heading
+  delete listeners.restoredSection
+  controller.restoreScroll()
+  assert.equal(listeners.restoredSection, "start")
+  delete listeners.restoredSection
+  controller.element.querySelector = () => ({})
+  controller.restoreScroll()
+  assert.equal(listeners.restoredSection, undefined)
+})
+
+test("changing the last edited section schedules autosave only for a started draft", () => {
+  const controller = setup()
+  controller.hasResumeSectionTarget = true
+  controller.resumeSectionTarget = { value: "" }
+  const event = { target: { closest: () => ({ getAttribute: () => "invoice-step-dates" }) } }
+  controller.rememberSection(event)
+  assert.equal(controller.resumeSectionTarget.value, "invoice-step-dates")
+  assert.equal(controller.pending, undefined)
+  controller.hasContent = true
+  controller.resumeSectionTarget.value = "invoice-step-buyer"
+  controller.rememberSection(event)
+  assert.equal(controller.pending, true)
 })

@@ -55,6 +55,7 @@ class DataExport
       @workspace.invoice_drafts.active.order(:created_at, :id).each do |draft|
         add(zip, "entwuerfe/#{draft.id}.json", JSON.pretty_generate(draft.data))
       end
+      add(zip, "entwuerfe/bearbeitungsbereiche.json", JSON.pretty_generate(@workspace.invoice_drafts.active.order(:id).pluck(:id, :resume_section).to_h))
       invoices.each do |invoice|
         xml = xrechnung(invoice)
         add(zip, "xrechnung/#{invoice.invoice_number}.xml", xml) if xml

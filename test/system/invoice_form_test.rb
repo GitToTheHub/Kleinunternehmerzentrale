@@ -1,6 +1,25 @@
 require "application_system_test_case"
 
 class InvoiceFormTest < ApplicationSystemTestCase
+  test "Entwurf setzt nach Geraetewechsel im zuletzt bearbeiteten Bereich fort" do
+    fill_invoice
+    fill_in "invoice_service_on_display", with: "21.10.2026"
+    click_link "Später"
+    assert_current_path invoices_path
+    assert_equal "invoice-step-dates", InvoiceDraft.active.sole.resume_section
+    page.execute_script("localStorage.clear(); sessionStorage.clear()")
+    resize_browser(390, 900)
+    click_link "Entwurf", match: :first
+    assert_selector "#invoice-step-dates"
+    top = page.evaluate_async_script("const done = arguments[0]; requestAnimationFrame(() => requestAnimationFrame(() => done(document.getElementById('invoice-step-dates').getBoundingClientRect().top)))")
+    assert_in_delta 0, top, 12
+    assert_field "invoice_service_on_display", with: "21.10.2026"
+    page.refresh
+    assert_selector "#invoice-step-dates"
+    top = page.evaluate_async_script("const done = arguments[0]; requestAnimationFrame(() => requestAnimationFrame(() => done(document.getElementById('invoice-step-dates').getBoundingClientRect().top)))")
+    assert_in_delta 0, top, 12
+  end
+
   test "Leistungszeitraum ist in der Rechnungsuebersicht auch mobil sichtbar" do
     fill_invoice
     fill_in "invoice_service_on_display", with: "01.10.2026"

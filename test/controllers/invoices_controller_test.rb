@@ -1,5 +1,23 @@
 require "test_helper"
 class InvoicesControllerTest < ActionDispatch::IntegrationTest
+  test "Entwurf speichert den Bearbeitungsbereich separat und behaelt ihn bei alten Clients" do
+    patch draft_invoices_url, params: { invoice: { buyer_name: "Mobilkunde" }, resume_section: "invoice-step-dates" }, as: :json
+    assert_response :success
+    draft = InvoiceDraft.find(response.parsed_body.fetch("draft_id"))
+    assert_equal "invoice-step-dates", draft.resume_section
+    assert_not draft.data.key?("resume_section")
+    Zip::File.open_buffer(DataExport.new(draft.workspace).call) do |zip|
+      assert_equal "invoice-step-dates", JSON.parse(zip.read("entwuerfe/bearbeitungsbereiche.json")).fetch(draft.id.to_s)
+    end
+    get edit_draft_invoices_url(draft_id: draft.id)
+    assert_select "input[name=resume_section][value=invoice-step-dates]"
+    patch save_invoice_draft_invoices_url(draft_id: draft.id), params: { invoice: { buyer_name: "Mobilkunde" }, resume_section: "unbekannt" }, as: :json
+    assert_response :success
+    assert_equal "invoice-step-dates", draft.reload.resume_section
+    draft.close!(:discarded)
+    assert_nil draft.resume_section
+  end
+
   test "Rechnungsuebersicht zeigt Leistungszeitraeume und einzelne Leistungstage auch fuer Entwuerfe" do
     post invoices_url, params: { invoice: invoice_params_for("Zeitraumkunde").merge(service_on: "2026-08-01", service_until_on: "2026-09-30") }
     assert_response :redirect

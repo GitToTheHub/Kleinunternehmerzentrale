@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_06_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_090000) do
   create_table "asset_depreciations", force: :cascade do |t|
     t.integer "business_asset_id", null: false
     t.integer "year", null: false
@@ -191,6 +191,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_090000) do
     t.string "form_token", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "resume_section"
     t.index ["workspace_id", "form_token"], name: "index_invoice_drafts_on_workspace_id_and_form_token", unique: true
     t.index ["workspace_id", "status", "updated_at"], name: "index_invoice_drafts_on_workspace_id_and_status_and_updated_at"
     t.index ["workspace_id"], name: "index_invoice_drafts_on_workspace_id"
