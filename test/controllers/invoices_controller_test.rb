@@ -455,6 +455,25 @@ class InvoicesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Berlin", original.buyer_city
   end
 
+  test "Vorschau erlaubt Kundenaenderungen ohne Entscheidung und Festschreiben verlangt sie weiterhin" do
+    post invoices_url, params: { invoice: invoice_params_for("Gespeicherte Firma") }
+    customer = Invoice.last.customer
+    attrs = invoice_params_for("Geaenderte Firma").merge(customer_id: customer.id)
+    post preview_invoices_url, params: { invoice: attrs }
+    assert_response :redirect
+    draft = InvoiceDraft.last
+    assert_nil draft.data["customer_update_mode"]
+    follow_redirect!
+    assert_response :success
+    assert_select ".print-invoice", /Geaenderte Firma/
+    assert_equal "Gespeicherte Firma", customer.reload.name
+    assert_no_difference "Invoice.count" do
+      post invoices_url, params: { invoice: attrs, draft_id: draft.id }
+      assert_response :unprocessable_entity
+    end
+    assert_equal "Gespeicherte Firma", customer.reload.name
+  end
+
   test "Rechnungsspezifische Kundenaenderungen bleiben in Entwurf Vorschau und Rechnung ohne Kundenaenderung" do
     post invoices_url, params: { invoice: invoice_params_for("Gespeicherte Firma") }
     customer = Invoice.last.customer

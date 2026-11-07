@@ -65,14 +65,19 @@ export default class extends Controller {
 
   review(event) {
     if (event.defaultPrevented) return
-    if (this.confirmed) { this.confirmed = false; return }
+    if (event.submitter?.dataset.invoicePreview === "true") {
+      this.reviewing = false
+      this.changed()
+      return
+    }
     this.reviewing = true
     this.changed()
     if (!this.hasChanges) return
+    if (this.confirmedSignature === this.reviewSignature && this.confirmedMode === this.decisionTarget.querySelector("input:checked")?.value) return
     event.preventDefault()
     this.pendingSubmitter = event.submitter
     const continueLabel = this.continueButtonTarget.querySelector?.("[data-button-label]") || this.continueButtonTarget
-    continueLabel.textContent = event.submitter?.dataset.invoicePreview === "true" ? "Weiter zur Vorschau" : "Festschreiben"
+    continueLabel.textContent = "Festschreiben"
     this.dialogTarget.showModal()
   }
 
@@ -80,7 +85,8 @@ export default class extends Controller {
     const selected = this.decisionTarget.querySelector("input:checked")
     if (!selected) { this.decisionTarget.querySelector("input").reportValidity(); return }
     this.dialogTarget.close()
-    this.confirmed = true
+    this.confirmedSignature = this.reviewSignature
+    this.confirmedMode = selected.value
     this.element.requestSubmit(this.pendingSubmitter)
   }
 
@@ -120,6 +126,7 @@ export default class extends Controller {
       const rate = rates.length === 1 ? rates[0] : null
       if (!document.getElementById("invoice_buyer_hourly_rate") && rate && (this.element.querySelector("[name='invoice[currency]']")?.value || "EUR") === "EUR" && rate !== Number(option.dataset.hourlyRate)) describe("hourly_rate", option.dataset.hourlyRate, rate)
     }
+    this.reviewSignature = JSON.stringify([option?.value, changes])
     const changed = changes.length > 0
     this.hasChanges = changed
     if (this.hasDecisionLegendTarget) this.decisionLegendTarget.textContent = changes.length === 1 && changes[0].key === "hourly_rate" ? "Stundensatz für diesen Kunden speichern?" : "Änderungen für künftige Rechnungen speichern?"

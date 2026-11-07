@@ -751,7 +751,7 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_selector ".invoice-action-hints", text: "Fehler auf der Rechnung?"
   end
 
-  test "Kundenaenderungen werden erst vor Vorschau oder Festschreiben abgefragt" do
+  test "Kundenaenderungen werden nur beim Festschreiben und nicht bei der Vorschau abgefragt" do
     fill_invoice
     click_button "Festschreiben"
     assert_selector ".print-invoice h1"
@@ -761,27 +761,34 @@ class InvoiceFormTest < ApplicationSystemTestCase
     select "Stunde", from: line_id("unit_code")
     fill_in "Individueller Stundensatz", with: "40"
     fill_in line_id("description"), with: "Beratung"
-    assert_no_selector ".customer-update-choice"
-    windows_before = page.driver.browser.window_handles.size
-    click_button "Vorschau"
+    resize_browser(390, 1100)
+    2.times do
+      click_button "Vorschau"
+      assert_selector "dialog.invoice-preview-dialog[open]"
+      assert_no_selector ".customer-update-choice"
+      within_frame("invoice-preview-frame") { assert_selector ".print-invoice" }
+      assert_nil Customer.find_by!(name: "Testkunde GmbH").hourly_rate
+      click_button "Vorschau schließen"
+    end
+    click_button "Festschreiben"
     within ".customer-update-choice" do
       assert_text "Individueller Stundensatz: nicht hinterlegt → 40,00"
       assert_selector "li", count: 1
     end
-    assert_equal windows_before, page.driver.browser.window_handles.size
-    within("dialog[open]") { click_button "Abbrechen" }
-    assert_no_selector "dialog[open]"
-    assert_no_selector ".customer-update-choice"
-    resize_browser(390, 1100)
-    click_button "Vorschau"
-    assert_selector "dialog[open]"
     assert_no_horizontal_overflow
-    page.save_screenshot(Rails.root.join("tmp/screenshots/customer-update-dialog-mobile.png"))
-    choose "Nur für diese Rechnung verwenden"
-    click_button "Weiter zur Vorschau"
+    within("dialog[open]") { click_button "Abbrechen" }
+    click_button "Vorschau"
     assert_selector "dialog.invoice-preview-dialog[open]"
     within_frame("invoice-preview-frame") { assert_selector ".print-invoice" }
-    assert_nil Customer.find_by!(name: "Testkunde GmbH").hourly_rate
+    click_button "Vorschau schließen"
+    find_field("Individueller Stundensatz").click
+    fill_in "Individueller Stundensatz", with: "50"
+    click_button "Festschreiben"
+    assert_selector ".customer-update-choice", text: "50,00"
+    choose "Als Vorgabe für diesen Kunden speichern"
+    within("dialog[open]") { click_button "Festschreiben" }
+    assert_selector ".print-invoice h1"
+    assert_equal BigDecimal("50"), Customer.find_by!(name: "Testkunde GmbH").hourly_rate
   end
 
   test "Empfaenger steht im festen Fensteranschriftfeld der A4 Vorschau" do

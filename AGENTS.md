@@ -42,7 +42,7 @@
 - Entwürfe, Vorschau, Festschreiben, Druck/PDF, XRechnung und Storno/Korrektur sind vorhanden. Festgeschriebene Rechnungen sind unveränderlich; reguläre Korrekturen laufen über die vorhandenen Verfahren.
 - Entwurfs-Autospeicherung und mehrere Tabs dürfen keine abgeschlossenen Entwürfe wieder aktivieren oder Änderungen gegenseitig unbemerkt überschreiben. Strg+S/⌘+S speichert im Rechnungsformular den Entwurf statt der Browserseite.
 - Verwende „Stundensatz“, nicht „Stundenlohn“. Der allgemeine Stundensatz steht unter „Deine Angaben“, der individuelle beim Kunden. Leer bedeutet beim Kunden: allgemeine Vorgabe verwenden; diese als grauen Platzhalter zeigen. Positionen dürfen abweichen, schreiben aber nicht heimlich die allgemeine Vorgabe um.
-- Änderungen an gespeicherten Kundendaten werden erst bei Vorschau oder Festschreiben in einem Dialog zur Entscheidung gestellt, nicht während der Eingabe.
+- Änderungen an gespeicherten Kundendaten werden erst beim Festschreiben in einem Dialog zur Entscheidung gestellt; während der Eingabe und für die Vorschau ist keine Entscheidung nötig.
 - EUR kann mit Auslandskunden vereinbart werden. Ein Währungswechsel rechnet Positionspreise nicht automatisch um; Fremdwährungsfälle benötigen nachvollziehbare Kursangaben für EUR-Werte.
 - Die Rechnungserstellung unterstützt auch Regelbesteuerung; die normale Zahlungserfassung ist auf Kleinunternehmer ausgerichtet. Unterstützung einzelner Steuerfelder bedeutet keine vollständige Automatisierung aller Umsatzsteuerfälle.
 - Rechnungen, Angebote und Aufträge verwenden das gemeinsame Formular `shared/business_document_form`; dokumentbezogene Felder und Aktionen bleiben passend zum jeweiligen Vorgang.

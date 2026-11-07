@@ -153,6 +153,7 @@ class InvoicesController < ApplicationController
     workspace = current_workspace || Workspace.new
     @invoice = OrderInvoicePreparation.new(workspace, invoice_params).call
     @invoice.record_initial_payment = true
+    @invoice.customer_update_mode = "invoice_only"
     return render :preview_errors, status: :unprocessable_entity unless @invoice.valid?
 
     @draft = persist_draft!
@@ -164,6 +165,7 @@ class InvoicesController < ApplicationController
     @embedded_preview = params[:embedded] == "1"
     workspace = @draft.workspace
     @invoice = OrderInvoicePreparation.new(workspace, @draft.data.reverse_merge("payment_due_on" => nil)).call
+    @invoice.customer_update_mode = "invoice_only"
     return render :preview_errors, layout: (@embedded_preview ? "invoice_preview" : "application"), status: :unprocessable_entity unless @invoice.valid?
 
     @preview = true
