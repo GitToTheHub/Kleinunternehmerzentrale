@@ -255,16 +255,16 @@
       <%= render "invoices/settlement_selection", form: form %>
       <div class="form-grid">
         <%= render "invoices/number_field", form: form %>
+        <div class="field field--wide">
+          <%= invoice_field_label(form, :title, "Rechnungstitel (optional)") %>
+          <%= form.text_field :title, maxlength: 200, placeholder: "z.B. Website-Betreuung Oktober 2026" %>
+          <small>Erscheint unter der Rechnungsnummer und in der Übersicht.</small>
+        </div>
         <div class="field">
           <%= invoice_field_label(form, :issued_on, "Rechnungsdatum") %>
           <%= render "shared/date_picker", form: form, attribute: :issued_on, required: true %>
           <% issued_on_hints = t("invoices.issued_on_hints") %>
           <%= tag.small issued_on_hints.fetch(@invoice.billing_kind.to_s.to_sym, issued_on_hints.fetch(:regular)), data: { billing_kind_target: "issuedOnHint", hints: issued_on_hints.to_json } %>
-        </div>
-        <div class="field field--wide">
-          <%= invoice_field_label(form, :title, "Rechnungstitel (optional)") %>
-          <%= form.text_field :title, maxlength: 200, placeholder: "z.B. Website-Betreuung Oktober 2026" %>
-          <small>Erscheint unter der Rechnungsnummer und in der Übersicht.</small>
         </div>
         <div class="field field--wide">
           <div class="form-grid">

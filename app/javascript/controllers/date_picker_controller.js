@@ -58,10 +58,16 @@ export default class extends Controller {
     this.validateText()
   }
 
-  parse(value) {
-    const match = value.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)
+  parse(value, today = new Date()) {
+    const match = value.trim().match(/^(\d{1,2})\.(\d{1,2})(?:\.(\d{4})|\.?)$/)
     if (!match) return ""
-    const [, day, month, year] = match.map(Number)
+    const day = Number(match[1])
+    const month = Number(match[2])
+    let year = match[3] ? Number(match[3]) : today.getFullYear()
+    if (!match[3]) {
+      if (today.getMonth() === 11 && month === 1) year += 1
+      else if (today.getMonth() === 0 && month === 12) year -= 1
+    }
     const date = new Date(year, month - 1, day)
     if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return ""
     return this.iso(date)
@@ -77,9 +83,10 @@ export default class extends Controller {
       date.setDate(date.getDate() + 1)
       minimum = this.iso(date)
     }
+    const changed = this.inputTarget.min !== minimum
     this.inputTarget.min = minimum
     this.validateText()
-    if (!this.calendarTarget.hidden) this.render()
+    if (changed && !this.calendarTarget.hidden) this.render()
   }
 
   validateText() {
@@ -96,7 +103,10 @@ export default class extends Controller {
     if (event.target === this.textInput) {
       this.inputTarget.value = this.parse(this.textInput.value)
       this.validateText()
-      this.close()
+      if (event.type === "input") {
+        if (this.calendarTarget.hidden || this.inputTarget.value) this.open(event)
+        else this.render()
+      }
     } else if (event.target === this.inputTarget) this.syncDisplay()
   }
 
@@ -209,6 +219,12 @@ export default class extends Controller {
     const offset = (this.visibleMonth.getDay() + 6) % 7
     const count = new Date(year, month + 1, 0).getDate()
     const today = this.iso(new Date())
+    const partialDay = this.textInput.value.trim().match(/^(\d{1,2})\.?$/)
+    const suggestedDay = partialDay ? Number(partialDay[1]) : 0
+    const suggestion = suggestedDay >= 1 && suggestedDay <= count
+      ? this.iso(new Date(year, month, suggestedDay)) : ""
+    const selected = this.inputTarget.value || (this.selectable(suggestion) ? suggestion : "")
+    if (selected) this.focusDate = selected
     this.todayButtonTarget.disabled = !this.selectable(today)
     const cells = []
     for (let index = 0; index < offset; index++) cells.push(document.createElement("span"))
@@ -220,7 +236,7 @@ export default class extends Controller {
       button.textContent = day
       button.setAttribute("data-date", value)
       button.setAttribute("aria-label", date.toLocaleDateString("de-DE", { dateStyle: "full" }))
-      button.setAttribute("aria-pressed", String(value === this.inputTarget.value))
+      button.setAttribute("aria-pressed", String(value === selected))
       if (value === today) button.setAttribute("aria-current", "date")
       button.disabled = !this.selectable(value)
       button.addEventListener("click", () => this.select(value))

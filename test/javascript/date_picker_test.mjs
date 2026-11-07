@@ -238,3 +238,66 @@ test("Today is also disabled when beyond the maximum date", () => {
   controller.open()
   assert.equal(controller.todayButtonTarget.disabled, true)
 })
+
+
+test("typing opens the calendar without replacing partial text and follows complete dates", () => {
+  const controller = picker("2026-10-07")
+  controller.textInput.value = "12."
+  controller.update({ target: controller.textInput, type: "input" })
+  assert.equal(controller.calendarTarget.hidden, false)
+  assert.equal(controller.textInput.value, "12.")
+  assert.equal(controller.inputTarget.value, "")
+  controller.textInput.value = "12.11.2026"
+  controller.update({ target: controller.textInput, type: "input" })
+  assert.equal(controller.iso(controller.visibleMonth), "2026-11-01")
+  assert.equal(controller.inputTarget.value, "2026-11-12")
+  controller.close()
+  controller.update({ target: controller.textInput, type: "change" })
+  assert.equal(controller.calendarTarget.hidden, true)
+})
+
+
+test("dates without a year use the current year and adjacent years at the year boundary", () => {
+  const controller = picker("")
+  const november = new Date(2026, 10, 7)
+  const december = new Date(2026, 11, 15)
+  const january = new Date(2027, 0, 15)
+  assert.equal(controller.parse("21.10.", november), "2026-10-21")
+  assert.equal(controller.parse("21.10", november), "2026-10-21")
+  assert.equal(controller.parse("10.01", december), "2027-01-10")
+  assert.equal(controller.parse("10.12.", january), "2026-12-10")
+  assert.equal(controller.parse("10.02.", december), "2026-02-10")
+  assert.equal(controller.parse("10.11.", january), "2027-11-10")
+  assert.equal(controller.parse("10.01.2025", december), "2025-01-10")
+  assert.equal(controller.parse("10.12.2028", january), "2028-12-10")
+  assert.equal(controller.parse("29.02.", new Date(2028, 1, 1)), "2028-02-29")
+  for (const text of ["29.02.", "31.04.", "10.13.", "21.", "21.10.2", "21.10.26"]) {
+    assert.equal(controller.parse(text, november), "", text)
+  }
+})
+
+
+test("a typed day is highlighted in the visible month without storing an incomplete date", () => {
+  const controller = picker("2026-10-07")
+  controller.open()
+  const selected = () => controller.daysTarget.cells.filter(cell => cell.attributes?.["aria-pressed"] === "true")
+  for (const text of ["2", "21", "21."]) {
+    controller.textInput.value = text
+    controller.update({ target: controller.textInput, type: "input" })
+    const day = text.replace(".", "").padStart(2, "0")
+    assert.equal(selected()[0].attributes["data-date"], `2026-10-${day}`)
+    assert.equal(controller.inputTarget.value, "")
+    assert.equal(controller.textInput.value, text)
+  }
+  controller.next()
+  assert.equal(selected()[0].attributes["data-date"], "2026-11-21")
+  for (const text of ["0", "32", "31", "", "21.13."]) {
+    controller.textInput.value = text
+    controller.update({ target: controller.textInput, type: "input" })
+    assert.equal(selected().length, 0, text)
+  }
+  controller.inputTarget.min = "2026-11-22"
+  controller.textInput.value = "21"
+  controller.update({ target: controller.textInput, type: "input" })
+  assert.equal(selected().length, 0)
+})

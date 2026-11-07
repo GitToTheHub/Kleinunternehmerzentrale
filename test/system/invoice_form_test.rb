@@ -1488,6 +1488,54 @@ class InvoiceFormTest < ApplicationSystemTestCase
     assert_selector "#service_until_on-calendar button[data-date='2026-11-30'][aria-pressed=true]"
   end
 
+  test "Tippen oeffnet den Kalender und erlaubt die Vervollstaendigung per Auswahl" do
+    [ 1400, 390 ].each do |width|
+      resize_browser(width, 900)
+      fill_invoice
+      field = find("#invoice_service_until_on_display")
+      field.send_keys(:tab)
+      field.send_keys([ :shift, :tab ])
+      field.send_keys("1")
+      assert_selector "#service_until_on-calendar"
+      assert_equal field[:id], page.evaluate_script("document.activeElement.id")
+      within "#service_until_on-calendar" do
+        find("button[data-date]:not(:disabled)", match: :first).click
+      end
+      assert_match(/\A\d{2}\.\d{2}\.\d{4}\z/, field.value)
+      assert_no_selector "#service_until_on-calendar"
+    end
+  end
+
+  test "Eingegebener Tag wird im angezeigten Monat markiert ohne ein Datum zu speichern" do
+    [ 1400, 390 ].each do |width|
+      resize_browser(width, 900)
+      fill_invoice
+      field = find("#invoice_issued_on_display")
+      field.click
+      field.fill_in with: "21"
+      assert_selector "#issued_on-calendar button[aria-pressed=true]", text: "21", exact_text: true
+      assert_equal "", find("#invoice_issued_on", visible: :all).value
+      assert_equal "21", field.value
+      field.send_keys(".")
+      assert_selector "#issued_on-calendar button[aria-pressed=true]", text: "21", exact_text: true
+      find("#issued_on-calendar button[aria-pressed=true]").click
+      assert_match(/\A21\.\d{2}\.\d{4}\z/, field.value)
+    end
+  end
+
+  test "Datum ohne Jahr zeigt den Vorschlag im Kalender und ergaenzt das Jahr beim Verlassen" do
+    fill_invoice
+    year = page.evaluate_script("new Date().getFullYear()")
+    field = find("#invoice_issued_on_display")
+    field.fill_in with: "21.10."
+    assert_selector "#issued_on-calendar .date-picker__header strong", text: "Oktober #{year}"
+    assert_selector "#issued_on-calendar button[data-date='#{year}-10-21'][aria-pressed=true]"
+    assert_equal "21.10.", field.value
+    field.send_keys(:tab)
+    assert_field "invoice_issued_on_display", with: "21.10.#{year}"
+    assert_selector "#invoice_issued_on[value='#{year}-10-21']", visible: :all
+  end
+
   test "Datumsvalidierung und Leistungszeitraum funktionieren mit dem deutschen Datumseingabefeld" do
     fill_invoice
     fill_in "invoice_issued_on_display", with: "08.10.2026"
