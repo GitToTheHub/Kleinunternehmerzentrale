@@ -301,3 +301,26 @@ test("a typed day is highlighted in the visible month without storing an incompl
   controller.update({ target: controller.textInput, type: "input" })
   assert.equal(selected().length, 0)
 })
+
+
+test("leaving the date field closes the calendar but focusing its days keeps it open", () => {
+  const controller = picker("2026-10-21")
+  const day = {}
+  controller.element.contains = target => target === day
+  controller.open()
+  controller.focusout({ relatedTarget: day })
+  assert.equal(controller.calendarTarget.hidden, false)
+  controller.focusout({ relatedTarget: {} })
+  assert.equal(controller.calendarTarget.hidden, true)
+})
+
+
+test("the calendar in a payment dialog keeps the submit actions accessible", () => {
+  const controller = picker("2026-10-21")
+  controller.inDialog = true
+  controller.calendarTarget.hidden = false
+  controller.element.closest = () => ({ querySelector: () => ({ getBoundingClientRect: () => ({ top: 600, bottom: 650 }) }) })
+  controller.textInput.getBoundingClientRect = () => ({ top: 400, bottom: 444, left: 100 })
+  controller.position()
+  assert.ok(parseFloat(controller.calendarTarget.style.top) + 350 < 600)
+})

@@ -136,7 +136,10 @@ export default class extends Controller {
     const viewportRight = viewportLeft + (viewport?.width || window.innerWidth)
     const viewportBottom = viewportTop + (viewport?.height || window.innerHeight)
     let field = this.textInput.getBoundingClientRect()
-    const footer = document.querySelector(".invoice-form__actions")?.getBoundingClientRect()
+    const actions = this.inDialog
+      ? this.element.closest("dialog").querySelector(".invoice-actions")
+      : document.querySelector(".invoice-form__actions")
+    const footer = actions?.getBoundingClientRect()
     const bottom = footer && footer.bottom > viewportTop && footer.top < viewportBottom
       ? Math.min(viewportBottom, footer.top) - margin : viewportBottom - margin
     const top = viewportTop + margin
@@ -164,6 +167,10 @@ export default class extends Controller {
     this.calendarTarget.hidden = true
     this.textInput.setAttribute("aria-expanded", "false")
     if (focused) this.textInput.focus({ preventScroll: true })
+  }
+
+  focusout(event) {
+    if (!this.element.contains(event.relatedTarget)) this.close()
   }
 
   outside(event) {
