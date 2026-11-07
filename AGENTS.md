@@ -86,4 +86,5 @@
 - Rails: `PARALLEL_WORKERS=1 bin/rails test`. JavaScript: `node --test test/javascript/*.mjs`. Rails-Testläufe gegen dieselbe SQLite-Testdatenbank nicht gleichzeitig starten.
 - UI-Abläufe mit den vorhandenen Capybara/Selenium-Systemtests prüfen: `bin/rails test:system` bzw. betroffene Dateien unter `test/system`. Chrome erforderlich; Screenshots liegen unter `tmp/screenshots`. Mobile Darstellung und reale Interaktionen prüfen, nicht nur HTML-Ausgabe.
 - Ruby-Stil: `bin/rubocop`; zusätzlich `git diff --check`. `bin/ci` und `.github/workflows/ci.yml` definieren vollständige Prüfungen einschließlich Brakeman, Gem- und Importmap-Audit.
+- Vor Commits mit Funktionsänderungen den vollständigen Rails-Testlauf ausführen; gezielte Tests allein reichen dafür nicht. Bei Änderungen an gemeinsam genutzten Formularen oder Stimulus-Controllern außerdem die vollständigen Systemtests ausführen.
 - Prüfungen dem Änderungsumfang anpassen. Bestandene Tests nicht unnötig wiederholen; reine Dokumentationsänderungen benötigen keine Anwendungstests. Ausstehende oder blockierte Prüfungen ausdrücklich benennen, niemals als bestanden darstellen.
