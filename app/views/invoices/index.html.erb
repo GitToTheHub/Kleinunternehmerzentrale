@@ -35,6 +35,7 @@
         </div>
       </div>
       <div class="invoice-list__details">
+        <%= render "invoices/service_period_summary", invoice: draft_invoice %>
         <% if (original = draft.workspace.invoices.includes(:cancellation).find_by(id: draft_invoice.corrected_invoice_id)) %>
           <span class="invoice-list__relation">Korrigiert Rechnung <%= link_to original.invoice_number, invoice_path(original) %><% if original.cancellation %> (storniert durch <%= link_to original.cancellation.invoice_number, invoice_path(original.cancellation) %>)<% end %></span>
         <% end %>
@@ -70,6 +71,7 @@
           <span class="invoice-list__date"><%= invoice.issued_on.strftime("%d.%m.%Y") %></span>
           <strong class="invoice-list__amount <%= 'invoice-list__amount--cancelled' if invoice.cancellation %>"><%= invoice_money(invoice.payment_total, invoice) %><% if billing && billing[:total] %> <span>von <%= invoice_money(billing[:total], invoice) %></span><% end %></strong>
           <div class="invoice-list__details">
+            <%= render "invoices/service_period_summary", invoice: invoice %>
             <% if billing && billing[:count] > 1 %>
               <span class="invoice-list__relation">Insgesamt berechnet: <%= invoice_money(billing[:billed], invoice) %><% if billing[:total] %> von <%= invoice_money(billing[:total], invoice) %><% end %></span>
             <% end %>

@@ -1,6 +1,21 @@
 require "application_system_test_case"
 
 class InvoiceFormTest < ApplicationSystemTestCase
+  test "Leistungszeitraum ist in der Rechnungsuebersicht auch mobil sichtbar" do
+    fill_invoice
+    fill_in "invoice_service_on_display", with: "01.10.2026"
+    fill_in "invoice_service_until_on_display", with: "31.10.2026"
+    click_button "Festschreiben"
+    assert_current_path %r{\A/rechnungen/\d+\z}
+    visit invoices_path
+    [ 1400, 390 ].each do |width|
+      resize_browser(width, 900)
+      summary = find(".invoice-list__service-period", text: "Leistungszeitraum: 01.10.2026 bis 31.10.2026")
+      assert summary.visible?
+      assert_operator summary.evaluate_script("this.getBoundingClientRect().right"), :<=, width
+    end
+  end
+
   test "Text in Nummernvorlagen ist mit der Maus markierbar ohne das Format zu wechseln" do
     fill_invoice
     find("#invoice-number-preview").click

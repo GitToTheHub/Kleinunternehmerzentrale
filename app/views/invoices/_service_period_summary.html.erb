@@ -1,0 +1,9 @@
+<% if invoice.service_on.present? %>
+  <span class="invoice-list__service-period">
+    <% if invoice.service_until_on.present? && invoice.service_until_on != invoice.service_on %>
+      <%= invoice.billing_kind == "advance" ? "Voraussichtlicher Leistungszeitraum" : "Leistungszeitraum" %>: <%= invoice.service_on.strftime("%d.%m.%Y") %> bis <%= invoice.service_until_on.strftime("%d.%m.%Y") %>
+    <% else %>
+      <%= invoice.billing_kind == "advance" ? "Voraussichtliche Leistung" : "Leistungsdatum" %>: <%= invoice.service_on.strftime("%d.%m.%Y") %>
+    <% end %>
+  </span>
+<% end %>

@@ -1,5 +1,21 @@
 require "test_helper"
 class InvoicesControllerTest < ActionDispatch::IntegrationTest
+  test "Rechnungsuebersicht zeigt Leistungszeitraeume und einzelne Leistungstage auch fuer Entwuerfe" do
+    post invoices_url, params: { invoice: invoice_params_for("Zeitraumkunde").merge(service_on: "2026-08-01", service_until_on: "2026-09-30") }
+    assert_response :redirect
+    period_invoice = Invoice.last
+    post invoices_url, params: { invoice: invoice_params_for("Tageskunde").merge(service_on: "2026-10-21") }
+    assert_response :redirect
+    day_invoice = Invoice.last
+    patch draft_invoices_url, params: { invoice: { buyer_name: "Entwurf", billing_kind: "advance", service_on: "2026-11-01", service_until_on: "2026-11-30" } }, as: :json
+    assert_response :success
+    get invoices_url
+    assert_response :success
+    assert_select "#invoice_#{period_invoice.id} .invoice-list__service-period", text: "Leistungszeitraum: 01.08.2026 bis 30.09.2026"
+    assert_select "#invoice_#{day_invoice.id} .invoice-list__service-period", text: "Leistungsdatum: 21.10.2026"
+    assert_select ".invoice-draft-card .invoice-list__service-period", text: "Voraussichtlicher Leistungszeitraum: 01.11.2026 bis 30.11.2026"
+  end
+
   test "Vorschau warnt bei kostenlosen Positionen ausserhalb des Rechnungsdokuments" do
     attrs = invoice_params_for("Vorschaukunde")
     attrs[:invoice_lines_attributes]["0"][:unit_price] = "0"
