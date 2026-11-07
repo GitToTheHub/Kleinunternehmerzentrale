@@ -234,9 +234,10 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
 
     post invoices_url, params: invoice_params.deep_merge(invoice: { seller_email: "a@example.de", buyer_email: "b@example.de", buyer_name: "=Evil" })
     number = Invoice.last.invoice_number
-    draft = Invoice.last.workspace.invoice_drafts.create!(data: { "buyer_name" => "Entwurfskunde" })
+    draft = Invoice.last.workspace.invoice_drafts.create!(data: { "buyer_name" => "Entwurfskunde" }, resume_section: "invoice-step-dates")
     second = Invoice.last.workspace.invoice_drafts.create!(data: { "buyer_name" => "Zweiter Entwurf" })
-    Invoice.last.workspace.invoice_drafts.create!(data: {}, status: :discarded)
+    Invoice.last.workspace.invoice_drafts.create!(data: {}, status: :discarded, resume_section: "invoice-step-lines")
+    workspaces(:one).invoice_drafts.create!(data: { "buyer_name" => "Fremder Entwurf" }, resume_section: "invoice-step-buyer")
 
     get export_url
     assert_response :success
@@ -246,11 +247,12 @@ class WorkspacesTest < ActionDispatch::IntegrationTest
         entries[entry.name] = zip.read.force_encoding("UTF-8")
       end
     end
-    assert_equal [ "absender.csv", "angebote-und-auftraege.json", "rechnungs-auftragsbezug.json", "einstellungen.json", "kunden.csv", "positionen.csv", "rechnungen.csv", "entwuerfe/#{draft.id}.json", "entwuerfe/#{second.id}.json", "xrechnung/#{number}.xml" ].sort, entries.keys.sort
+    assert_equal [ "absender.csv", "angebote-und-auftraege.json", "rechnungs-auftragsbezug.json", "einstellungen.json", "kunden.csv", "positionen.csv", "rechnungen.csv", "entwuerfe/#{draft.id}.json", "entwuerfe/#{second.id}.json", "entwuerfe/bearbeitungsbereiche.json", "xrechnung/#{number}.xml" ].sort, entries.keys.sort
     assert_includes entries["rechnungen.csv"], number
     assert_includes entries["rechnungen.csv"], "'=Evil"
     assert_not_includes entries["rechnungen.csv"], invoices(:one).invoice_number
     assert_includes entries["entwuerfe/#{draft.id}.json"], "Entwurfskunde"
+    assert_equal({ draft.id.to_s => "invoice-step-dates", second.id.to_s => nil }, JSON.parse(entries.fetch("entwuerfe/bearbeitungsbereiche.json")))
   end
 
   test "Spendenseite verlinkt GitHub Sponsors" do

@@ -41,7 +41,7 @@ class BillingUnitsTest < ApplicationSystemTestCase
     visit edit_draft_invoices_path(draft_id: draft.id)
     within "[data-invoice-lines-target='row']" do
       assert_select "Einheit", selected: "Monat", options: [ "Monat", "Pauschal" ]
-      assert_field "Monate", with: "3.0"
+      assert_field "Monate", with: "3,0"
       assert_field "Preis pro Monat", with: "85,00"
     end
     click_button "Position hinzufügen"
