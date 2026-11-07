@@ -14,6 +14,7 @@ export function convertHourlyPrice(quantity, price, toFlat, hourlyRate = price) 
     if (total > 9999999999.99) throw new Error("Der Gesamtpreis ist zu groß für einen Pauschalpreis.")
     return { quantity: 1, price: total, difference: 0 }
   }
+  if (price === 0) return { quantity: 1, price: 0, difference: 0 }
   if (!Number.isFinite(hourlyRate) || hourlyRate <= 0) throw new Error("Bitte trage zuerst einen individuellen oder allgemeinen Stundensatz größer als 0 ein.")
   const hours = Number((price / hourlyRate).toFixed(3))
   if (hours < 0.01 || hours > 999999999.999) throw new Error("Der Pauschalpreis ergibt keine gültige Stundenzahl zwischen 0,01 und 999.999.999,999.")

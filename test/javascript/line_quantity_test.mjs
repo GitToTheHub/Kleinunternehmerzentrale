@@ -33,6 +33,11 @@ test("invalid or unavailable rates and quantities cannot silently change amounts
     assert.throws(() => convert(quantity, 50, true), /Stunden/)
   }
   assert.throws(() => convert(1, NaN, true), /Preis/)
-  assert.throws(() => convert(1, 0, false, 50), /Stundenzahl/)
+  for (const rate of [0, 50, NaN]) {
+    const empty = convert(1, 0, false, rate)
+    assert.equal(empty.quantity, 1)
+    assert.equal(empty.price, 0)
+    assert.equal(empty.difference, 0)
+  }
   assert.equal(convert(3.1, 0, true).price, 0)
 })
