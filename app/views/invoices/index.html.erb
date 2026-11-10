@@ -14,7 +14,7 @@
 
   <div class="invoice-list">
   <% @invoice_drafts.each do |draft| %>
-    <% draft_invoice = Invoice.new(draft.data) %>
+    <% draft_invoice = OrderInvoicePreparation.new(draft.workspace, draft.data).call %>
     <section class="invoice-list__item invoice-list__item--draft invoice-draft-card" aria-labelledby="invoice-draft-title-<%= draft.id %>" data-controller="record-link" data-action="click->record-link#open">
       <div class="invoice-list__labels">
         <%= link_to "Entwurf", edit_draft_invoices_path(draft_id: draft.id), id: "invoice-draft-title-#{draft.id}", class: "invoice-list__label invoice-list__label--draft invoice-draft-card__link", draggable: false, data: { record_link_target: "link" }, aria: { label: "Entwurf fortsetzen" } %>

@@ -184,6 +184,20 @@ class SalesDocumentsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "Entwurfsuebersicht berechnet Anzahlungen aus dem Gesamtauftrag ohne eigene Positionen" do
+    post invoices_url, params: { invoice: scope_params.merge("order_based" => "1", "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50") }
+    assert_response :redirect
+    order = Invoice.last.sales_document
+    input = scope_params.except("invoice_lines_attributes").merge("sales_document_id" => order.id, "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50")
+    patch draft_invoices_url, params: { invoice: input }, as: :json
+    assert_response :success
+    assert_no_difference [ "Invoice.count", "SalesDocument.count", "BookkeepingEntry.count" ] do
+      get invoices_url
+      assert_response :success
+      assert_select ".invoice-draft-card__amount strong", text: "400,00 €"
+    end
+  end
+
   test "server berechnet Anzahlung und Rest und verhindert doppelte Vollabrechnung" do
     attrs = scope_params.merge("order_based" => "1", "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50", "paid" => "1", "received_on" => Date.current)
     post invoices_url, params: { invoice: attrs }
