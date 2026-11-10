@@ -195,12 +195,13 @@ class SalesDocumentsControllerTest < ActionDispatch::IntegrationTest
       get invoices_url
       assert_response :success
       assert_select ".invoice-draft-card__amount strong", text: "400,00 € von 800,00 €"
-      assert_select ".invoice-draft-card .invoice-list__order-payment", text: "Auftrag: 400,00 € von 800,00 € bezahlt · noch 400,00 € zu zahlen"
+      assert_select ".invoice-draft-card .invoice-list__order-payment", text: "Bisher bezahlt: 400,00 € (#{Invoice.last.invoice_number})"
+      assert_select ".invoice-draft-card .invoice-list__current-payment", text: "Diese weitere Anzahlung: 400,00 €"
     end
     post invoices_url, params: { invoice: input.merge("customer_id" => Invoice.last.customer_id, "customer_update_mode" => "invoice_only", "paid" => "1", "received_on" => Date.current) }
     assert_response :redirect
     get invoices_url
-    assert_select "#invoice_#{Invoice.last.id} .invoice-list__order-payment", text: "Auftrag: 800,00 € von 800,00 € bezahlt · vollständig bezahlt"
+    assert_select "#invoice_#{Invoice.last.id} .invoice-list__order-payment", text: "Gesamtauftrag vollständig bezahlt: 800,00 €."
   end
 
   test "server berechnet Anzahlung und Rest und verhindert doppelte Vollabrechnung" do

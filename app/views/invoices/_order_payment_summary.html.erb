@@ -1,3 +1,10 @@
 <% if (summary = invoice_order_payment_summary(invoice)) %>
-  <span class="invoice-list__relation invoice-list__order-payment">Auftrag: <%= invoice_money(summary[:paid], invoice) %> von <%= invoice_money(summary[:total], invoice) %> bezahlt · <%= summary[:outstanding].zero? ? "vollständig bezahlt" : "noch #{invoice_money(summary[:outstanding], invoice)} zu zahlen" %></span>
+  <% if summary[:outstanding].zero? %>
+    <span class="invoice-list__relation invoice-list__order-payment">Gesamtauftrag vollständig bezahlt: <%= invoice_money(summary[:paid], invoice) %>.</span>
+  <% else %>
+    <span class="invoice-list__relation invoice-list__order-payment">Bisher bezahlt: <%= invoice_money(summary[:paid], invoice) %><% if summary[:paid_invoices].any? %> (<%= safe_join(summary[:paid_invoices].map { |item| link_to item.invoice_number, invoice_path(item) }, ", ") %>)<% end %></span>
+    <% if !invoice.persisted? || !invoice.payment_received? %>
+      <span class="invoice-list__relation invoice-list__current-payment"><%= invoice.partial_invoice? ? (invoice.billing_kind == "advance" ? "Diese #{'weitere ' if summary[:paid].positive?}Anzahlung" : "Dieser Abschlag") : "Mit dieser Rechnung zu zahlen" %>: <%= invoice_money(invoice.payment_total, invoice) %></span>
+    <% end %>
+  <% end %>
 <% end %>

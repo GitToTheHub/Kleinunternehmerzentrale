@@ -2,10 +2,10 @@ module InvoicesHelper
   def invoice_order_payment_summary(invoice)
     return unless invoice.staged_invoice? && !invoice.cancellation? && !invoice.cancellation && invoice.order_total
 
-    payments = invoice.order_invoices.where(cancelled_invoice_id: nil).includes(:cancellation, payment_entry: :refunds)
-      .reject(&:cancellation).filter_map(&:payment_entry).uniq(&:id)
-    paid = payments.sum { |entry| entry.amount - entry.refunds.sum(&:amount) }
-    { total: invoice.order_total, paid: paid, outstanding: [ invoice.order_total - paid, 0.to_d ].max }
+    paid_invoices = invoice.order_invoices.where(cancelled_invoice_id: nil).includes(:cancellation, payment_entry: :refunds)
+      .reject(&:cancellation).select { |item| item.payment_entry && item.payment_entry.amount > item.payment_entry.refunds.sum(&:amount) }
+    paid = paid_invoices.sum { |item| item.payment_entry.amount - item.payment_entry.refunds.sum(&:amount) }
+    { total: invoice.order_total, paid: paid, paid_invoices: paid_invoices, outstanding: [ invoice.order_total - paid, 0.to_d ].max }
   end
 
   def invoice_payment_action(_invoice)
