@@ -18,6 +18,7 @@
 
 ## Technik und Architektur
 - Rails 8.1 (oder neuer), Ruby gemäß `.tool-versions` (oder neuer), SQLite, ERB, Propshaft, Hotwire/Turbo und Stimulus über Importmap. Kein zusätzlicher Frontend-Build ist erforderlich.
+- Veröffentlichung: Kamal auf `kleinunternehmerzentrale.de`; Pushes auf `main` deployen nach bestandener CI einschließlich Produktionsimage-Startprüfung. Nur eingecheckten Code bauen, Secrets aus der Umgebung und Daten im persistenten Storage-Volume halten. Einrichtung und Betrieb: `docs/deployment.md`.
 - Ruby-Stil: `rubocop-rails-omakase` gemäß `.rubocop.yml`. Bestehende Rails-Konventionen und fachliche Services weiterverwenden.
 - Modelle enthalten Validierungen und Datensatzregeln; fachliche Berechnungen liegen insbesondere in `app/services`. JavaScript steuert Interaktion, serverseitige Validierung bleibt maßgeblich.
 - Daten sind einem `Workspace` zugeordnet. Zugriffe und Verknüpfungen stets auf den aktuellen Workspace begrenzen. Gastzugang per Cookie, optionale Benutzerkonten, Datenexport und vollständige Löschung erhalten; inaktive Gäste werden nach drei Monaten gelöscht.

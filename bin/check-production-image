@@ -1,0 +1,35 @@
+#!/bin/bash
+set -euo pipefail
+
+# Ausschließlich ein eigener Testcontainer mit leerem, temporärem Volume.
+image="kleinunternehmerzentrale:production-check"
+container="kleinunternehmerzentrale-check-$$"
+cleanup() {
+  if [ "$?" -ne 0 ]; then docker logs "$container" 2>/dev/null || true; fi
+  docker rm --force --volumes "$container" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+docker build --tag "$image" .
+docker run --rm --entrypoint /bin/sh "$image" -c '
+  test ! -e config/master.key &&
+  test ! -d .kamal &&
+  test ! -d test &&
+  test -z "$(find storage -type f ! -name .keep -print -quit)"
+'
+docker run --detach --name "$container" \
+  --publish 127.0.0.1::80 \
+  --env SECRET_KEY_BASE="$(openssl rand -hex 64)" \
+  --env APP_DOMAIN=kleinunternehmerzentrale.de \
+  --env SOLID_QUEUE_IN_PUMA=true \
+  --mount type=volume,destination=/rails/storage \
+  "$image"
+port=$(docker port "$container" 80/tcp | awk -F: '{print $NF}')
+for attempt in $(seq 1 60); do
+  if curl --fail --silent --connect-timeout 2 --max-time 5 "http://127.0.0.1:$port/up"; then
+    curl --fail --silent --connect-timeout 2 --max-time 10 --header 'Host: kleinunternehmerzentrale.de' "http://127.0.0.1:$port/" > /dev/null
+    exit 0
+  fi
+  sleep 2
+done
+exit 1

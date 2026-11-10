@@ -13,6 +13,13 @@
 # Ignore all default key files.
 /config/master.key
 /config/credentials/*.key
+**/.DS_Store
+/.agents
+/.codex
+/test
+/docs
+/AGENTS.md
+/README.md
 
 # Ignore all logfiles and tempfiles.
 /log/*

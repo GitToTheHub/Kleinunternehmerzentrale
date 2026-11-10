@@ -58,7 +58,7 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_DOMAIN", "example.com") }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_DOMAIN", "kleinunternehmerzentrale.de"), protocol: "https" }
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   if ENV["SMTP_ADDRESS"].present?
@@ -83,7 +83,7 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts = [ ENV["APP_DOMAIN"] ].compact
+  config.hosts = [ ENV.fetch("APP_DOMAIN", "kleinunternehmerzentrale.de") ]
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

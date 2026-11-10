@@ -4,6 +4,19 @@ on:
   pull_request:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      setup:
+        description: Erstinstallation mit Kamal setup durchführen
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   scan_ruby:
@@ -71,12 +84,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # services:
-    #  redis:
-    #    image: valkey/valkey:8
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
@@ -93,8 +100,6 @@ jobs:
         env:
           RAILS_ENV: test
           PARALLEL_WORKERS: 1
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
 
       - name: Set up Node
@@ -105,8 +110,67 @@ jobs:
       - name: Run JavaScript tests
         run: node --test test/javascript/*.mjs
 
-      - name: Run invoice browser tests
+      - name: Run system tests
         env:
           RAILS_ENV: test
           PARALLEL_WORKERS: 1
         run: bin/rails test:system
+
+  production_image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Produktionsimage bauen und mit leerer Datenbank starten
+        run: bash bin/check-production-image
+
+  deploy:
+    needs: [scan_ruby, scan_js, lint, test, production_image]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://kleinunternehmerzentrale.de
+    env:
+      DEPLOY_SERVER_IP: ${{ vars.DEPLOY_SERVER_IP }}
+      DEPLOY_SSH_USER: ${{ vars.DEPLOY_SSH_USER || 'root' }}
+      DEPLOY_SSH_KEY_PATH: /home/runner/.ssh/deploy_key
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_ADDRESS: ${{ vars.SMTP_ADDRESS || 'mail.your-server.de' }}
+      SMTP_PORT: ${{ vars.SMTP_PORT || '587' }}
+      FIRST_SETUP: ${{ inputs.setup || false }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Deployment-Zugänge prüfen und SSH vorbereiten
+        run: |
+          : "${DEPLOY_SERVER_IP:?GitHub-Variable DEPLOY_SERVER_IP fehlt}"
+          : "${DEPLOY_SSH_PRIVATE_KEY:?Secret DEPLOY_SSH_PRIVATE_KEY fehlt}"
+          : "${DEPLOY_SSH_KNOWN_HOSTS:?Secret DEPLOY_SSH_KNOWN_HOSTS fehlt}"
+          : "${RAILS_MASTER_KEY:?Secret RAILS_MASTER_KEY fehlt}"
+          : "${SMTP_USERNAME:?Secret SMTP_USERNAME fehlt}"
+          : "${SMTP_PASSWORD:?Secret SMTP_PASSWORD fehlt}"
+          install -m 700 -d /home/runner/.ssh
+          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" > "$DEPLOY_SSH_KEY_PATH"
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > /home/runner/.ssh/known_hosts
+          chmod 600 "$DEPLOY_SSH_KEY_PATH" /home/runner/.ssh/known_hosts
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes \
+            -i "$DEPLOY_SSH_KEY_PATH" "$DEPLOY_SSH_USER@$DEPLOY_SERVER_IP" true
+      - name: Geprüften Commit veröffentlichen
+        run: |
+          if [ "$FIRST_SETUP" = true ]; then
+            bin/kamal setup
+          else
+            bin/kamal deploy
+          fi
+      - name: Öffentliche Erreichbarkeit prüfen
+        run: curl --fail --connect-timeout 10 --max-time 30 --retry 5 --retry-delay 3 https://kleinunternehmerzentrale.de/up
