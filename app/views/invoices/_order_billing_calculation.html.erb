@@ -1,4 +1,15 @@
-<div class="order-billing-calculation" data-order-billing-target="calculation" hidden>
+<% linked_order_calculation = @invoice.sales_document_id.present? && @invoice.partial_invoice? && !@invoice.position_based? %>
+<% total = @invoice.sales_document&.total_amount || 0 %>
+<% prior = @invoice.sales_document&.active_invoices&.select(&:partial_invoice?)&.sum(&:total) || 0 %>
+<% paid = @invoice.sales_document&.active_invoices&.select(&:partial_invoice?)&.sum { |invoice| invoice.payment_entry&.amount || 0 } || 0 %>
+<% requested = if @invoice.allocation_mode == "amount"
+  @invoice.allocation_amount || 0
+elsif @invoice.allocation_percent
+  (total * @invoice.allocation_percent / 100).round(2)
+else
+  0
+end %>
+<div class="order-billing-calculation" data-order-billing-target="calculation" <%= "hidden" unless linked_order_calculation %>>
     <div data-order-billing-target="totalFields">
     <div class="form-grid">
       <div class="field"><%= form.label :allocation_mode, "Berechnen nach" %><%= form.select :allocation_mode, [["Prozent des Gesamtpreises", "percent"], ["Fester Betrag", "amount"]], { selected: @invoice.allocation_mode.presence || "percent" }, data: { order_billing_target: "mode" } %></div>
@@ -7,8 +18,9 @@
     </div>
     </div>
     <dl class="order-billing-summary" aria-live="polite">
-      <div data-order-billing-target="priorRow"><dt>Bereits abgerechnet</dt><dd data-order-billing-target="prior">—</dd></div>
-      <div><dt data-order-billing-target="requestedLabel"><%= @invoice.billing_kind == "progress" ? "Dieser Abschlag" : "Diese Anzahlung" %></dt><dd data-order-billing-target="requested">—</dd></div>
-      <div><dt>Danach noch nicht abgerechnet</dt><dd data-order-billing-target="remaining">—</dd></div>
+      <div data-order-billing-target="priorRow" <%= "hidden" if prior.zero? %>><dt>Bereits abgerechnet</dt><dd data-order-billing-target="prior"><%= invoice_money(prior, @invoice) %></dd></div>
+      <div data-order-billing-target="priorPaidRow" <%= "hidden" if paid.zero? %>><dt>Davon bereits bezahlt</dt><dd data-order-billing-target="priorPaid"><%= invoice_money(paid, @invoice) %></dd></div>
+      <div><dt data-order-billing-target="requestedLabel"><%= @invoice.billing_kind == "progress" ? "Dieser Abschlag" : "Diese Anzahlung" %></dt><dd data-order-billing-target="requested"><%= linked_order_calculation ? invoice_money(requested, @invoice) : "—" %></dd></div>
+      <div><dt>Danach noch nicht abgerechnet</dt><dd data-order-billing-target="remaining"><%= linked_order_calculation ? invoice_money([ total - prior - requested, 0 ].max, @invoice) : "—" %></dd></div>
     </dl>
 </div>

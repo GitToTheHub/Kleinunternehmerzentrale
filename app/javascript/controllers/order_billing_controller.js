@@ -2,8 +2,8 @@ import { Controller } from "@hotwired/stimulus"
 import { parsePrice, formatPrice } from "price_input"
 
 export default class extends Controller {
-  static targets = ["panel", "enabled", "calculation", "mode", "percentField", "amountField", "percent", "amount", "total", "requested", "requestedLabel", "remaining", "priorRow", "prior", "positionsHeading", "scopeTotalLabel", "scopeHint", "basis", "totalFields"]
-  static values = { linked: Boolean, total: Number, prior: Number }
+  static targets = ["panel", "enabled", "calculation", "mode", "percentField", "amountField", "percent", "amount", "total", "requested", "requestedLabel", "remaining", "priorRow", "prior", "priorPaidRow", "priorPaid", "positionsHeading", "scopeTotalLabel", "scopeHint", "basis", "totalFields"]
+  static values = { linked: Boolean, total: Number, prior: Number, priorPaid: Number }
 
   connect() {
     this.positionValues = JSON.parse(this.panelTarget.dataset.initialValues || "{}")
@@ -61,6 +61,8 @@ export default class extends Controller {
     this.remainingTarget.textContent = money(this.roundMoney(total - this.priorValue - requested))
     this.priorRowTarget.hidden = this.priorValue === 0
     this.priorTarget.textContent = money(this.priorValue)
+    this.priorPaidRowTarget.hidden = this.priorPaidValue === 0
+    this.priorPaidTarget.textContent = money(this.priorPaidValue)
   }
   chooseBasis(event) {
     this.enabledTarget.value = event.currentTarget.value === "direct" ? "0" : "1"

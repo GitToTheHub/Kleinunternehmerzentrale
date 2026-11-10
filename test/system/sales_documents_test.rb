@@ -48,6 +48,12 @@ class SalesDocumentsTest < ApplicationSystemTestCase
     click_button "Rechnung als bezahlt markieren"
     assert_no_selector "dialog[open]"
     visit invoice_path(advance)
+    click_link "Weitere Anzahlung erstellen"
+    assert_selector "[data-order-billing-target=prior]", text: "400,00"
+    assert_selector "[data-order-billing-target=priorPaid]", text: "400,00"
+    assert_selector "[data-order-billing-target=requested]", text: "400,00"
+    assert_selector "[data-order-billing-target=remaining]", text: "0,00"
+    visit invoice_path(advance)
     click_link "Schlussrechnung erstellen"
     assert_checked_field "invoice_billing_kind_final"
     assert_text "Anpassungen am Teilnehmermanagement"
