@@ -16,6 +16,8 @@ class EuerBookkeepingTest < ApplicationSystemTestCase
     assert_no_select "Art des Vorgangs"
     assert_no_select "Steuerliche Kategorie"
     fill_in "Zurückgezahlter Betrag in Euro", with: "40"
+    assert page.evaluate_script("document.querySelector('form').checkValidity()"), page.evaluate_script("Array.from(document.querySelectorAll(':invalid')).map(input => [input.id, input.validationMessage, input.value])").inspect
+    find_button("Rückzahlung speichern").evaluate_script("this.scrollIntoView({block: 'center', behavior: 'instant'})")
     click_button "Rückzahlung speichern"
     assert_text "Rückzahlung gespeichert und in der EÜR berücksichtigt."
     assert_text "Zurückgezahlt: 40,00"
@@ -31,6 +33,7 @@ class EuerBookkeepingTest < ApplicationSystemTestCase
     assert_selector ".date-picker--enhanced"
     assert_field "Zurückgezahlter Betrag in Euro", with: "40,00"
     fill_in "Zurückgezahlter Betrag in Euro", with: "50"
+    find_button("Rückzahlung speichern").evaluate_script("this.scrollIntoView({block: 'center', behavior: 'instant'})")
     click_button "Rückzahlung speichern"
     assert_text "Vorgang aktualisiert."
     assert_equal 50, refund.reload.amount
