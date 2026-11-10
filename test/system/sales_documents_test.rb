@@ -53,6 +53,14 @@ class SalesDocumentsTest < ApplicationSystemTestCase
     assert_selector "[data-order-billing-target=priorPaid]", text: "400,00"
     assert_selector "[data-order-billing-target=requested]", text: "400,00"
     assert_selector "[data-order-billing-target=remaining]", text: "0,00"
+    click_button "Vorschau"
+    within_frame("invoice-preview-frame") do
+      assert_selector ".invoice-table tfoot", text: "Bereits abgerechnet mit #{advance.invoice_number}"
+      assert_selector ".invoice-table tfoot", text: "Davon bereits bezahlt (Stand dieser Rechnung)"
+      assert_selector ".invoice-table tfoot tr", text: /Nach dieser Rechnung noch nicht abgerechnet.*0,00/m
+      assert_selector ".invoice-table tfoot tr", text: /Mit dieser Rechnung zu zahlen.*400,00/m
+    end
+    click_button "Vorschau schließen"
     visit invoice_path(advance)
     click_link "Schlussrechnung erstellen"
     assert_checked_field "invoice_billing_kind_final"

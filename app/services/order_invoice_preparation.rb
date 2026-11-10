@@ -44,6 +44,13 @@ class OrderInvoicePreparation
         prepare_total(invoice, scope, document)
       end
       return invoice if invoice.order_preparation_error
+      if document
+        previous = document.active_invoices.select(&:partial_invoice?)
+        invoice.order_snapshot["previous_invoices"] = previous.map do |item|
+          { "number" => item.invoice_number, "amount" => item.total.to_s("F"),
+            "paid_amount" => (item.payment_entry&.amount || 0.to_d).to_s("F") }
+        end
+      end
     else
       invoice.invoice_lines.clear
       lines.each { |line| invoice.invoice_lines.build(line) }

@@ -43,5 +43,13 @@
           <% end %>
           <tr><th colspan="<%= columns %>">Restbetrag</th><th><%= invoice_money(@invoice.payment_total, @invoice) %></th></tr>
         <% end %>
+        <% if @invoice.partial_invoice? && !@invoice.cancellation? && (previous = @invoice.order_snapshot["previous_invoices"]).present? %>
+          <% previous.each do |item| %>
+            <tr><td colspan="<%= columns %>">Bereits abgerechnet mit <%= item.fetch("number") %></td><td><%= invoice_money(item.fetch("amount").to_d, @invoice) %></td></tr>
+          <% end %>
+          <tr><td colspan="<%= columns %>">Davon bereits bezahlt (Stand dieser Rechnung)</td><td><%= invoice_money(previous.sum { |item| item.fetch("paid_amount").to_d }, @invoice) %></td></tr>
+          <tr><td colspan="<%= columns %>">Nach dieser Rechnung noch nicht abgerechnet</td><td><%= invoice_money(@invoice.order_total - previous.sum { |item| item.fetch("amount").to_d } - @invoice.total, @invoice) %></td></tr>
+          <tr><th colspan="<%= columns %>">Mit dieser Rechnung zu zahlen</th><th><%= invoice_money(@invoice.payment_total, @invoice) %></th></tr>
+        <% end %>
       </tfoot>
     </table>

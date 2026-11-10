@@ -64,6 +64,9 @@ class SalesDocumentTest < ActiveSupport::TestCase
     assert_equal 800.to_d, order.total_amount
     assert_equal 800.to_d, order.invoice_view.invoice_lines.sole.unit_price
     assert_equal 400.to_d, invoice.reload.payment_total
+    next_advance = OrderInvoicePreparation.new(workspace, attributes_for_scope.merge("sales_document_id" => order.id, "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50")).call
+    assert_equal [ { "number" => invoice.invoice_number, "amount" => "400.0", "paid_amount" => "0.0" } ], next_advance.order_snapshot.fetch("previous_invoices")
+    assert_equal 400.to_d, next_advance.payment_total
     assert_not order.update(data: order.data.merge("title" => "Geändert"))
     cancellation = invoice.build_cancellation
     cancellation.save!
