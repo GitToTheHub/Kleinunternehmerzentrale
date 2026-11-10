@@ -1,0 +1,3 @@
+<% if (summary = invoice_order_payment_summary(invoice)) %>
+  <span class="invoice-list__relation invoice-list__order-payment">Auftrag: <%= invoice_money(summary[:paid], invoice) %> von <%= invoice_money(summary[:total], invoice) %> bezahlt · <%= summary[:outstanding].zero? ? "vollständig bezahlt" : "noch #{invoice_money(summary[:outstanding], invoice)} zu zahlen" %></span>
+<% end %>

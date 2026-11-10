@@ -27,7 +27,7 @@
       <span class="invoice-list__customer invoice-draft-card__customer"><%= draft.data["buyer_name"].presence || "Kunde noch nicht angegeben" %></span>
       <span class="invoice-list__date"><%= draft_invoice.issued_on&.strftime("%d.%m.%Y") %></span>
       <div class="invoice-list__amount invoice-draft-card__amount">
-        <strong><%= invoice_money(draft_invoice.total, draft_invoice) %></strong>
+        <strong><%= invoice_money(draft_invoice.total, draft_invoice) %><% if draft_invoice.order_total %> <span>von <%= invoice_money(draft_invoice.order_total, draft_invoice) %></span><% end %></strong>
         <div class="invoice-draft-card__actions">
           <%= button_to discard_invoice_draft_invoices_path(draft_id: draft.id), method: :delete, class: "button button--warning invoice-draft-card__delete", aria: { label: "Verwerfen" }, title: "Verwerfen", form: { data: { turbo_confirm: "Entwurf wirklich verwerfen? Die gespeicherten Angaben gehen dabei verloren." } } do %>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>
@@ -36,6 +36,7 @@
       </div>
       <div class="invoice-list__details">
         <%= render "invoices/service_period_summary", invoice: draft_invoice %>
+        <%= render "invoices/order_payment_summary", invoice: draft_invoice %>
         <% if (original = draft.workspace.invoices.includes(:cancellation).find_by(id: draft_invoice.corrected_invoice_id)) %>
           <span class="invoice-list__relation">Korrigiert Rechnung <%= link_to original.invoice_number, invoice_path(original) %><% if original.cancellation %> (storniert durch <%= link_to original.cancellation.invoice_number, invoice_path(original.cancellation) %>)<% end %></span>
         <% end %>
@@ -72,6 +73,7 @@
           <strong class="invoice-list__amount <%= 'invoice-list__amount--cancelled' if invoice.cancellation %>"><%= invoice_money(invoice.payment_total, invoice) %><% if billing && billing[:total] %> <span>von <%= invoice_money(billing[:total], invoice) %></span><% end %></strong>
           <div class="invoice-list__details">
             <%= render "invoices/service_period_summary", invoice: invoice %>
+            <%= render "invoices/order_payment_summary", invoice: invoice %>
             <% if billing && billing[:count] > 1 %>
               <span class="invoice-list__relation">Insgesamt berechnet: <%= invoice_money(billing[:billed], invoice) %><% if billing[:total] %> von <%= invoice_money(billing[:total], invoice) %><% end %></span>
             <% end %>

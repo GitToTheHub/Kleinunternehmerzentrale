@@ -185,7 +185,7 @@ class SalesDocumentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "Entwurfsuebersicht berechnet Anzahlungen aus dem Gesamtauftrag ohne eigene Positionen" do
-    post invoices_url, params: { invoice: scope_params.merge("order_based" => "1", "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50") }
+    post invoices_url, params: { invoice: scope_params.merge("order_based" => "1", "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50", "paid" => "1", "received_on" => Date.current) }
     assert_response :redirect
     order = Invoice.last.sales_document
     input = scope_params.except("invoice_lines_attributes").merge("sales_document_id" => order.id, "billing_kind" => "advance", "allocation_mode" => "percent", "allocation_percent" => "50")
@@ -194,8 +194,13 @@ class SalesDocumentsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference [ "Invoice.count", "SalesDocument.count", "BookkeepingEntry.count" ] do
       get invoices_url
       assert_response :success
-      assert_select ".invoice-draft-card__amount strong", text: "400,00 €"
+      assert_select ".invoice-draft-card__amount strong", text: "400,00 € von 800,00 €"
+      assert_select ".invoice-draft-card .invoice-list__order-payment", text: "Auftrag: 400,00 € von 800,00 € bezahlt · noch 400,00 € zu zahlen"
     end
+    post invoices_url, params: { invoice: input.merge("customer_id" => Invoice.last.customer_id, "customer_update_mode" => "invoice_only", "paid" => "1", "received_on" => Date.current) }
+    assert_response :redirect
+    get invoices_url
+    assert_select "#invoice_#{Invoice.last.id} .invoice-list__order-payment", text: "Auftrag: 800,00 € von 800,00 € bezahlt · vollständig bezahlt"
   end
 
   test "server berechnet Anzahlung und Rest und verhindert doppelte Vollabrechnung" do
