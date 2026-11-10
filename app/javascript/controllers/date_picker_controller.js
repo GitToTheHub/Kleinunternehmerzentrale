@@ -7,6 +7,12 @@ export default class extends Controller {
   connect() {
     this.inDialog = Boolean(this.element.closest("dialog"))
     if (this.inDialog) this.calendarTarget.setAttribute("popover", "manual")
+    // Keep pointer clicks from blurring the field before the calendar button's
+    // click runs (some browsers report no relatedTarget for button focus).
+    this.keepCalendarFocus = event => {
+      if (event.button === 0 && event.target.closest("button")) event.preventDefault()
+    }
+    this.calendarTarget.addEventListener("pointerdown", this.keepCalendarFocus)
     this.textInput = document.createElement("input")
     this.textInput.type = "text"
     this.textInput.id = `${this.inputTarget.id}_display`
@@ -39,6 +45,7 @@ export default class extends Controller {
     window.visualViewport?.removeEventListener("resize", this.reposition)
     window.visualViewport?.removeEventListener("scroll", this.reposition)
     this.observer?.disconnect()
+    this.calendarTarget.removeEventListener("pointerdown", this.keepCalendarFocus)
     this.textInput?.remove()
     this.inputTarget.type = "date"
     if (this.label) this.label.htmlFor = this.inputTarget.id

@@ -15,6 +15,19 @@ class InvoicePaymentsSystemTest < ApplicationSystemTestCase
     @invoice.save!
   end
 
+  test "Kalendertag im Zahlungsdialog wird in das Zahlungsdatum uebernommen" do
+    visit invoice_path(@invoice)
+    click_link "Als bezahlt markieren"
+    find_field("Datum des Zahlungseingangs").click
+    chosen = Date.current - 1
+    day = find(".payment-dialog button[data-date='#{chosen.iso8601}']")
+    page.driver.browser.action.move_to(day.native).click_and_hold.perform
+    assert_field "Datum des Zahlungseingangs", focused: true
+    page.driver.browser.action.release.perform
+    assert_field "Datum des Zahlungseingangs", with: chosen.strftime("%d.%m.%Y")
+    assert_selector "#bookkeeping_entry_paid_on[value='#{chosen.iso8601}']", visible: :all
+  end
+
   test "mobile Rechnungsliste zeigt Nummer und Kunde untereinander und Datum neben Betrag" do
     invoice = @invoice.workspace.invoices.new(@invoice.attributes.except("id", "invoice_number", "created_at", "updated_at", "customer_id").merge(
       invoice_number_format: "ABE-2026-10-19-02", buyer_name: "AngelTeiche Beverstedt", title: "IT-Support, Webseite"))
